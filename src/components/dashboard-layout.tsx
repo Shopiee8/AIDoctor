@@ -12,22 +12,101 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-  SidebarInset,
 } from '@/components/ui/sidebar';
-import { Stethoscope } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Stethoscope, LayoutDashboard, HeartPulse, ClipboardPlus, Calendar, FileText, Bot, FileClock, Bell, MessageSquare, Send, Users, Settings } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/types';
 
-interface DashboardLayoutProps {
-  children: React.ReactNode;
-  navItems: NavItem[];
-  userRole: string;
+const patientNavItems: NavItem[] = [
+  {
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Post-Op Follow-Up",
+    href: "/dashboard/post-op-follow-up",
+    icon: HeartPulse,
+  },
+  {
+    title: "Automated Patient Intake",
+    href: "/dashboard/patient-intake",
+    icon: ClipboardPlus,
+  },
+  {
+    title: "Appointments",
+    href: "/dashboard/appointments",
+    icon: Calendar,
+  },
+  {
+    title: "Care Plan",
+    href: "/dashboard/care-plan",
+    icon: FileText,
+  },
+];
+
+const doctorNavItems: NavItem[] = [
+  {
+    title: "Dashboard",
+    href: "/doctor/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "AI Consults",
+    href: "/doctor/dashboard",
+    icon: MessageSquare,
+  },
+  {
+    title: "Referrals",
+    href: "/doctor/dashboard/referrals",
+    icon: Send,
+  },
+  {
+    title: "MDT Meetings",
+    href: "/doctor/dashboard/meetings",
+    icon: Users,
+  },
+];
+
+const adminNavItems: NavItem[] = [
+  {
+    title: "Dashboard",
+    href: "/admin/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Agent Management",
+    href: "/admin/dashboard/agents",
+    icon: Bot,
+  },
+  {
+    title: "System Logs",
+    href: "/admin/dashboard/logs",
+    icon: FileClock,
+  },
+  {
+    title: "Alerts",
+    href: "/admin/dashboard", 
+    icon: Bell,
+  },
+];
+
+
+const navItemsMap: Record<string, NavItem[]> = {
+    'Patient': patientNavItems,
+    'Doctor': doctorNavItems,
+    'Admin': adminNavItems,
 }
 
-export function DashboardLayout({ children, navItems, userRole }: DashboardLayoutProps) {
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+  userRole: 'Patient' | 'Doctor' | 'Admin';
+}
+
+export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
   const pathname = usePathname();
+  const navItems = navItemsMap[userRole] || [];
 
   return (
     <SidebarProvider>
@@ -47,8 +126,8 @@ export function DashboardLayout({ children, navItems, userRole }: DashboardLayou
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href}
-                  className={cn(pathname === item.href && "bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary")}
+                  isActive={pathname === item.href || (item.href !== '/doctor/dashboard' && item.href !== '/admin/dashboard' && pathname.startsWith(item.href))}
+                  className={cn((pathname === item.href || (item.href !== '/doctor/dashboard' && item.href !== '/admin/dashboard' && pathname.startsWith(item.href))) && "bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary")}
                 >
                   <Link href={item.href}>
                     <item.icon className="w-4 h-4" />
@@ -64,7 +143,7 @@ export function DashboardLayout({ children, navItems, userRole }: DashboardLayou
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <Link href="#">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2.82l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2.82l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <Settings className="w-4 h-4" />
                   <span>Settings</span>
                 </Link>
               </SidebarMenuButton>
