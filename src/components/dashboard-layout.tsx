@@ -12,6 +12,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarInset,
 } from '@/components/ui/sidebar';
 import { Stethoscope, LayoutDashboard, HeartPulse, ClipboardPlus, Calendar, FileText, Bot, FileClock, Bell, MessageSquare, Send, Users, Settings } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard-header';
