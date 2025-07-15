@@ -30,7 +30,7 @@ export function HomeBanner() {
        <div className="container px-4 md:px-6 relative z-10 mx-auto">
         <div className="absolute inset-0 z-0 opacity-10">
             <Image
-              src="/assets/img/abstract-background.png"
+              src="/assets/img/download.jiffi"
               alt="abstract background"
               fill
               className="object-cover pointer-events-none"
@@ -114,7 +114,7 @@ export function HomeBanner() {
           </div>
           <div className="relative hidden lg:block">
             <Image
-              src="/assets/img/hero-banner-1.png"
+              src="/assets/img/ai doctor.png"
               alt="AI Doctor attending to a patient"
               width={500}
               height={600}
