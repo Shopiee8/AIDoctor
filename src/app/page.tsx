@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LandingHeader } from "@/components/landing-header";
-import { LandingFooter } from "@/components/landing-footer";
+import { Footer } from "@/components/home/footer";
 import Image from "next/image";
-import { ArrowRight, CheckCircle, Bot, Users, ShieldCheck } from "lucide-react";
+import { ArrowRight, Bot, Users, ShieldCheck, CircleCheckBig } from "lucide-react";
 import Link from "next/link";
 import HomeBanner from "@/components/home/home-banner";
 
@@ -78,15 +78,15 @@ export default function Home() {
                     </p>
                     <ul className="grid gap-3 py-4">
                         <li className="flex items-center gap-3">
-                            <CheckCircle className="w-5 h-5 text-primary" />
+                            <CircleCheckBig className="w-5 h-5 text-primary" />
                             <span>Trained on proprietary healthcare data</span>
                         </li>
                         <li className="flex items-center gap-3">
-                            <CheckCircle className="w-5 h-5 text-primary" />
+                            <CircleCheckBig className="w-5 h-5 text-primary" />
                             <span>Continuously monitored by human clinicians</span>
                         </li>
                         <li className="flex items-center gap-3">
-                            <CheckCircle className="w-5 h-5 text-primary" />
+                            <CircleCheckBig className="w-5 h-5 text-primary" />
                             <span>Reduces administrative burden and wait times</span>
                         </li>
                     </ul>
@@ -123,9 +123,8 @@ export default function Home() {
             </div>
           </div>
         </section>
-
       </main>
-      <LandingFooter />
+      <Footer />
     </div>
   );
 }
