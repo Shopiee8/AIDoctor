@@ -26,24 +26,24 @@ export function HomeBanner() {
   };
 
   return (
-    <section className="w-full py-16 md:py-24 lg:py-28 relative overflow-hidden bg-gray-50/50">
+    <section className="w-full py-12 md:py-20 lg:py-24 relative overflow-hidden bg-gray-50/50">
        <div className="container px-4 md:px-6 relative z-10 mx-auto">
         <div className="absolute inset-0 z-0 opacity-10">
             <Image
-              src="https://placehold.co/1920x1080.png"
-              alt="background"
+              src="https://storage.googleapis.com/project-r-assets/1199589/abstract-background.png"
+              alt="abstract background"
               fill
               className="object-cover pointer-events-none"
-              data-ai-hint="abstract background"
+              priority
             />
         </div>
-        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+        <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
           <div className="flex flex-col justify-center space-y-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <div className="flex -space-x-2">
-                <Image width={32} height={32} className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://placehold.co/32x32.png" alt="Doctor 1" data-ai-hint="doctor portrait" />
-                <Image width={32} height={32} className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://placehold.co/32x32.png" alt="Doctor 2" data-ai-hint="doctor portrait" />
-                <Image width={32} height={32} className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://placehold.co/32x32.png" alt="Doctor 3" data-ai-hint="doctor portrait" />
+                <Image width={24} height={24} className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://placehold.co/24x24.png" alt="Doctor 1" data-ai-hint="doctor portrait" />
+                <Image width={24} height={24} className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://placehold.co/24x24.png" alt="Doctor 2" data-ai-hint="doctor portrait" />
+                <Image width={24} height={24} className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://placehold.co/24x24.png" alt="Doctor 3" data-ai-hint="doctor portrait" />
               </div>
               <div>
                 <h6 className="font-semibold text-xs">5K+ Appointments</h6>
@@ -57,14 +57,14 @@ export function HomeBanner() {
                 </div>
               </div>
             </div>
-            <h1 className="text-2xl font-bold tracking-tighter sm:text-3xl xl:text-4xl/none font-headline">
+            <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl xl:text-5xl/none font-headline">
               SmartCare Access: Find Your{' '}
               <span className="relative inline-block">
-                 <Video className="inline-block h-8 w-8 text-primary" />
+                 <Video className="inline-block h-10 w-10 text-primary" />
               </span>{' '}
               <span className="text-primary">AI Doctors</span> Today
             </h1>
-            <div className="rounded-lg bg-card/80 backdrop-blur-sm p-3 shadow-lg border">
+            <div className="rounded-lg bg-card/80 backdrop-blur-sm p-4 shadow-lg border">
               <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-center" id="search-form">
                 <div className="relative col-span-1 md:col-span-2">
                   <Hospital className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -73,7 +73,7 @@ export function HomeBanner() {
                     placeholder="Search doctors, clinics, hospitals, etc"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    className="pl-9 h-9 text-xs"
+                    className="pl-9 h-10 text-sm"
                   />
                 </div>
                 <div className="relative">
@@ -83,7 +83,7 @@ export function HomeBanner() {
                     placeholder="Location"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="pl-9 h-9 text-xs"
+                    className="pl-9 h-10 text-sm"
                   />
                 </div>
                 <Popover>
@@ -91,7 +91,7 @@ export function HomeBanner() {
                     <Button
                       variant={'outline'}
                       className={cn(
-                        'w-full justify-start text-left font-normal h-9 text-xs',
+                        'w-full justify-start text-left font-normal h-10 text-sm',
                         !date && 'text-muted-foreground'
                       )}
                     >
@@ -103,11 +103,11 @@ export function HomeBanner() {
                     <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
                   </PopoverContent>
                 </Popover>
-                 <Button type="submit" size="sm" className="md:hidden h-9 text-xs">
+                 <Button type="submit" className="md:hidden h-10 text-sm">
                   <Search className="mr-2 h-4 w-4" /> Search
                 </Button>
               </form>
-               <Button type="submit" size="sm" className="w-full mt-2 hidden md:flex h-9 text-xs" form="search-form">
+               <Button type="submit" className="w-full mt-2 hidden md:flex h-10 text-sm" form="search-form">
                   <Search className="mr-2 h-4 w-4" /> Search
                 </Button>
             </div>
