@@ -45,11 +45,11 @@ export function Footer() {
     };
 
     const socialLinks = [
-        { href: "#", icon: <Facebook className="h-5 w-5" /> },
-        { href: "#", icon: <Twitter className="h-5 w-5" /> },
-        { href: "#", icon: <Instagram className="h-5 w-5" /> },
-        { href: "#", icon: <Linkedin className="h-5 w-5" /> },
-        { href: "#", icon: <PinterestIcon className="h-5 w-5" /> },
+        { name: "facebook", href: "#", icon: <Facebook className="h-5 w-5" /> },
+        { name: "twitter", href: "#", icon: <Twitter className="h-5 w-5" /> },
+        { name: "instagram", href: "#", icon: <Instagram className="h-5 w-5" /> },
+        { name: "linkedin", href: "#", icon: <Linkedin className="h-5 w-5" /> },
+        { name: "pinterest", href: "#", icon: <PinterestIcon className="h-5 w-5" /> },
     ];
 
     const paymentMethods = [
@@ -100,7 +100,7 @@ export function Footer() {
                                 <h6 className="font-headline font-semibold text-lg mb-4">Connect With Us</h6>
                                 <div className="flex space-x-4">
                                     {socialLinks.map((social) => (
-                                        <Link key={social.href} href={social.href} className="text-muted-foreground hover:text-primary transition-colors">
+                                        <Link key={social.name} href={social.href} className="text-muted-foreground hover:text-primary transition-colors">
                                            {social.icon}
                                         </Link>
                                     ))}
