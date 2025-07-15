@@ -27,8 +27,7 @@ export function HomeBanner() {
 
   return (
     <section className="w-full py-12 md:py-20 lg:py-24 relative overflow-hidden bg-gray-50/50">
-       <div className="container px-4 md:px-6 relative z-10 mx-auto">
-        <div className="absolute inset-0 z-0 opacity-10">
+       <div className="absolute inset-0 z-0 opacity-20">
             <Image
               src="/assets/img/download.jiffi"
               alt="abstract background"
@@ -37,6 +36,7 @@ export function HomeBanner() {
               priority
             />
         </div>
+        <div className="container px-4 md:px-6 relative z-10 mx-auto">
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
           <div className="flex flex-col justify-center space-y-4">
             <div className="flex items-center gap-2">
