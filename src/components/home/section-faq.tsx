@@ -1,3 +1,4 @@
+
 import {
     Accordion,
     AccordionContent,
@@ -37,7 +38,7 @@ const faqData = [
 export function SectionFaq() {
     return (
         <section id="faq" className="py-16 md:py-20 bg-accent">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-6 md:px-8">
                 <div className="section-header text-center mb-10">
                     <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold font-headline mb-2">FAQ’S</span>
                     <h2 className="text-2xl md:text-3xl font-bold font-headline">Your Questions are Answered</h2>

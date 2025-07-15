@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -75,7 +76,7 @@ const doctors = [
 export function SectionDoctor() {
     return (
         <section id="doctors" className="doctor-section py-16 md:py-20 bg-accent">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-6 md:px-8">
                 <div className="section-header text-center mb-10">
                     <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold font-headline mb-2">Our Doctors</span>
                     <h2 className="text-2xl md:text-3xl font-bold font-headline">Meet Our AI and Human Specialists</h2>

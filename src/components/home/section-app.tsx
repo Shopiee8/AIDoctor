@@ -14,7 +14,7 @@ export function SectionApp() {
                     data-ai-hint="abstract geometric"
                 />
             </div>
-            <div className="container relative z-10 mx-auto px-4">
+            <div className="container relative z-10 mx-auto px-6 md:px-8">
                 <div className="bg-primary rounded-2xl shadow-xl overflow-hidden">
                     <div className="grid md:grid-cols-2 items-center">
                         <div className="p-8 md:p-10 lg:p-12 text-white">

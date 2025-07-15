@@ -1,3 +1,4 @@
+
 import Image from "next/image";
 import {
     Accordion,
@@ -33,7 +34,7 @@ const bookingSteps = [
 export function SectionBook() {
     return (
         <section id="features" className="bookus-section bg-background py-16 md:py-20">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-6 md:px-8">
                 <div className="grid lg:grid-cols-2 gap-10 items-center">
                     <div className="bookus-img">
                         <div className="grid grid-cols-2 gap-4">

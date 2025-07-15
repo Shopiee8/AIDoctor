@@ -39,7 +39,7 @@ const articles = [
 export function SectionArticle() {
     return (
         <section className="py-16 md:py-20 bg-gray-50/50">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-6 md:px-8">
                 <div className="section-header sec-header-one text-center mb-10">
                     <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold font-headline mb-2">
                         Blogs and News

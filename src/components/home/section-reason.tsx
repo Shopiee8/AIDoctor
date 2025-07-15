@@ -1,3 +1,4 @@
+
 import { UserCheck, HeartHandshake, CalendarCheck } from 'lucide-react';
 
 const reasons = [
@@ -24,7 +25,7 @@ const reasons = [
 export function SectionReason() {
     return (
         <section className="py-16 md:py-20">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-6 md:px-8">
                 <div className="section-header sec-header-one text-center mb-10">
                     <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold font-headline mb-2">Why Book With Us</span>
                     <h2 className="text-2xl md:text-3xl font-bold font-headline">Compelling Reasons to Choose</h2>

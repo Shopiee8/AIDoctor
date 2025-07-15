@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -71,7 +72,7 @@ export function SectionTestimonial() {
     return (
         <>
             <section className="py-16 md:py-20">
-                <div className="container mx-auto px-4">
+                <div className="container mx-auto px-6 md:px-8">
                     <div className="section-header sec-header-one text-center mb-10">
                         <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold font-headline mb-2">Testimonials</span>
                         <h2 className="text-2xl md:text-3xl font-bold font-headline">15k Users Trust AIDoctor Worldwide</h2>
@@ -132,7 +133,7 @@ export function SectionTestimonial() {
                 </div>
             </section>
             <section className="bg-slate-900 py-12">
-                <div className="container mx-auto px-4">
+                <div className="container mx-auto px-6 md:px-8">
                     <div className="section-header text-center mb-8">
                         <h6 className="text-white/70 font-semibold text-sm">
                             Trusted by 5+ million people at companies like

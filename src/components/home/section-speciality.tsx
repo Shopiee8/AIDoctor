@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -27,7 +28,7 @@ const specialities: { name: string; doctors: number; icon: LucideIcon; type: 'AI
 export function SectionSpeciality() {
     return (
         <section className="py-16 md:py-20 bg-background">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-6 md:px-8">
                 <div className="section-header text-center mb-10">
                     <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold font-headline mb-2">Top Specialties</span>
                     <h2 className="text-2xl md:text-3xl font-bold font-headline">Care Across AI & Human Expertise</h2>

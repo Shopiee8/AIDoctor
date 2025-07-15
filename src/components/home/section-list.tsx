@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import {
     CalendarPlus,
@@ -65,7 +66,7 @@ const listItems = [
 export function SectionList() {
     return (
         <section className="py-10 -mt-12 relative z-20">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-6 md:px-8">
                 <div className="bg-card shadow-lg rounded-lg">
                     <div className="p-6">
                         <div className="flex items-center justify-center xl:justify-between flex-wrap gap-4">
