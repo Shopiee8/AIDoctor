@@ -29,7 +29,7 @@ export function HomeBanner() {
     <section className="w-full py-12 md:py-20 lg:py-24 relative overflow-hidden bg-gray-50/50">
        <div className="absolute inset-0 z-0 opacity-20">
             <Image
-              src="/assets/img/download.jiffi"
+              src="/assets/img/download.jpg"
               alt="abstract background"
               fill
               className="object-cover pointer-events-none"
