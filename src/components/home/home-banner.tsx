@@ -28,7 +28,7 @@ export function HomeBanner() {
   return (
     <section className="w-full py-16 md:py-24 lg:py-28 relative overflow-hidden bg-gray-50/50">
        <div className="container px-4 md:px-6 relative z-10 mx-auto">
-        <div className="absolute inset-0 z-0 opacity-50">
+        <div className="absolute inset-0 z-0 opacity-10">
             <Image
               src="https://placehold.co/1920x1080.png"
               alt="background"
@@ -114,12 +114,11 @@ export function HomeBanner() {
           </div>
           <div className="relative hidden lg:block">
             <Image
-              src="https://placehold.co/500x600.png"
+              src="https://storage.googleapis.com/project-r-assets/1199589/hero-banner-1.png"
               alt="AI Doctor attending to a patient"
               width={500}
               height={600}
               className="rounded-xl object-cover shadow-2xl"
-              data-ai-hint="robot doctor"
               priority
             />
             <div className="absolute -bottom-4 -left-4 bg-card p-2 rounded-lg shadow-lg flex items-center gap-2 border">
