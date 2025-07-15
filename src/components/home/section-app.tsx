@@ -9,9 +9,8 @@ export function SectionApp() {
                 <Image 
                     src="https://placehold.co/1920x600.png"
                     alt="abstract background"
-                    layout="fill"
-                    objectFit="cover"
-                    className="opacity-20"
+                    fill
+                    className="object-cover opacity-20"
                     data-ai-hint="abstract geometric"
                 />
             </div>

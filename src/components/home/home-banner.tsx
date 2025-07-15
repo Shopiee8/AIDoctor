@@ -32,9 +32,8 @@ export function HomeBanner() {
             <Image
               src="https://placehold.co/1920x1080.png"
               alt="background"
-              layout="fill"
-              objectFit="cover"
-              className="pointer-events-none"
+              fill
+              className="object-cover pointer-events-none"
               data-ai-hint="abstract background"
             />
         </div>
