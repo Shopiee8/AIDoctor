@@ -5,6 +5,7 @@ import { LandingFooter } from "@/components/landing-footer";
 import Image from "next/image";
 import { ArrowRight, CheckCircle, Bot, Users, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import HomeBanner from "@/components/home/home-banner";
 
 const features = [
   { icon: <Bot className="w-8 h-8 text-primary" />, title: "AI-Powered Consultations", description: "Engage with advanced AI agents for intake, follow-ups, and more, available 24/7." },
@@ -17,43 +18,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-background">
       <LandingHeader />
       <main className="flex-1">
-        <section className="w-full py-20 md:py-32 lg:py-40 bg-gray-50/50">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
-              <div className="flex flex-col justify-center space-y-6">
-                <div className="space-y-4">
-                  <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
-                    The First Safety-Focused LLM for Healthcare
-                  </h1>
-                  <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    AIDoctor provides super-staffing to health systems, payers, and pharma companies with AI agents that have been trained on proprietary, real-world healthcare data.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button asChild size="lg" className="transition-transform transform hover:scale-105">
-                    <Link href="/register">Request a Demo</Link>
-                  </Button>
-                </div>
-              </div>
-              <div className="relative rounded-xl overflow-hidden shadow-2xl">
-                 <Image
-                  src="https://placehold.co/650x450.png"
-                  alt="AI Doctor in consultation"
-                  width={650}
-                  height={450}
-                  data-ai-hint="doctor virtual"
-                  className="w-full h-full object-cover"
-                />
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-6">
-                   <div className="text-white">
-                      <h3 className="font-bold text-xl font-headline">Generative AI Agent Demo</h3>
-                      <p className="text-sm">Watch our AI in action</p>
-                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <HomeBanner />
 
         <section id="problem" className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6 text-center">

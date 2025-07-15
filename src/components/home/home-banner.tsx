@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -41,9 +42,9 @@ export function HomeBanner() {
           <div className="flex flex-col justify-center space-y-6">
             <div className="flex items-center gap-4">
               <div className="flex -space-x-4">
-                <Image className="inline-block h-12 w-12 rounded-full ring-2 ring-white" src="https://placehold.co/48x48.png" alt="Doctor 1" data-ai-hint="doctor portrait" />
-                <Image className="inline-block h-12 w-12 rounded-full ring-2 ring-white" src="https://placehold.co/48x48.png" alt="Doctor 2" data-ai-hint="doctor portrait" />
-                <Image className="inline-block h-12 w-12 rounded-full ring-2 ring-white" src="https://placehold.co/48x48.png" alt="Doctor 3" data-ai-hint="doctor portrait" />
+                <Image width={48} height={48} className="inline-block h-12 w-12 rounded-full ring-2 ring-white" src="https://placehold.co/48x48.png" alt="Doctor 1" data-ai-hint="doctor portrait" />
+                <Image width={48} height={48} className="inline-block h-12 w-12 rounded-full ring-2 ring-white" src="https://placehold.co/48x48.png" alt="Doctor 2" data-ai-hint="doctor portrait" />
+                <Image width={48} height={48} className="inline-block h-12 w-12 rounded-full ring-2 ring-white" src="https://placehold.co/48x48.png" alt="Doctor 3" data-ai-hint="doctor portrait" />
               </div>
               <div>
                 <h6 className="font-semibold">5K+ Appointments</h6>
@@ -65,7 +66,7 @@ export function HomeBanner() {
               <span className="text-primary">AI Doctors</span> Today
             </h1>
             <div className="rounded-lg bg-card p-4 shadow-lg">
-              <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-center">
+              <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-center" id="search-form">
                 <div className="relative col-span-1 md:col-span-2">
                   <Hospital className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
@@ -107,7 +108,7 @@ export function HomeBanner() {
                   <Search className="mr-2 h-4 w-4" /> Search
                 </Button>
               </form>
-               <Button type="submit" className="w-full mt-2 hidden md:flex" form="search-form" onClick={(e) => handleSearch(e as any)}>
+               <Button type="submit" className="w-full mt-2 hidden md:flex" form="search-form">
                   <Search className="mr-2 h-4 w-4" /> Search
                 </Button>
             </div>
@@ -127,9 +128,9 @@ export function HomeBanner() {
             </div>
              <div className="absolute -top-8 -right-8 bg-card p-4 rounded-lg shadow-lg flex items-center gap-3">
                  <div className="flex -space-x-2">
-                    <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://placehold.co/32x32.png" alt="Patient 1" data-ai-hint="person portrait" />
-                    <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://placehold.co/32x32.png" alt="Patient 2" data-ai-hint="person portrait" />
-                    <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://placehold.co/32x32.png" alt="Patient 3" data-ai-hint="person portrait" />
+                    <Image width={32} height={32} className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://placehold.co/32x32.png" alt="Patient 1" data-ai-hint="person portrait" />
+                    <Image width={32} height={32} className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://placehold.co/32x32.png" alt="Patient 2" data-ai-hint="person portrait" />
+                    <Image width={32} height={32} className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://placehold.co/32x32.png" alt="Patient 3" data-ai-hint="person portrait" />
                  </div>
                 <div>
                   <p className="font-semibold">15K+</p>
