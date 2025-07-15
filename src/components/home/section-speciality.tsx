@@ -9,31 +9,28 @@ import {
     CarouselNext,
     CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Stethoscope, Baby, Brain, Bone, Heart, Smile, UserMd, FlaskConical, GitMerge, Eye, Users, Shield } from "lucide-react";
+import { Stethoscope, Baby, Brain, Bone, Heart, Smile, FlaskConical, GitMerge, Eye, Users, Shield, Bot } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-const specialities: { name: string; doctors: number; icon: LucideIcon }[] = [
-    { name: "Cardiology", doctors: 25, icon: Heart },
-    { name: "Orthopedics", doctors: 18, icon: Bone },
-    { name: "Neurology", doctors: 22, icon: Brain },
-    { name: "Pediatrics", doctors: 30, icon: Baby },
-    { name: "Psychiatry", doctors: 15, icon: Shield },
-    { name: "Urology", doctors: 12, icon: GitMerge },
-    { name: "Dentistry", doctors: 45, icon: Smile },
-    { name: "General Medicine", doctors: 50, icon: Stethoscope },
-    { name: "Lab Testing", doctors: 10, icon: FlaskConical },
-    { name: "Ophthalmology", doctors: 8, icon: Eye },
-    { name: "Family Medicine", doctors: 28, icon: Users },
+const specialities: { name: string; doctors: number; icon: LucideIcon; type: 'AI' | 'Human' }[] = [
+    { name: "AI Diagnostics", doctors: 15, icon: Bot, type: 'AI'},
+    { name: "Cardiology", doctors: 25, icon: Heart, type: 'Human' },
+    { name: "Orthopedics", doctors: 18, icon: Bone, type: 'Human' },
+    { name: "AI Mental Health", doctors: 12, icon: Bot, type: 'AI' },
+    { name: "Neurology", doctors: 22, icon: Brain, type: 'Human' },
+    { name: "Pediatrics", doctors: 30, icon: Baby, type: 'Human' },
+    { name: "Dentistry", doctors: 45, icon: Smile, type: 'Human' },
+    { name: "General Medicine", doctors: 50, icon: Stethoscope, type: 'Human' },
 ];
 
 
 export function SectionSpeciality() {
     return (
-        <section className="py-16 md:py-20 bg-gray-50/50">
+        <section className="py-16 md:py-20 bg-background">
             <div className="container mx-auto px-4">
-                <div className="section-header sec-header-one text-center mb-10">
+                <div className="section-header text-center mb-10">
                     <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold font-headline mb-2">Top Specialties</span>
-                    <h2 className="text-2xl md:text-3xl font-bold font-headline">Highlighting the Care & Support</h2>
+                    <h2 className="text-2xl md:text-3xl font-bold font-headline">Care Across AI & Human Expertise</h2>
                 </div>
                 <Carousel
                     opts={{
@@ -56,13 +53,13 @@ export function SectionSpeciality() {
                                                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                                 data-ai-hint="medical specialty"
                                             />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                                            <div className="absolute bottom-3 left-3 text-white">
-                                                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mb-1.5 backdrop-blur-sm">
-                                                    <spec.icon className="w-6 h-6 text-white" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                                            <div className="absolute bottom-4 left-4 text-white">
+                                                <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-2 backdrop-blur-sm ${spec.type === 'AI' ? 'bg-primary/30' : 'bg-white/20'}`}>
+                                                    <spec.icon className="w-7 h-7 text-white" />
                                                 </div>
-                                                <h6 className="font-semibold text-base">{spec.name}</h6>
-                                                <p className="text-xs text-white/80">{spec.doctors} Doctors</p>
+                                                <h6 className="font-semibold text-base font-headline">{spec.name}</h6>
+                                                <p className="text-xs text-white/80">{spec.type === 'AI' ? 'AI-Powered' : `${spec.doctors} Doctors`}</p>
                                             </div>
                                         </div>
                                     </Link>

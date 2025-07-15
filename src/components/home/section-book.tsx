@@ -5,49 +5,45 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Search, UserCheck, Calendar, Lightbulb, ChevronRight } from "lucide-react";
+import { Search, Bot, UserCheck, CalendarCheck, Sparkles, HeartHandshake, BrainCircuit } from "lucide-react";
 
 const bookingSteps = [
     {
         icon: Search,
-        title: "Search For Doctors",
-        description: "Search for a doctor based on specialization, location, or availability for your Treatements",
-        bgColor: "bg-primary"
+        title: "1. Search Doctor",
+        description: "Find AI or Human specialists by name, condition, or location.",
     },
     {
         icon: UserCheck,
-        title: "Check Doctor Profile",
-        description: "Explore detailed doctor profiles on our platform to make informed healthcare decisions.",
-        bgColor: "bg-orange-500"
+        title: "2. View Profile",
+        description: "Review profiles, ratings, and expertise to choose the right doctor for you.",
     },
     {
-        icon: Calendar,
-        title: "Schedule Appointment",
-        description: "After choose your preferred doctor, select a convenient time slot, & confirm your appointment.",
-        bgColor: "bg-cyan-500"
+        icon: CalendarCheck,
+        title: "3. Book a Slot",
+        description: "Select a convenient time and confirm your appointment instantly.",
     },
     {
-        icon: Lightbulb,
-        title: "Get Your Solution",
-        description: "Discuss your health concerns with the doctor and receive the personalized advice & with solution.",
-        bgColor: "bg-indigo-500"
+        icon: Sparkles,
+        title: "4. Get Care",
+        description: "Connect with your doctor and receive personalized, high-quality care.",
     }
 ];
 
 export function SectionBook() {
     return (
-        <section className="bookus-section bg-slate-900 text-white py-16 md:py-20">
+        <section id="features" className="bookus-section bg-background py-16 md:py-20">
             <div className="container mx-auto px-4">
                 <div className="grid lg:grid-cols-2 gap-10 items-center">
                     <div className="bookus-img">
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="col-span-2">
                                 <Image
                                     src="https://placehold.co/500x275.png"
                                     alt="Doctor with patient"
                                     width={500}
                                     height={275}
-                                    className="img-fluid rounded-lg object-cover w-full"
+                                    className="rounded-lg object-cover w-full shadow-lg"
                                     data-ai-hint="doctor patient"
                                 />
                             </div>
@@ -57,7 +53,7 @@ export function SectionBook() {
                                     alt="Medical equipment"
                                     width={240}
                                     height={240}
-                                    className="img-fluid rounded-lg object-cover w-full aspect-square"
+                                    className="rounded-lg object-cover w-full aspect-square shadow-lg"
                                     data-ai-hint="medical equipment"
                                 />
                             </div>
@@ -67,61 +63,81 @@ export function SectionBook() {
                                     alt="Hospital hallway"
                                     width={240}
                                     height={240}
-                                    className="img-fluid rounded-lg object-cover w-full aspect-square"
+                                    className="rounded-lg object-cover w-full aspect-square shadow-lg"
                                     data-ai-hint="hospital hallway"
                                 />
                             </div>
                         </div>
                     </div>
                     <div>
-                        <div className="section-header mb-4">
-                            <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold font-headline mb-2">Why Book With Us</span>
+                        <div className="section-header mb-6">
+                            <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold font-headline mb-2">How It Works</span>
                             <h2 className="text-2xl md:text-3xl font-bold font-headline mb-3">
-                                We are committed to understanding your{" "}
-                                <span className="text-primary">
-                                    unique needs and delivering care.
-                                </span>
+                                Seamless Care in 4 Simple Steps
                             </h2>
+                            <p className="text-muted-foreground text-sm">
+                                We've designed our platform to be intuitive and user-friendly, allowing you to access both AI and human healthcare professionals with ease.
+                            </p>
                         </div>
-                        <p className="text-slate-300 mb-5 text-sm">
-                            As a trusted healthcare provider in our community, we are passionate about promoting health and wellness beyond the clinic. We actively engage in community outreach programs, health fairs, and educational workshops.
-                        </p>
-                        <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
-                            <AccordionItem value="item-1" className="border-slate-700">
-                                <AccordionTrigger className="hover:no-underline text-base">01. Our Vision</AccordionTrigger>
-                                <AccordionContent className="text-slate-300 text-sm">
-                                    We envision a community where everyone has access to high-quality healthcare and the resources they need to lead healthy, fulfilling lives.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-2" className="border-slate-700">
-                                <AccordionTrigger className="hover:no-underline text-base">02. Our Mission</AccordionTrigger>
-                                <AccordionContent className="text-slate-300 text-sm">
-                                    To provide compassionate, patient-centered care through innovative technology and a dedicated team of professionals, ensuring positive health outcomes.
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Accordion>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            {bookingSteps.map((step, index) => (
+                                 <div key={index} className="flex items-start gap-4 p-4 rounded-lg bg-card border">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-primary/10 flex-shrink-0">
+                                        <step.icon className="w-5 h-5 text-primary" />
+                                    </div>
+                                    <div>
+                                        <h6 className="text-card-foreground font-semibold mb-1 text-base">{step.title}</h6>
+                                        <p className="text-xs text-muted-foreground">
+                                            {step.description}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
-                <div className="mt-16">
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                        {bookingSteps.map((step, index) => (
-                             <div key={index} className="book-item relative bg-slate-800 p-5 rounded-lg transition-transform hover:-translate-y-1.5">
-                                <div className={`book-icon w-10 h-10 rounded-full flex items-center justify-center ${step.bgColor}`}>
-                                    <step.icon className="w-5 h-5 text-white" />
+
+                <div id="solution" className="mt-24 grid lg:grid-cols-2 gap-10 items-center">
+                    <div className="lg:order-2">
+                        <Image
+                            src="https://placehold.co/500x500.png"
+                            alt="AI and Human doctors collaborating"
+                            width={500}
+                            height={500}
+                            className="rounded-lg object-cover w-full shadow-lg"
+                            data-ai-hint="doctor collaboration"
+                        />
+                    </div>
+                    <div className="lg:order-1">
+                         <div className="section-header mb-6">
+                            <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold font-headline mb-2">Our Solution</span>
+                            <h2 className="text-2xl md:text-3xl font-bold font-headline mb-3">
+                                The Best of Both Worlds: AI & Human Expertise
+                            </h2>
+                            <p className="text-muted-foreground mb-5 text-sm">
+                                Our platform uniquely integrates advanced AI with the irreplaceable empathy of human doctors. This hybrid approach ensures you get fast, accurate, and compassionate healthcare anytime, anywhere.
+                            </p>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0 bg-purple-100 text-purple-600 rounded-full h-8 w-8 flex items-center justify-center">
+                                    <BrainCircuit className="w-5 h-5" />
                                 </div>
-                                <div className="book-info mt-3">
-                                    <h6 className="text-white font-semibold mb-2 text-base">{step.title}</h6>
-                                    <p className="text-xs text-slate-300">
-                                        {step.description}
-                                    </p>
+                                <div>
+                                    <h3 className="font-semibold">AI-Powered Efficiency</h3>
+                                    <p className="text-sm text-muted-foreground">Instant access to AI agents for preliminary diagnoses, follow-ups, and managing your care plan 24/7.</p>
                                 </div>
-                                {index < bookingSteps.length - 1 && (
-                                     <div className="way-icon absolute top-1/2 -right-3 -translate-y-1/2 hidden lg:block">
-                                        <ChevronRight className="w-7 h-7 text-slate-600" />
-                                    </div>
-                                )}
                             </div>
-                        ))}
+                             <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0 bg-teal-100 text-teal-600 rounded-full h-8 w-8 flex items-center justify-center">
+                                    <HeartHandshake className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold">Empathetic Human Care</h3>
+                                    <p className="text-sm text-muted-foreground">Connect with board-certified specialists for complex conditions, in-depth consultations, and personalized treatment.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

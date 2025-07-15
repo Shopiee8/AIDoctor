@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, MapPin, Search, Star, Hospital, Video } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Search, Star, Bot, User } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,7 @@ export function HomeBanner() {
 
   return (
     <section className="w-full py-12 md:py-20 lg:py-24 relative overflow-hidden bg-gray-50/50">
-       <div className="absolute inset-0 z-0 opacity-20">
+       <div className="absolute inset-0 z-0 opacity-10">
             <Image
               src="/assets/img/download.jpg"
               alt="abstract background"
@@ -46,7 +46,7 @@ export function HomeBanner() {
                 <Image width={24} height={24} className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://placehold.co/24x24.png" alt="Doctor 3" data-ai-hint="doctor portrait" />
               </div>
               <div>
-                <h6 className="font-semibold text-xs">5K+ Appointments</h6>
+                <h6 className="font-semibold text-xs">Trusted by 5K+ Patients</h6>
                 <div className="flex items-center gap-0.5">
                     <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
                     <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
@@ -58,19 +58,18 @@ export function HomeBanner() {
               </div>
             </div>
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl xl:text-5xl/none font-headline">
-              SmartCare Access: Find Your{' '}
-              <span className="relative inline-block">
-                 <Video className="inline-block h-10 w-10 text-primary" />
-              </span>{' '}
-              <span className="text-primary">AI Doctors</span> Today
+              Find Your Perfect Doctor: <span className="text-primary">AI</span> or <span className="text-primary">Human</span>
             </h1>
+            <p className="max-w-[600px] text-muted-foreground md:text-xl">
+              Access immediate care from our advanced AI doctors or connect with top-tier human specialists. Your health, your choice.
+            </p>
             <div className="rounded-lg bg-card/80 backdrop-blur-sm p-4 shadow-lg border">
               <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-center" id="search-form">
                 <div className="relative col-span-1 md:col-span-2">
-                  <Hospital className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Search doctors, clinics, hospitals, etc"
+                    placeholder="Search AI doctors, specialists, clinics..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     className="pl-9 h-10 text-sm"
@@ -121,19 +120,22 @@ export function HomeBanner() {
               className="rounded-xl object-cover shadow-2xl"
               priority
             />
-            <div className="absolute -bottom-4 -left-4 bg-card p-2 rounded-lg shadow-lg flex items-center gap-2 border">
-               <h6 className="text-lg font-bold text-primary">1K</h6>
-                <p className="text-xs text-muted-foreground">Appointments<br/>Completed</p>
+            <div className="absolute -bottom-4 -left-4 bg-card p-3 rounded-lg shadow-lg flex items-center gap-3 border">
+               <div className="bg-primary/10 p-2 rounded-full">
+                <Bot className="h-6 w-6 text-primary"/>
+               </div>
+               <div>
+                 <h6 className="text-lg font-bold text-primary">10K+</h6>
+                  <p className="text-xs text-muted-foreground">AI Consults Monthly</p>
+               </div>
             </div>
-             <div className="absolute -top-4 -right-4 bg-card p-2 rounded-lg shadow-lg flex items-center gap-2 border">
-                 <div className="flex -space-x-2">
-                    <Image width={24} height={24} className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://placehold.co/24x24.png" alt="Patient 1" data-ai-hint="person portrait" />
-                    <Image width={24} height={24} className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://placehold.co/24x24.png" alt="Patient 2" data-ai-hint="person portrait" />
-                    <Image width={24} height={24} className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://placehold.co/24x24.png" alt="Patient 3" data-ai-hint="person portrait" />
+             <div className="absolute -top-4 -right-4 bg-card p-3 rounded-lg shadow-lg flex items-center gap-3 border">
+                 <div className="bg-primary/10 p-2 rounded-full">
+                    <User className="h-6 w-6 text-primary"/>
                  </div>
                 <div>
-                  <p className="font-semibold text-xs">15K+</p>
-                  <p className="text-xs text-muted-foreground">Satisfied Patients</p>
+                  <p className="font-semibold text-lg text-primary">500+</p>
+                  <p className="text-xs text-muted-foreground">Human Specialists</p>
                 </div>
             </div>
           </div>
