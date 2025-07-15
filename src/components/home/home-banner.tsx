@@ -27,7 +27,7 @@ export function HomeBanner() {
 
   return (
     <section className="w-full py-16 md:py-24 lg:py-28 relative overflow-hidden bg-gray-50/50">
-      <div className="container px-4 md:px-6 relative z-10 mx-auto">
+       <div className="container px-4 md:px-6 relative z-10 mx-auto">
         <div className="absolute inset-0 z-0 opacity-50">
             <Image
               src="https://placehold.co/1920x1080.png"
@@ -115,7 +115,7 @@ export function HomeBanner() {
           </div>
           <div className="relative hidden lg:block">
             <Image
-              src="/hero-banner-1.png"
+              src="https://storage.googleapis.com/project-r-assets/1199589/hero-banner-1.png"
               alt="AI Doctor attending to a patient"
               width={500}
               height={600}
