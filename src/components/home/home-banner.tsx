@@ -114,7 +114,7 @@ export function HomeBanner() {
           </div>
           <div className="relative hidden lg:block">
             <Image
-              src="https://storage.googleapis.com/project-r-assets/1199589/hero-banner-1.png"
+              src="https://placehold.co/500x600.png"
               alt="AI Doctor attending to a patient"
               width={500}
               height={600}
