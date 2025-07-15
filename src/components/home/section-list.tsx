@@ -63,19 +63,19 @@ const listItems = [
 
 export function SectionList() {
     return (
-        <section className="py-12">
-            <div className="container">
+        <section className="py-10">
+            <div className="container mx-auto px-4">
                 <div className="shadow-lg rounded-lg">
-                    <div className="p-8">
-                        <div className="flex items-center justify-center xl:justify-between flex-wrap gap-6">
+                    <div className="p-6">
+                        <div className="flex items-center justify-center xl:justify-between flex-wrap gap-4">
                             {listItems.map((item, index) => {
                                 const Icon = item.icon;
                                 return (
                                     <Link key={index} href={item.href} className="flex flex-col items-center gap-2 text-center group">
-                                        <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${item.bgColor}`}>
-                                            <Icon className={`w-10 h-10 ${item.iconColor}`} />
+                                        <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${item.bgColor}`}>
+                                            <Icon className={`w-8 h-8 ${item.iconColor}`} />
                                         </div>
-                                        <h6 className="font-semibold text-card-foreground group-hover:text-primary transition-colors">{item.text}</h6>
+                                        <h6 className="font-semibold text-sm text-card-foreground group-hover:text-primary transition-colors">{item.text}</h6>
                                     </Link>
                                 );
                             })}

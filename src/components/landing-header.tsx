@@ -69,14 +69,14 @@ export function LandingHeader() {
     >
       <div className="border-b hidden md:block">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center py-2 text-sm text-muted-foreground">
-            <div className="flex items-center gap-6">
+          <div className="flex justify-between items-center py-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-4">
               <a href="mailto:info@example.com" className="flex items-center gap-2 hover:text-primary">
-                <Mail className="h-4 w-4" />
+                <Mail className="h-3 w-3" />
                 info@example.com
               </a>
               <a href="tel:+16658914556" className="flex items-center gap-2 hover:text-primary">
-                <Phone className="h-4 w-4" />
+                <Phone className="h-3 w-3" />
                 +1 66589 14556
               </a>
             </div>
@@ -93,21 +93,21 @@ export function LandingHeader() {
         </div>
       </div>
       <div className="container mx-auto px-4">
-        <div className="h-20 flex items-center justify-between">
+        <div className="h-16 flex items-center justify-between">
           <Link
             href="/"
             className="flex items-center justify-center"
             prefetch={false}
           >
-            <Stethoscope className="h-8 w-8 text-primary" />
-            <span className="ml-2 text-2xl font-bold font-headline">AIDoctor</span>
+            <Stethoscope className="h-7 w-7 text-primary" />
+            <span className="ml-2 text-xl font-bold font-headline">AIDoctor</span>
           </Link>
           <nav className="ml-auto hidden gap-4 sm:gap-6 lg:flex">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-base font-medium hover:text-primary transition-colors"
+                className="text-sm font-medium hover:text-primary transition-colors"
                 prefetch={false}
               >
                 {link.label}
@@ -117,29 +117,29 @@ export function LandingHeader() {
           <div className="ml-auto flex items-center gap-2">
             <div className="hidden lg:flex items-center gap-2">
               <Button variant="ghost" size="icon" onClick={toggleSearch}>
-                <Search className="h-5 w-5" />
+                <Search className="h-4 w-4" />
               </Button>
                {searchField && (
                   <form action="/search">
                     <div className="relative">
-                      <Input type="text" placeholder="Search..." className="pr-10" />
-                       <Button type="submit" variant="ghost" size="icon" className="absolute right-0 top-0">
+                      <Input type="text" placeholder="Search..." className="pr-10 h-9" />
+                       <Button type="submit" variant="ghost" size="icon" className="absolute right-0 top-0 h-9 w-9">
                          <Search className="h-4 w-4" />
                        </Button>
                     </div>
                   </form>
                 )}
-              <Button asChild variant="default" className="rounded-full">
+              <Button asChild variant="default" size="sm" className="rounded-full">
                 <Link href="/login"><Lock className="mr-2 h-4 w-4" />Login</Link>
               </Button>
-              <Button asChild variant="secondary" className="rounded-full bg-slate-800 text-white hover:bg-slate-700">
+              <Button asChild variant="secondary" size="sm" className="rounded-full bg-slate-800 text-white hover:bg-slate-700">
                 <Link href="/register"><User className="mr-2 h-4 w-4" />Register</Link>
               </Button>
             </div>
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="lg:hidden">
-                  <Menu className="h-6 w-6" />
+                <Button variant="outline" size="icon" className="lg:hidden h-9 w-9">
+                  <Menu className="h-5 w-5" />
                   <span className="sr-only">Toggle navigation menu</span>
                 </Button>
               </SheetTrigger>
@@ -160,7 +160,7 @@ export function LandingHeader() {
                       <Link
                         key={link.href}
                         href={link.href}
-                        className="text-lg font-medium hover:underline underline-offset-4"
+                        className="text-base font-medium hover:underline underline-offset-4"
                         prefetch={false}
                       >
                         {link.label}
@@ -168,10 +168,10 @@ export function LandingHeader() {
                     ))}
                   </nav>
                   <div className="flex flex-col gap-2 mt-4">
-                     <Button asChild>
+                     <Button asChild size="sm">
                        <Link href="/login">Log In</Link>
                      </Button>
-                     <Button asChild variant="outline">
+                     <Button asChild variant="outline" size="sm">
                        <Link href="/register">Register</Link>
                      </Button>
                   </div>

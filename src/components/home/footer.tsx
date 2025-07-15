@@ -45,36 +45,36 @@ export function Footer() {
     };
 
     const socialLinks = [
-        { name: "facebook", href: "#", icon: <Facebook className="h-5 w-5" /> },
-        { name: "twitter", href: "#", icon: <Twitter className="h-5 w-5" /> },
-        { name: "instagram", href: "#", icon: <Instagram className="h-5 w-5" /> },
-        { name: "linkedin", href: "#", icon: <Linkedin className="h-5 w-5" /> },
-        { name: "pinterest", href: "#", icon: <PinterestIcon className="h-5 w-5" /> },
+        { name: "facebook", href: "#", icon: <Facebook className="h-4 w-4" /> },
+        { name: "twitter", href: "#", icon: <Twitter className="h-4 w-4" /> },
+        { name: "instagram", href: "#", icon: <Instagram className="h-4 w-4" /> },
+        { name: "linkedin", href: "#", icon: <Linkedin className="h-4 w-4" /> },
+        { name: "pinterest", href: "#", icon: <PinterestIcon className="h-4 w-4" /> },
     ];
 
     const paymentMethods = [
-        { src: "https://placehold.co/38x24.png", alt: "Visa" },
-        { src: "https://placehold.co/38x24.png", alt: "Mastercard" },
-        { src: "https://placehold.co/38x24.png", alt: "American Express" },
-        { src: "https://placehold.co/38x24.png", alt: "Discover" },
-        { src: "https://placehold.co/38x24.png", alt: "PayPal" },
-        { src: "https://placehold.co/38x24.png", alt: "Stripe" },
+        { src: "https://placehold.co/32x20.png", alt: "Visa" },
+        { src: "https://placehold.co/32x20.png", alt: "Mastercard" },
+        { src: "https://placehold.co/32x20.png", alt: "American Express" },
+        { src: "https://placehold.co/32x20.png", alt: "Discover" },
+        { src: "https://placehold.co/32x20.png", alt: "PayPal" },
+        { src: "https://placehold.co/32x20.png", alt: "Stripe" },
     ];
 
     return (
         <footer className="bg-background border-t">
             <div className="container mx-auto px-4">
-                <div className="py-16">
+                <div className="py-12">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         <div className="lg:col-span-8">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                                 {Object.entries(footerLinks).map(([title, links]) => (
                                     <div key={title}>
-                                        <h6 className="font-headline font-semibold text-lg mb-4">{title}</h6>
+                                        <h6 className="font-headline font-semibold text-base mb-3">{title}</h6>
                                         <ul className="space-y-2">
                                             {links.map((link) => (
                                                 <li key={link.text}>
-                                                    <Link href={link.href} className="text-muted-foreground hover:text-primary transition-colors">
+                                                    <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                                                         {link.text}
                                                     </Link>
                                                 </li>
@@ -85,20 +85,20 @@ export function Footer() {
                             </div>
                         </div>
                         <div className="lg:col-span-4">
-                            <h6 className="font-headline font-semibold text-lg mb-4">Newsletter</h6>
-                            <p className="text-muted-foreground mb-4">
+                            <h6 className="font-headline font-semibold text-base mb-3">Newsletter</h6>
+                            <p className="text-sm text-muted-foreground mb-3">
                                 Subscribe & Stay Updated from the AIDoctor
                             </p>
-                            <form className="flex gap-2 mb-6">
-                                <Input type="email" placeholder="Enter Email Address" className="flex-1" />
-                                <Button type="submit" className="bg-primary hover:bg-primary/90">
-                                    <Send className="h-4 w-4 mr-2" />
+                            <form className="flex gap-2 mb-5">
+                                <Input type="email" placeholder="Enter Email Address" className="flex-1 h-9 text-sm" />
+                                <Button type="submit" size="sm" className="bg-primary hover:bg-primary/90">
+                                    <Send className="h-3.5 w-3.5 mr-2" />
                                     Send
                                 </Button>
                             </form>
                             <div>
-                                <h6 className="font-headline font-semibold text-lg mb-4">Connect With Us</h6>
-                                <div className="flex space-x-4">
+                                <h6 className="font-headline font-semibold text-base mb-3">Connect With Us</h6>
+                                <div className="flex space-x-3">
                                     {socialLinks.map((social) => (
                                         <Link key={social.name} href={social.href} className="text-muted-foreground hover:text-primary transition-colors">
                                            {social.icon}
@@ -109,19 +109,19 @@ export function Footer() {
                         </div>
                     </div>
                 </div>
-                <div className="border-t py-6 flex flex-col md:flex-row items-center justify-between">
-                    <p className="text-sm text-muted-foreground mb-4 md:mb-0">
+                <div className="border-t py-5 flex flex-col md:flex-row items-center justify-between">
+                    <p className="text-xs text-muted-foreground mb-4 md:mb-0">
                         Copyright © {new Date().getFullYear()} AIDoctor. All Rights Reserved
                     </p>
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-5">
                          <div className="flex items-center gap-4">
-                            <Link href="#" className="text-sm text-muted-foreground hover:text-primary">Legal Notice</Link>
-                            <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link>
-                            <Link href="#" className="text-sm text-muted-foreground hover:text-primary">Refund Policy</Link>
+                            <Link href="#" className="text-xs text-muted-foreground hover:text-primary">Legal Notice</Link>
+                            <Link href="/privacy" className="text-xs text-muted-foreground hover:text-primary">Privacy Policy</Link>
+                            <Link href="#" className="text-xs text-muted-foreground hover:text-primary">Refund Policy</Link>
                         </div>
                         <div className="flex items-center gap-2">
                             {paymentMethods.map((method) => (
-                                <Image key={method.alt} src={method.src} alt={method.alt} width={38} height={24} data-ai-hint="payment card" />
+                                <Image key={method.alt} src={method.src} alt={method.alt} width={32} height={20} data-ai-hint="payment card" />
                             ))}
                         </div>
                     </div>

@@ -29,11 +29,11 @@ const specialities: { name: string; doctors: number; icon: LucideIcon }[] = [
 
 export function SectionSpeciality() {
     return (
-        <section className="py-20 md:py-24 bg-gray-50/50">
-            <div className="container">
-                <div className="section-header sec-header-one text-center mb-12">
-                    <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-semibold font-headline mb-2">Top Specialties</span>
-                    <h2 className="text-3xl md:text-4xl font-bold font-headline">Highlighting the Care & Support</h2>
+        <section className="py-16 md:py-20 bg-gray-50/50">
+            <div className="container mx-auto px-4">
+                <div className="section-header sec-header-one text-center mb-10">
+                    <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold font-headline mb-2">Top Specialties</span>
+                    <h2 className="text-2xl md:text-3xl font-bold font-headline">Highlighting the Care & Support</h2>
                 </div>
                 <Carousel
                     opts={{
@@ -47,22 +47,22 @@ export function SectionSpeciality() {
                             <CarouselItem key={index} className="md:basis-1/3 lg:basis-1/4 xl:basis-1/6 pl-2">
                                 <div className="p-1">
                                     <Link href="#" className="block group">
-                                        <div className="relative aspect-square overflow-hidden rounded-lg">
+                                        <div className="relative aspect-[4/5] overflow-hidden rounded-lg">
                                             <Image
-                                                src={`https://placehold.co/300x300.png`}
+                                                src={`https://placehold.co/250x312.png`}
                                                 alt={spec.name}
-                                                width={300}
-                                                height={300}
+                                                width={250}
+                                                height={312}
                                                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                                 data-ai-hint="medical specialty"
                                             />
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                                            <div className="absolute bottom-4 left-4 text-white">
-                                                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-2 backdrop-blur-sm">
-                                                    <spec.icon className="w-7 h-7 text-white" />
+                                            <div className="absolute bottom-3 left-3 text-white">
+                                                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mb-1.5 backdrop-blur-sm">
+                                                    <spec.icon className="w-6 h-6 text-white" />
                                                 </div>
-                                                <h6 className="font-semibold text-lg">{spec.name}</h6>
-                                                <p className="text-sm text-white/80">{spec.doctors} Doctors</p>
+                                                <h6 className="font-semibold text-base">{spec.name}</h6>
+                                                <p className="text-xs text-white/80">{spec.doctors} Doctors</p>
                                             </div>
                                         </div>
                                     </Link>
@@ -70,8 +70,8 @@ export function SectionSpeciality() {
                             </CarouselItem>
                         ))}
                     </CarouselContent>
-                    <CarouselPrevious className="absolute left-[-20px] top-1/2 -translate-y-1/2" />
-                    <CarouselNext className="absolute right-[-20px] top-1/2 -translate-y-1/2" />
+                    <CarouselPrevious className="absolute left-[-16px] top-1/2 -translate-y-1/2" />
+                    <CarouselNext className="absolute right-[-16px] top-1/2 -translate-y-1/2" />
                 </Carousel>
             </div>
         </section>

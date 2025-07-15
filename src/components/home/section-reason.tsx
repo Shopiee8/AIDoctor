@@ -23,22 +23,22 @@ const reasons = [
 
 export function SectionReason() {
     return (
-        <section className="py-20 md:py-24">
-            <div className="container">
-                <div className="section-header sec-header-one text-center mb-12">
-                    <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-semibold font-headline mb-2">Why Book With Us</span>
-                    <h2 className="text-3xl md:text-4xl font-bold font-headline">Compelling Reasons to Choose</h2>
+        <section className="py-16 md:py-20">
+            <div className="container mx-auto px-4">
+                <div className="section-header sec-header-one text-center mb-10">
+                    <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold font-headline mb-2">Why Book With Us</span>
+                    <h2 className="text-2xl md:text-3xl font-bold font-headline">Compelling Reasons to Choose</h2>
                 </div>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 justify-center">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
                     {reasons.map((reason, index) => (
-                        <div key={index} className="p-6 rounded-lg border bg-card shadow-sm hover:shadow-lg transition-shadow">
+                        <div key={index} className="p-5 rounded-lg border bg-card shadow-sm hover:shadow-lg transition-shadow">
                             <div className="flex items-start gap-4">
                                 <div className="flex-shrink-0">
-                                     <reason.icon className={`w-8 h-8 ${reason.iconColor}`} />
+                                     <reason.icon className={`w-7 h-7 ${reason.iconColor}`} />
                                 </div>
                                 <div>
-                                    <h6 className="font-semibold text-lg mb-2">{reason.title}</h6>
-                                    <p className="text-sm text-muted-foreground mb-0">
+                                    <h6 className="font-semibold text-base mb-1">{reason.title}</h6>
+                                    <p className="text-xs text-muted-foreground mb-0">
                                         {reason.description}
                                     </p>
                                 </div>

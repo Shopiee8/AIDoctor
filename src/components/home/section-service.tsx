@@ -15,20 +15,20 @@ const services = [
 export function SectionService() {
     return (
         <>
-            <section className="py-8 bg-background overflow-hidden">
+            <section className="py-6 bg-background overflow-hidden">
                 <div className="relative flex marquee">
-                    <div className="marquee-group flex-shrink-0 flex items-center justify-around min-w-full gap-8">
+                    <div className="marquee-group flex-shrink-0 flex items-center justify-around min-w-full gap-6">
                         {services.map((service, index) => (
-                            <h6 key={index} className="text-xl font-semibold whitespace-nowrap">
+                            <h6 key={index} className="text-lg font-semibold whitespace-nowrap">
                                 <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
                                     {service}
                                 </Link>
                             </h6>
                         ))}
                     </div>
-                     <div aria-hidden="true" className="marquee-group flex-shrink-0 flex items-center justify-around min-w-full gap-8">
+                     <div aria-hidden="true" className="marquee-group flex-shrink-0 flex items-center justify-around min-w-full gap-6">
                         {services.map((service, index) => (
-                            <h6 key={index} className="text-xl font-semibold whitespace-nowrap">
+                            <h6 key={index} className="text-lg font-semibold whitespace-nowrap">
                                 <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
                                     {service}
                                 </Link>
