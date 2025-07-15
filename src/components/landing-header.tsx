@@ -4,9 +4,9 @@ import { Menu, Stethoscope } from "lucide-react";
 import Link from "next/link";
 
 const navLinks = [
-  { href: "#features", label: "Features" },
-  { href: "#agents", label: "AI Agents" },
-  { href: "#use-cases", label: "Use Cases" },
+  { href: "#problem", label: "The Problem" },
+  { href: "#solution", label: "The Solution" },
+  { href: "#features", label: "How It Works" },
 ];
 
 export function LandingHeader() {
@@ -33,7 +33,7 @@ export function LandingHeader() {
            <Link href="/login">Log In</Link>
          </Button>
          <Button asChild className="hidden lg:inline-flex">
-           <Link href="/register">Sign Up</Link>
+           <Link href="/register">Request a Demo</Link>
          </Button>
       <Sheet>
         <SheetTrigger asChild>
@@ -65,7 +65,7 @@ export function LandingHeader() {
                  <Link href="/login">Log In</Link>
                </Button>
                <Button asChild variant="outline">
-                 <Link href="/register">Sign Up</Link>
+                 <Link href="/register">Request a Demo</Link>
                </Button>
             </div>
           </div>

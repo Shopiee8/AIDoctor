@@ -1,18 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LandingHeader } from "@/components/landing-header";
 import { LandingFooter } from "@/components/landing-footer";
 import Image from "next/image";
-import { Stethoscope, Bot, Users, ShieldCheck, HeartPulse, Activity, ClipboardPlus } from "lucide-react";
-
-const agents = [
-  { name: "Julia", role: "Post-Op Specialist", avatar: "J", description: "Follow-up calls, recovery tracking, and wound care." },
-  { name: "Sam", role: "Intake Assistant", avatar: "S", description: "Gathers symptoms, allergies, and medical history." },
-  { name: "Nora", role: "Referral Manager", avatar: "N", description: "Finds specialists and prepares referral documents." },
-  { name: "Max", role: "Medication Coach", avatar: "M", description: "Explains dosage, schedules, and sends reminders." },
-  { name: "Ava", role: "Admin Support", avatar: "A", description: "Handles forms, booking, and insurance queries." },
-];
+import { ArrowRight, CheckCircle, Bot, Users, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 
 const features = [
   { icon: <Bot className="w-8 h-8 text-primary" />, title: "AI-Powered Consultations", description: "Engage with advanced AI agents for intake, follow-ups, and more, available 24/7." },
@@ -25,51 +17,126 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-background">
       <LandingHeader />
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gray-50/50">
+        <section className="w-full py-20 md:py-32 lg:py-40 bg-gray-50/50">
           <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-[1fr_550px] lg:gap-12 xl:grid-cols-[1fr_650px]">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
+            <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
+              <div className="flex flex-col justify-center space-y-6">
+                <div className="space-y-4">
                   <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
-                    The Future of Healthcare is Here
+                    The First Safety-Focused LLM for Healthcare
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    AIDoctor provides intelligent, compassionate AI-powered healthcare consultations, automating clinical tasks to support patients and providers.
+                    AIDoctor provides super-staffing to health systems, payers, and pharma companies with AI agents that have been trained on proprietary, real-world healthcare data.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button asChild size="lg" className="transition-transform transform hover:scale-105">
-                    <a href="/register">Book AI Consultation</a>
-                  </Button>
-                  <Button asChild size="lg" variant="outline" className="transition-transform transform hover:scale-105">
-                    <a href="/login">Doctor & Admin Login</a>
+                    <Link href="/register">Request a Demo</Link>
                   </Button>
                 </div>
               </div>
               <div className="relative rounded-xl overflow-hidden shadow-2xl">
                  <Image
-                  src="https://placehold.co/650x400.png"
+                  src="https://placehold.co/650x450.png"
                   alt="AI Doctor in consultation"
                   width={650}
-                  height={400}
-                  data-ai-hint="doctor computer"
+                  height={450}
+                  data-ai-hint="doctor virtual"
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-center justify-center">
-                   <div className="p-4 rounded-full bg-background/30 backdrop-blur-sm cursor-pointer">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                  </div>
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-6">
+                   <div className="text-white">
+                      <h3 className="font-bold text-xl font-headline">Generative AI Agent Demo</h3>
+                      <p className="text-sm">Watch our AI in action</p>
+                   </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
+        <section id="problem" className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6 text-center">
+             <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-headline">The Problem</div>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">Healthcare is facing a global staffing crisis.</h2>
+                <p className="max-w-[700px] mx-auto text-muted-foreground md:text-xl/relaxed">
+                  The World Health Organization projects a 10 million healthcare worker shortage by 2030, leading to clinician burnout and patient care delays.
+                </p>
+            </div>
+             <div className="mx-auto mt-12 grid max-w-5xl gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                 <Card className="text-left">
+                     <CardHeader>
+                         <CardTitle className="font-headline">Widespread Burnout</CardTitle>
+                     </CardHeader>
+                     <CardContent>
+                         <p className="text-muted-foreground">High workloads and emotional exhaustion are causing a mass exodus from the healthcare profession.</p>
+                     </CardContent>
+                 </Card>
+                 <Card className="text-left">
+                     <CardHeader>
+                         <CardTitle className="font-headline">Patient Access Issues</CardTitle>
+                     </CardHeader>
+                     <CardContent>
+                         <p className="text-muted-foreground">Staff shortages result in longer wait times, shorter appointments, and difficulty accessing specialized care.</p>
+                     </CardContent>
+                 </Card>
+                 <Card className="text-left">
+                     <CardHeader>
+                         <CardTitle className="font-headline">Rising Costs</CardTitle>
+                     </CardHeader>
+                     <CardContent>
+                         <p className="text-muted-foreground">Inefficiencies and the need for expensive temporary staff are driving up healthcare costs for everyone.</p>
+                     </CardContent>
+                 </Card>
+             </div>
+          </div>
+        </section>
+
+        <section id="solution" className="w-full py-12 md:py-24 lg:py-32 bg-gray-50/50">
+            <div className="container grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-16">
+                <div className="flex items-center justify-center">
+                    <Image
+                        src="https://placehold.co/550x550.png"
+                        width="550"
+                        height="550"
+                        alt="AI agents"
+                        data-ai-hint="robot doctor"
+                        className="mx-auto aspect-square overflow-hidden rounded-xl object-cover object-center"
+                    />
+                </div>
+                 <div className="space-y-4">
+                    <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-headline">The Solution</div>
+                    <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-headline">Super-staffing with safe, helpful AI agents.</h2>
+                    <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed">
+                        AIDoctor’s generative AI agents automate tasks, allowing clinicians to focus on patient care. We are setting the standard for safety in healthcare AI.
+                    </p>
+                    <ul className="grid gap-3 py-4">
+                        <li className="flex items-center gap-3">
+                            <CheckCircle className="w-5 h-5 text-primary" />
+                            <span>Trained on proprietary healthcare data</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <CheckCircle className="w-5 h-5 text-primary" />
+                            <span>Continuously monitored by human clinicians</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <CheckCircle className="w-5 h-5 text-primary" />
+                            <span>Reduces administrative burden and wait times</span>
+                        </li>
+                    </ul>
+                     <Button asChild>
+                        <Link href="#features">Learn More <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                    </Button>
+                </div>
+            </div>
+        </section>
+        
         <section id="features" className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">How It Works</div>
+                <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-headline">How It Works</div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">A New Standard of Care</h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   Our platform seamlessly integrates AI and human expertise to deliver efficient, personalized healthcare.
@@ -92,66 +159,6 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="agents" className="w-full py-12 md:py-24 lg:py-32 bg-gray-50/50">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Our AI Team</div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">Meet Our AI Agents</h2>
-                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Dedicated AI personas designed for specific clinical and administrative tasks, ensuring you get the right support.
-                </p>
-              </div>
-            </div>
-            <div className="mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 mt-12">
-              {agents.map((agent) => (
-                <div key={agent.name} className="flex flex-col items-center text-center space-y-2">
-                  <Avatar className="w-20 h-20 text-2xl">
-                     <AvatarFallback className="bg-primary text-primary-foreground">{agent.avatar}</AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-1">
-                    <h3 className="font-semibold font-headline">{agent.name}</h3>
-                    <p className="text-sm text-primary">{agent.role}</p>
-                    <p className="text-xs text-muted-foreground">{agent.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="use-cases" className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
-            <div className="space-y-4">
-              <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Use Cases</div>
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-headline">Automating Care Pathways</h2>
-              <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed">
-                From pre-op to post-op and beyond, AIDoctor agents handle routine interactions, freeing up human staff for critical-thinking tasks.
-              </p>
-              <ul className="grid gap-2 py-4">
-                <li className="flex items-center gap-2">
-                  <HeartPulse className="w-5 h-5 text-primary" /> Post-Operative Check-ins
-                </li>
-                <li className="flex items-center gap-2">
-                  <ClipboardPlus className="w-5 h-5 text-primary" /> Pre-Op Preparation Calls
-                </li>
-                <li className="flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-primary" /> Patient Triage and Intake
-                </li>
-              </ul>
-            </div>
-            <div className="flex items-center justify-center">
-              <Image
-                src="https://placehold.co/550x310.png"
-                width="550"
-                height="310"
-                alt="Use Case Diagram"
-                data-ai-hint="medical chart"
-                className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
-              />
-            </div>
-          </div>
-        </section>
       </main>
       <LandingFooter />
     </div>
