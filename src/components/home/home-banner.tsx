@@ -125,7 +125,7 @@ export function HomeBanner() {
               alt="AI Doctor attending to a patient"
               width={500}
               height={600}
-              className="rounded-xl object-cover shadow-2xl animate-float"
+              className="rounded-xl object-cover shadow-2xl animate-float h-auto"
               priority
             />
             <div className="absolute -bottom-4 -left-4 bg-card p-3 rounded-lg shadow-lg flex items-center gap-3 border animate-float" style={{ animationDelay: '0.2s', animationDuration: '7s' }}>
