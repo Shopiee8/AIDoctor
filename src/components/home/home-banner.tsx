@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState } from 'react';
@@ -129,7 +128,7 @@ export function HomeBanner() {
               className="rounded-xl object-cover shadow-2xl animate-float"
               priority
             />
-            <div className="absolute -bottom-4 -left-4 bg-card p-3 rounded-lg shadow-lg flex items-center gap-3 border animate-pop-in" style={{ animationDelay: '0.2s' }}>
+            <div className="absolute -bottom-4 -left-4 bg-card p-3 rounded-lg shadow-lg flex items-center gap-3 border animate-float" style={{ animationDelay: '0.2s', animationDuration: '7s' }}>
                <div className="bg-primary/10 p-2 rounded-full">
                 <Bot className="h-6 w-6 text-primary"/>
                </div>
@@ -138,7 +137,7 @@ export function HomeBanner() {
                   <p className="text-xs text-muted-foreground">AI Consults Monthly</p>
                </div>
             </div>
-             <div className="absolute -top-4 -right-4 bg-card p-3 rounded-lg shadow-lg flex items-center gap-3 border animate-pop-in" style={{ animationDelay: '0.4s' }}>
+             <div className="absolute -top-4 -right-4 bg-card p-3 rounded-lg shadow-lg flex items-center gap-3 border animate-float" style={{ animationDelay: '0.4s', animationDuration: '8s' }}>
                  <div className="bg-primary/10 p-2 rounded-full">
                     <User className="h-6 w-6 text-primary"/>
                  </div>
