@@ -28,13 +28,14 @@ export function HomeBanner() {
 
   return (
     <section className="w-full py-12 md:py-20 lg:py-24 relative overflow-hidden bg-background">
-       <div className="absolute inset-0 z-0 opacity-50">
+       <div className="absolute inset-0 z-0 opacity-5">
             <Image
-              src="/assets/img/download.jpg"
+              src="https://placehold.co/1920x1080.png"
               alt="abstract background"
               fill
               className="object-cover pointer-events-none"
               priority
+              data-ai-hint="abstract medical background"
             />
         </div>
         <div className="container px-4 md:px-6 relative z-10 mx-auto">
@@ -121,12 +122,13 @@ export function HomeBanner() {
           </div>
           <div className="relative hidden lg:block">
             <Image
-              src="/assets/img/ai doctor.png"
+              src="https://placehold.co/500x600.png"
               alt="AI Doctor attending to a patient"
               width={500}
               height={600}
               className="rounded-xl object-cover shadow-2xl animate-float h-auto"
               priority
+              data-ai-hint="futuristic doctor"
             />
             <div className="absolute -bottom-4 -left-4 bg-card p-3 rounded-lg shadow-lg flex items-center gap-3 border animate-float" style={{ animationDelay: '0.2s', animationDuration: '7s' }}>
                <div className="bg-primary/10 p-2 rounded-full">
