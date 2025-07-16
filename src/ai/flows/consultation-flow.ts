@@ -19,11 +19,14 @@ const ConsultationTurnSchema = z.object({
 export type ConsultationTurn = z.infer<typeof ConsultationTurnSchema>;
 
 // The input for the flow will be the conversation history
-const ConsultationInputSchema = z.array(ConsultationTurnSchema);
+const ConsultationInputSchema = z.object({
+    history: z.array(ConsultationTurnSchema),
+    terms: z.array(z.any()),
+});
 export type ConsultationInput = z.infer<typeof ConsultationInputSchema>;
 
-// The output will be the updated conversation history
-const ConsultationOutputSchema = z.array(ConsultationTurnSchema);
+// The output will be the AI's next turn
+const ConsultationOutputSchema = ConsultationTurnSchema;
 export type ConsultationOutput = z.infer<typeof ConsultationOutputSchema>;
 
 // Define the AI prompt
@@ -44,36 +47,31 @@ const consultationPrompt = ai.definePrompt({
   {{/each}}
 
   Your tasks:
-  1.  If the conversation history is empty, start with a welcoming message in English: "Hello, I am your AI Doctor. How can I help you today? Please describe your symptoms."
-  2.  Analyze the user's latest message for medical symptoms using the provided terminology list.
-  3.  Ask clarifying questions to understand the symptom's severity, duration, and nature. (e.g., "I understand you have a headache. Is it severe or mild? When did it start?").
-  4.  **Referral Rule:** If the user mentions any "High-Risk" symptom (like 'chest pain', 'shortness of breath', 'severe headache', 'loss of consciousness'), you MUST immediately refer them to a human doctor. Your response must be ONLY a new model turn with the 'isReferral' flag set to true, and a 'referralReason'. The content should be something like: "Based on the symptoms you've described, it's important to speak with a human doctor immediately. I am connecting you now."
-  5.  Provide simple, safe, evidence-based advice for non-high-risk symptoms.
-  6.  Maintain a caring and professional tone.
-  7.  Keep your responses concise.
-  8.  Return the FULL conversation history, including your new response as the last item.
-
-  Current Conversation History:
-  {{jsonEncode history}}
+  1.  Analyze the user's latest message for medical symptoms using the provided terminology list.
+  2.  Ask clarifying questions to understand the symptom's severity, duration, and nature. (e.g., "I understand you have a headache. Is it severe or mild? When did it start?").
+  3.  **Referral Rule:** If the user mentions any "High-Risk" symptom (like 'chest pain', 'shortness of breath', 'severe headache', 'loss of consciousness'), you MUST immediately refer them to a human doctor. Your response must be ONLY a new model turn with the 'isReferral' flag set to true, and a 'referralReason'. The content should be something like: "Based on the symptoms you've described, it's important to speak with a human doctor immediately. I am connecting you now."
+  4.  Provide simple, safe, evidence-based advice for non-high-risk symptoms.
+  5.  Maintain a caring and professional tone.
+  6.  Keep your responses concise.
+  7.  Return ONLY your single new response as a model turn. Do not return the whole history.
   `,
 });
 
 // Define the main flow
-const consultationFlow = ai.defineFlow(
+export const consultationFlow = ai.defineFlow(
   {
     name: 'consultationFlow',
-    inputSchema: ConsultationInputSchema,
-    outputSchema: ConsultationOutputSchema,
+    inputSchema: z.array(ConsultationTurnSchema),
+    outputSchema: z.array(ConsultationTurnSchema),
   },
   async (history) => {
     // If history is empty, return the initial greeting
     if (history.length === 0) {
-      return [
-        {
+      const initialTurn: ConsultationTurn = {
           role: 'model',
           content: "Hello, I'm your AI Doctor. How can I help you today? Please describe your symptoms.",
-        },
-      ];
+        };
+      return [initialTurn];
     }
     
     // Check for high-risk terms in the latest user message
@@ -93,17 +91,16 @@ const consultationFlow = ai.defineFlow(
     }
 
     // If no high-risk terms, proceed with the standard AI prompt
-    const { output } = await consultationPrompt(history, {
-      custom: {
+    const { output } = await consultationPrompt({
         history,
         terms: medicalTerms,
-      },
     });
 
-    return output || history;
+    if (output) {
+      return [...history, output];
+    }
+
+    // Fallback if the AI fails to generate a response
+    return history;
   }
 );
-
-
-// Export a wrapper function for client-side use
-export { consultationFlow };
