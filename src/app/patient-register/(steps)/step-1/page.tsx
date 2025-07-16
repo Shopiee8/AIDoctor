@@ -37,7 +37,6 @@ export default function PatientRegisterStepOne() {
 
   const handleContinue = async () => {
     if (!imageFile) {
-      // Allow continuing without a profile picture
       router.push('/patient-register/step-2');
       return;
     }
@@ -53,61 +52,75 @@ export default function PatientRegisterStepOne() {
 
     setIsLoading(true);
     setError(null);
+    setUploadProgress(0);
 
-    const storageRef = ref(storage, `profile_pictures/${user.uid}/${imageFile.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, imageFile);
+    try {
+      const storageRef = ref(storage, `profile_pictures/${user.uid}/${imageFile.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, imageFile);
 
-    uploadTask.on(
-      'state_changed',
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setUploadProgress(progress);
-      },
-      (uploadError) => {
-        console.error('Upload failed:', uploadError);
-        let description = 'File upload failed. Please try again.';
-        if (uploadError.code === 'storage/unauthorized') {
-            description = "You don't have permission to upload. Please check Firebase Storage rules.";
-        } else if (uploadError.code === 'storage/unknown') {
-            description = "A network error occurred. Please check your connection and Firebase Storage CORS configuration.";
-        }
-        
-        setError(description);
-        toast({
-          title: 'Upload Failed',
-          description: description,
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-        setUploadProgress(null);
-      },
-      async () => {
-        try {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          
-          // Save the URL to user's profile in Firestore
-          const userDocRef = doc(db, 'users', user.uid);
-          await setDoc(userDocRef, { photoURL: downloadURL }, { merge: true });
+      await new Promise<void>((resolve, reject) => {
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(progress);
+          },
+          (uploadError) => {
+            // This is the primary error handler
+            console.error('Upload failed:', uploadError);
+            let description = `File upload failed. Please try again. Code: ${uploadError.code}`;
+            if (uploadError.code === 'storage/unauthorized') {
+              description = "You don't have permission to upload. Please check Firebase Storage rules.";
+            } else if (uploadError.code === 'storage/canceled') {
+              description = 'Upload was canceled.';
+            } else if (uploadError.code === 'storage/unknown') {
+              description = "A network error occurred. Please check your connection and Firebase CORS configuration.";
+            }
+            setError(description);
+            toast({
+              title: 'Upload Failed',
+              description: description,
+              variant: 'destructive',
+            });
+            reject(uploadError);
+          },
+          async () => {
+            // This runs on successful completion
+            try {
+              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+              const userDocRef = doc(db, 'users', user.uid);
+              await setDoc(userDocRef, { photoURL: downloadURL }, { merge: true });
 
-          toast({
-            title: 'Success!',
-            description: 'Your profile picture has been uploaded.',
-          });
-
-          router.push('/patient-register/step-2');
-        } catch (dbError: any) {
-            console.error('Failed to save URL to database:', dbError);
-             setError('Failed to save profile picture. Please try again.');
-             toast({
+              toast({
+                title: 'Success!',
+                description: 'Your profile picture has been uploaded.',
+              });
+              
+              router.push('/patient-register/step-2');
+              resolve();
+            } catch (dbError: any) {
+              console.error('Failed to save URL to database:', dbError);
+              setError('Failed to save profile picture. Please try again.');
+              toast({
                 title: 'Database Error',
                 description: 'Could not save profile picture URL.',
                 variant: 'destructive',
-            });
-             setIsLoading(false);
-        }
-      }
-    );
+              });
+              reject(dbError);
+            }
+          }
+        );
+      });
+    } catch (err) {
+      // This catch block will handle rejections from the Promise
+      console.error("An error occurred during the upload process:", err);
+    } finally {
+      // This will run whether the upload succeeds or fails
+      setIsLoading(false);
+      setUploadProgress(null);
+    }
   };
+
 
   return (
     <Card className="w-full">
@@ -148,6 +161,7 @@ export default function PatientRegisterStepOne() {
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               onChange={handleFileChange}
               accept="image/png, image/jpeg, image/webp"
+              disabled={isLoading}
             />
           </label>
           <p className="text-sm text-muted-foreground">
@@ -162,7 +176,7 @@ export default function PatientRegisterStepOne() {
         <div className="mt-8">
           <Button onClick={handleContinue} className="w-full" disabled={isLoading}>
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Continue
+            {isLoading ? 'Uploading...' : 'Continue'}
           </Button>
         </div>
       </CardContent>
