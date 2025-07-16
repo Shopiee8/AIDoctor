@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -62,15 +63,23 @@ export default function PatientRegisterStepOne() {
         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         setUploadProgress(progress);
       },
-      (error) => {
-        console.error('Upload failed:', error);
-        setError('File upload failed. Please try again.');
+      (uploadError) => {
+        console.error('Upload failed:', uploadError);
+        let description = 'File upload failed. Please try again.';
+        if (uploadError.code === 'storage/unauthorized') {
+            description = "You don't have permission to upload. Please check Firebase Storage rules.";
+        } else if (uploadError.code === 'storage/unknown') {
+            description = "A network error occurred. Please check your connection and Firebase Storage CORS configuration.";
+        }
+        
+        setError(description);
         toast({
           title: 'Upload Failed',
-          description: error.message,
+          description: description,
           variant: 'destructive',
         });
         setIsLoading(false);
+        setUploadProgress(null);
       },
       async () => {
         try {
@@ -94,8 +103,7 @@ export default function PatientRegisterStepOne() {
                 description: 'Could not save profile picture URL.',
                 variant: 'destructive',
             });
-        } finally {
-            setIsLoading(false);
+             setIsLoading(false);
         }
       }
     );
