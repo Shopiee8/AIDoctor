@@ -29,9 +29,9 @@ export default function PatientRegisterStepFour() {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            spouse_age: familyDetails.spouse_age || undefined,
-            father_age: familyDetails.father_age || undefined,
-            mother_age: familyDetails.mother_age || undefined,
+            spouse_age: familyDetails.spouse_age ?? undefined,
+            father_age: familyDetails.father_age ?? undefined,
+            mother_age: familyDetails.mother_age ?? undefined,
             child_ages: familyDetails.child_ages || Array(familyMembers.childCount).fill(undefined),
         },
     });

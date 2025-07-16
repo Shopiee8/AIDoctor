@@ -27,10 +27,11 @@ const formSchema = z.object({
 // Helper function to remove undefined properties from an object
 function cleanUndefined(obj: any): any {
     if (obj === null || obj === undefined) {
-        return obj;
+        return undefined;
     }
     if (Array.isArray(obj)) {
-        return obj.map(v => cleanUndefined(v));
+        const cleanedArray = obj.map(v => cleanUndefined(v)).filter(v => v !== undefined);
+        return cleanedArray.length > 0 ? cleanedArray : undefined;
     }
     if (typeof obj !== 'object') {
         return obj;
