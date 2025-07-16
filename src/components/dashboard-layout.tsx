@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -14,7 +15,7 @@ import {
   SidebarFooter,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { Stethoscope, LayoutDashboard, HeartPulse, ClipboardPlus, Calendar, FileText, Bot, FileClock, Bell, MessageSquare, Send, Users, Settings } from 'lucide-react';
+import { Stethoscope, LayoutDashboard, HeartPulse, ClipboardPlus, Calendar, FileText, Bot, FileClock, Bell, MessageSquare, Send, Users, Settings, Cpu } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/types';
@@ -93,28 +94,48 @@ const adminNavItems: NavItem[] = [
   },
 ];
 
+const aiProviderNavItems: NavItem[] = [
+    {
+        title: "Dashboard",
+        href: "/ai-provider/dashboard",
+        icon: LayoutDashboard,
+    },
+    {
+        title: "My Agents",
+        href: "/ai-provider/dashboard",
+        icon: Cpu,
+    },
+    {
+        title: "Analytics",
+        href: "/ai-provider/dashboard",
+        icon: FileClock,
+    }
+];
+
 
 const navItemsMap: Record<string, NavItem[]> = {
     'Patient': patientNavItems,
     'Doctor': doctorNavItems,
     'Admin': adminNavItems,
+    'AI Provider': aiProviderNavItems,
 }
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  userRole: 'Patient' | 'Doctor' | 'Admin';
+  userRole: 'Patient' | 'Doctor' | 'Admin' | 'AI Provider';
 }
 
 export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
   const pathname = usePathname();
   const navItems = navItemsMap[userRole] || [];
+  const Icon = userRole === 'AI Provider' ? Bot : Stethoscope;
 
   return (
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2">
-            <Stethoscope className="w-7 h-7 text-primary" />
+            <Icon className="w-7 h-7 text-primary" />
             <div className="flex flex-col">
               <span className="text-lg font-semibold tracking-tight font-headline">AIDoctor</span>
               <span className="text-xs text-muted-foreground">{userRole}</span>

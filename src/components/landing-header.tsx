@@ -64,8 +64,8 @@ export function LandingHeader() {
               </a>
             </div>
             <div className="flex items-center gap-4">
-               <Link href="#" className="flex items-center gap-1.5 hover:text-primary"><Bot className="h-3.5 w-3.5" /> For AI Providers</Link>
-               <Link href="#" className="flex items-center gap-1.5 hover:text-primary"><User className="h-3.5 w-3.5" /> For Doctors</Link>
+               <Link href="/ai-provider-register" className="flex items-center gap-1.5 hover:text-primary"><Bot className="h-3.5 w-3.5" /> For AI Providers</Link>
+               <Link href="/doctor-register" className="flex items-center gap-1.5 hover:text-primary"><User className="h-3.5 w-3.5" /> For Doctors</Link>
             </div>
           </div>
         </div>
