@@ -24,29 +24,66 @@ const formSchema = z.object({
     state: z.string().min(1, 'State is required'),
 });
 
-// Helper function to remove undefined properties from an object
-function cleanUndefined(obj: any): any {
-    if (obj === null || obj === undefined) {
-        return undefined;
-    }
-    if (Array.isArray(obj)) {
-        const cleanedArray = obj.map(v => cleanUndefined(v)).filter(v => v !== undefined);
-        return cleanedArray.length > 0 ? cleanedArray : undefined;
-    }
-    if (typeof obj !== 'object') {
-        return obj;
-    }
+// Helper function to deeply clean and format the registration data for Firestore
+function cleanRegistrationData(data: any): any {
+    const cleaned: any = {};
 
-    return Object.entries(obj).reduce((acc, [key, value]) => {
-        if (value !== undefined) {
-            const cleanedValue = cleanUndefined(value);
-            if(cleanedValue !== undefined) {
-                 acc[key] = cleanedValue;
+    // Clean personalDetails
+    const personalDetails: any = {};
+    if (data.personalDetails) {
+        for (const [key, value] of Object.entries(data.personalDetails)) {
+            if (value !== undefined && value !== null && value !== '') {
+                 if (['age', 'weight', 'height'].includes(key)) {
+                    const num = Number(value);
+                    if (!isNaN(num)) {
+                        personalDetails[key] = num;
+                    }
+                } else {
+                    personalDetails[key] = value;
+                }
             }
         }
-        return acc;
-    }, {} as any);
+    }
+    if (Object.keys(personalDetails).length > 0) {
+        cleaned.personalDetails = personalDetails;
+    }
+
+    // Clean familyMembers
+    cleaned.familyMembers = data.familyMembers;
+
+    // Clean familyDetails
+    const familyDetails: any = {};
+     if (data.familyDetails) {
+        for (const [key, value] of Object.entries(data.familyDetails)) {
+            if (value !== undefined && value !== null && value !== '') {
+                if (key === 'child_ages' && Array.isArray(value)) {
+                    const cleanedAges = value.map(age => Number(age)).filter(age => !isNaN(age) && age !== null);
+                    if (cleanedAges.length > 0) {
+                        familyDetails[key] = cleanedAges;
+                    }
+                } else {
+                     const num = Number(value);
+                     if (!isNaN(num)) {
+                        familyDetails[key] = num;
+                    }
+                }
+            }
+        }
+    }
+    if (Object.keys(familyDetails).length > 0) {
+        cleaned.familyDetails = familyDetails;
+    }
+
+
+    // Add other top-level fields
+    cleaned.location = data.location;
+    cleaned.userId = data.userId;
+    cleaned.email = data.email;
+    cleaned.createdAt = data.createdAt;
+
+    return cleaned;
 }
+
 
 export default function PatientRegisterStepFive() {
     const router = useRouter();
@@ -80,8 +117,8 @@ export default function PatientRegisterStepFive() {
                 email: user.email,
                 createdAt: new Date(),
             };
-
-            const cleanedData = cleanUndefined(registrationData);
+            
+            const cleanedData = cleanRegistrationData(registrationData);
             
             await setDoc(doc(db, "users", user.uid), cleanedData, { merge: true });
             
