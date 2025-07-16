@@ -11,9 +11,8 @@ import Image from 'next/image';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { storage, db } from '@/lib/firebase';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, setDoc } from 'firebase/firestore';
-import { Progress } from '@/components/ui/progress';
 
 export default function PatientRegisterStepOne() {
   const { user } = useAuth();
@@ -22,7 +21,6 @@ export default function PatientRegisterStepOne() {
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -36,6 +34,7 @@ export default function PatientRegisterStepOne() {
   };
 
   const handleContinue = async () => {
+    // If no image is selected, just move to the next step.
     if (!imageFile) {
       router.push('/patient-register/step-2');
       return;
@@ -52,50 +51,32 @@ export default function PatientRegisterStepOne() {
 
     setIsLoading(true);
     setError(null);
-    setUploadProgress(0);
 
     try {
       const storageRef = ref(storage, `profile_pictures/${user.uid}/${imageFile.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, imageFile);
+      
+      // Use the simpler uploadBytes function
+      const snapshot = await uploadBytes(storageRef, imageFile);
+      const downloadURL = await getDownloadURL(snapshot.ref);
 
-      await new Promise<void>((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setUploadProgress(progress);
-          },
-          (uploadError) => {
-            // This is the crucial part for catching upload-specific errors.
-            console.error('Upload failed during state_changed:', uploadError);
-            reject(uploadError);
-          },
-          async () => {
-            // This runs on successful completion of the upload.
-            try {
-              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-              const userDocRef = doc(db, 'users', user.uid);
-              await setDoc(userDocRef, { photoURL: downloadURL }, { merge: true });
+      const userDocRef = doc(db, 'users', user.uid);
+      await setDoc(userDocRef, { photoURL: downloadURL }, { merge: true });
 
-              toast({
-                title: 'Success!',
-                description: 'Your profile picture has been uploaded.',
-              });
-              
-              router.push('/patient-register/step-2');
-              resolve();
-            } catch (dbError) {
-              console.error('Database save failed:', dbError);
-              reject(dbError); // Reject the promise if DB save fails
-            }
-          }
-        );
+      toast({
+        title: 'Success!',
+        description: 'Your profile picture has been uploaded.',
       });
+      
+      router.push('/patient-register/step-2');
+
     } catch (uploadError: any) {
       console.error('Upload failed:', uploadError);
       let description = 'File upload failed. Please try again.';
-      if (uploadError.code) {
-          description = `Upload failed with error: ${uploadError.code}. Please check your Firebase Storage rules and CORS configuration.`;
+      // Provide more specific feedback for the most common errors.
+      if (uploadError.code === 'storage/unauthorized' || uploadError.code === 'storage/object-not-found') {
+          description = `Upload failed with error: ${uploadError.code}. Please check your Firebase Storage rules and make sure you are properly authenticated.`;
+      } else if (uploadError.code === 'storage/canceled') {
+          description = 'Upload was canceled.';
       }
       toast({
         title: 'Upload Failed',
@@ -106,7 +87,6 @@ export default function PatientRegisterStepOne() {
     } finally {
       // This will ALWAYS run, ensuring the loading state is reset.
       setIsLoading(false);
-      setUploadProgress(null);
     }
   };
 
@@ -156,9 +136,7 @@ export default function PatientRegisterStepOne() {
           <p className="text-sm text-muted-foreground">
             {imageFile ? imageFile.name : 'Click to upload a picture'}
           </p>
-          {uploadProgress !== null && (
-            <Progress value={uploadProgress} className="w-full mt-2" />
-          )}
+          
           {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
