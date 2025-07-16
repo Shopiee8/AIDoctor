@@ -1,6 +1,4 @@
 
-'use server';
-
 /**
  * @fileOverview A list of medical terms for the AI to reference.
  */
