@@ -36,7 +36,6 @@ export default function PatientRegisterStepOne() {
   };
 
   const handleContinue = async () => {
-    // If no image is selected, just proceed to the next step
     if (!imageFile) {
       router.push('/patient-register/step-2');
       return;
@@ -54,50 +53,60 @@ export default function PatientRegisterStepOne() {
     setIsLoading(true);
     setError(null);
     setUploadProgress(0);
-    const storageRef = ref(storage, `profile_pictures/${user.uid}/${imageFile.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, imageFile);
 
     try {
-      // Attach listener for progress
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(progress);
-        }
-      );
+      const storageRef = ref(storage, `profile_pictures/${user.uid}/${imageFile.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, imageFile);
 
-      // Await completion of the upload
-      await uploadTask;
+      await new Promise<void>((resolve, reject) => {
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(progress);
+          },
+          (uploadError) => {
+            // This is the crucial part for catching upload-specific errors.
+            console.error('Upload failed during state_changed:', uploadError);
+            reject(uploadError);
+          },
+          async () => {
+            // This runs on successful completion of the upload.
+            try {
+              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+              const userDocRef = doc(db, 'users', user.uid);
+              await setDoc(userDocRef, { photoURL: downloadURL }, { merge: true });
 
-      // Get URL and save to DB
-      const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-      const userDocRef = doc(db, 'users', user.uid);
-      await setDoc(userDocRef, { photoURL: downloadURL }, { merge: true });
-
-      toast({
-        title: 'Success!',
-        description: 'Your profile picture has been uploaded.',
+              toast({
+                title: 'Success!',
+                description: 'Your profile picture has been uploaded.',
+              });
+              
+              router.push('/patient-register/step-2');
+              resolve();
+            } catch (dbError) {
+              console.error('Database save failed:', dbError);
+              reject(dbError); // Reject the promise if DB save fails
+            }
+          }
+        );
       });
-      
-      router.push('/patient-register/step-2');
-
     } catch (uploadError: any) {
-        console.error('Upload failed:', uploadError);
-        let description = 'File upload failed. Please try again.';
-        if (uploadError.code === 'storage/unauthorized' || uploadError.code === 'storage/object-not-found') {
-            description = 'Upload failed. Please check Firebase Storage rules and ensure you are logged in.';
-        }
-        toast({
-          title: 'Upload Failed',
-          description: description,
-          variant: 'destructive',
-        });
-        setError(description);
+      console.error('Upload failed:', uploadError);
+      let description = 'File upload failed. Please try again.';
+      if (uploadError.code) {
+          description = `Upload failed with error: ${uploadError.code}. Please check your Firebase Storage rules and CORS configuration.`;
+      }
+      toast({
+        title: 'Upload Failed',
+        description: description,
+        variant: 'destructive',
+      });
+      setError(description);
     } finally {
-        // This block will ALWAYS run, ensuring the loading state is reset.
-        setIsLoading(false);
-        setUploadProgress(null);
+      // This will ALWAYS run, ensuring the loading state is reset.
+      setIsLoading(false);
+      setUploadProgress(null);
     }
   };
 
