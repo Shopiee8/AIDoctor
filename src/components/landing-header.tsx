@@ -18,7 +18,6 @@ import {
   Linkedin,
   Bot,
   User,
-  MessageSquarePlus,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -95,9 +94,12 @@ export function LandingHeader() {
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <div className="hidden lg:flex items-center gap-2">
-              <Button asChild>
-                <Link href="/consultation"><MessageSquarePlus className="mr-2 h-4 w-4" />AI Consultation</Link>
-              </Button>
+                <Button asChild variant="outline">
+                    <Link href="/login"><LogIn className="mr-2 h-4 w-4" />Login</Link>
+                </Button>
+                <Button asChild>
+                    <Link href="/register"><UserPlus className="mr-2 h-4 w-4" />Sign Up</Link>
+                </Button>
             </div>
             <Sheet>
               <SheetTrigger asChild>
@@ -130,12 +132,12 @@ export function LandingHeader() {
                       </Link>
                     ))}
                   </nav>
-                  <div className="flex flex-col gap-2 mt-4">
+                   <div className="flex flex-col gap-2 mt-4">
                      <Button asChild>
-                       <Link href="/consultation">Start AI Consultation</Link>
+                       <Link href="/login">Login</Link>
                      </Button>
                      <Button asChild variant="outline">
-                       <Link href="/login">Login / Register</Link>
+                       <Link href="/register">Sign Up</Link>
                      </Button>
                   </div>
                 </div>

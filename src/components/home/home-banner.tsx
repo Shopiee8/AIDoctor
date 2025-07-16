@@ -66,14 +66,7 @@ export function HomeBanner() {
             <p className="max-w-[600px] text-muted-foreground md:text-xl">
               Get immediate answers to your health questions, or connect with a human specialist. Your health, your choice.
             </p>
-            <div className="w-full max-w-md space-y-2">
-               <Button size="lg" className="w-full text-lg h-12" asChild>
-                <Link href="/consultation"><MessageSquarePlus className="mr-3 h-6 w-6" /> Start AI Consultation</Link>
-               </Button>
-                <p className="text-center text-xs text-muted-foreground">
-                    Or, find a human specialist below.
-                </p>
-            </div>
+            
              <div className="rounded-lg bg-card/80 backdrop-blur-sm p-4 shadow-lg border mt-4">
               <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-center" id="search-form">
                 <div className="relative col-span-1 md:col-span-2">
@@ -117,9 +110,14 @@ export function HomeBanner() {
                   <Search className="mr-2 h-4 w-4" /> Search
                 </Button>
               </form>
-               <Button type="submit" className="w-full mt-2 hidden md:flex h-10 text-sm" form="search-form">
+               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
+                 <Button className="w-full h-10 text-sm" asChild>
+                    <Link href="/consultation"><MessageSquarePlus className="mr-2 h-4 w-4" /> Start AI Consultation</Link>
+                 </Button>
+                 <Button type="submit" className="w-full h-10 text-sm" form="search-form" variant="secondary">
                   <Search className="mr-2 h-4 w-4" /> Search Human Doctor
-                </Button>
+                 </Button>
+               </div>
             </div>
           </div>
           <div className="relative hidden lg:block">
