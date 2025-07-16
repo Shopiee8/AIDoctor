@@ -98,7 +98,7 @@ export function LandingHeader() {
                     <Link href="/login"><LogIn className="mr-2 h-4 w-4" />Login</Link>
                 </Button>
                 <Button asChild>
-                    <Link href="/register"><UserPlus className="mr-2 h-4 w-4" />Sign Up</Link>
+                    <Link href="/patient-register/step-1"><UserPlus className="mr-2 h-4 w-4" />Sign Up</Link>
                 </Button>
             </div>
             <Sheet>
@@ -137,7 +137,7 @@ export function LandingHeader() {
                        <Link href="/login">Login</Link>
                      </Button>
                      <Button asChild variant="outline">
-                       <Link href="/register">Sign Up</Link>
+                       <Link href="/patient-register/step-1">Sign Up</Link>
                      </Button>
                   </div>
                 </div>
