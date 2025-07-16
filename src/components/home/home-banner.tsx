@@ -29,7 +29,7 @@ export function HomeBanner() {
 
   return (
     <section className="w-full py-12 md:py-20 lg:py-24 relative overflow-hidden bg-background">
-       <div className="absolute inset-0 z-0 opacity-10">
+       <div className="absolute inset-0 z-0 opacity-50">
             <Image
               src="/assets/img/download.jpg"
               alt="abstract background"
@@ -126,10 +126,10 @@ export function HomeBanner() {
               alt="AI Doctor attending to a patient"
               width={500}
               height={600}
-              className="rounded-xl object-cover shadow-2xl"
+              className="rounded-xl object-cover shadow-2xl animate-float"
               priority
             />
-            <div className="absolute -bottom-4 -left-4 bg-card p-3 rounded-lg shadow-lg flex items-center gap-3 border">
+            <div className="absolute -bottom-4 -left-4 bg-card p-3 rounded-lg shadow-lg flex items-center gap-3 border animate-pop-in" style={{ animationDelay: '0.2s' }}>
                <div className="bg-primary/10 p-2 rounded-full">
                 <Bot className="h-6 w-6 text-primary"/>
                </div>
@@ -138,7 +138,7 @@ export function HomeBanner() {
                   <p className="text-xs text-muted-foreground">AI Consults Monthly</p>
                </div>
             </div>
-             <div className="absolute -top-4 -right-4 bg-card p-3 rounded-lg shadow-lg flex items-center gap-3 border">
+             <div className="absolute -top-4 -right-4 bg-card p-3 rounded-lg shadow-lg flex items-center gap-3 border animate-pop-in" style={{ animationDelay: '0.4s' }}>
                  <div className="bg-primary/10 p-2 rounded-full">
                     <User className="h-6 w-6 text-primary"/>
                  </div>
