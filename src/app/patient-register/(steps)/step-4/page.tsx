@@ -29,15 +29,18 @@ export default function PatientRegisterStepFour() {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            spouse_age: familyDetails.spouse_age,
-            father_age: familyDetails.father_age,
-            mother_age: familyDetails.mother_age,
-            child_ages: familyDetails.child_ages || Array(familyMembers.childCount).fill(''),
+            spouse_age: familyDetails.spouse_age || undefined,
+            father_age: familyDetails.father_age || undefined,
+            mother_age: familyDetails.mother_age || undefined,
+            child_ages: familyDetails.child_ages || Array(familyMembers.childCount).fill(undefined),
         },
     });
 
     useEffect(() => {
-        form.setValue('child_ages', Array(familyMembers.childCount).fill('').map((_, i) => familyDetails.child_ages?.[i] || ''));
+        const initialChildAges = Array(familyMembers.childCount)
+            .fill(undefined)
+            .map((_, i) => familyDetails.child_ages?.[i] || undefined);
+        form.setValue('child_ages', initialChildAges);
     }, [familyMembers.childCount, familyDetails.child_ages, form]);
 
 
@@ -71,7 +74,7 @@ export default function PatientRegisterStepFour() {
                                 <FormField control={form.control} name="spouse_age" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Spouse's Age</FormLabel>
-                                        <FormControl><Input type="number" placeholder="e.g., 34" {...field} /></FormControl>
+                                        <FormControl><Input type="number" placeholder="e.g., 34" {...field} value={field.value ?? ''} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}/>
@@ -84,7 +87,7 @@ export default function PatientRegisterStepFour() {
                                 <FormField control={form.control} name={`child_ages.${index}` as const} render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Child's Age</FormLabel>
-                                        <FormControl><Input type="number" placeholder="e.g., 5" {...field} /></FormControl>
+                                        <FormControl><Input type="number" placeholder="e.g., 5" {...field} value={field.value ?? ''} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}/>
@@ -97,7 +100,7 @@ export default function PatientRegisterStepFour() {
                                 <FormField control={form.control} name="father_age" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Father's Age</FormLabel>
-                                        <FormControl><Input type="number" placeholder="e.g., 65" {...field} /></FormControl>
+                                        <FormControl><Input type="number" placeholder="e.g., 65" {...field} value={field.value ?? ''} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}/>
@@ -110,7 +113,7 @@ export default function PatientRegisterStepFour() {
                                 <FormField control={form.control} name="mother_age" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Mother's Age</FormLabel>
-                                        <FormControl><Input type="number" placeholder="e.g., 62" {...field} /></FormControl>
+                                        <FormControl><Input type="number" placeholder="e.g., 62" {...field} value={field.value ?? ''} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}/>
