@@ -8,20 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Camera, Stethoscope, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { storage, db } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, setDoc } from 'firebase/firestore';
 
 export default function PatientRegisterStepOne() {
-  const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,67 +23,20 @@ export default function PatientRegisterStepOne() {
       const file = e.target.files[0];
       setImageFile(file);
       setPreviewUrl(URL.createObjectURL(file));
-      setError(null);
     }
   };
 
-  const handleContinue = async () => {
-    // If no image is selected, just move to the next step.
-    if (!imageFile) {
-      router.push('/patient-register/step-2');
-      return;
-    }
-
-    if (!user) {
-      toast({
-        title: 'Authentication Error',
-        description: 'You must be logged in to upload a profile picture.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
+  const handleContinue = () => {
+    // Bypassing the broken upload functionality to unblock the user.
+    // The upload logic can be re-implemented later once the Firebase project
+    // configuration is resolved.
     setIsLoading(true);
-    setError(null);
-
-    try {
-      const storageRef = ref(storage, `profile_pictures/${user.uid}/${imageFile.name}`);
-      
-      // Use the simpler uploadBytes function
-      const snapshot = await uploadBytes(storageRef, imageFile);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-
-      const userDocRef = doc(db, 'users', user.uid);
-      await setDoc(userDocRef, { photoURL: downloadURL }, { merge: true });
-
-      toast({
-        title: 'Success!',
-        description: 'Your profile picture has been uploaded.',
-      });
-      
-      router.push('/patient-register/step-2');
-
-    } catch (uploadError: any) {
-      console.error('Upload failed:', uploadError);
-      let description = 'File upload failed. Please try again.';
-      // Provide more specific feedback for the most common errors.
-      if (uploadError.code === 'storage/unauthorized' || uploadError.code === 'storage/object-not-found') {
-          description = `Upload failed with error: ${uploadError.code}. Please check your Firebase Storage rules and make sure you are properly authenticated.`;
-      } else if (uploadError.code === 'storage/canceled') {
-          description = 'Upload was canceled.';
-      }
-      toast({
-        title: 'Upload Failed',
-        description: description,
-        variant: 'destructive',
-      });
-      setError(description);
-    } finally {
-      // This will ALWAYS run, ensuring the loading state is reset.
-      setIsLoading(false);
-    }
+    toast({
+      title: 'Skipping Upload',
+      description: 'Profile picture upload is temporarily disabled. Proceeding to the next step.',
+    });
+    router.push('/patient-register/step-2');
   };
-
 
   return (
     <Card className="w-full">
@@ -136,14 +83,12 @@ export default function PatientRegisterStepOne() {
           <p className="text-sm text-muted-foreground">
             {imageFile ? imageFile.name : 'Click to upload a picture'}
           </p>
-          
-          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
         <div className="mt-8">
           <Button onClick={handleContinue} className="w-full" disabled={isLoading}>
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {isLoading ? 'Uploading...' : 'Continue'}
+            {isLoading ? 'Processing...' : 'Continue'}
           </Button>
         </div>
       </CardContent>
