@@ -16,7 +16,7 @@ export default function AiProviderRegisterStepTwo() {
 
                 <div className="flex justify-center gap-2 my-4">
                     <Link href="/ai-provider-register" className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary font-bold">1</Link>
-                    <Link href="/ai-provider-register/step-2" className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold">2</Link>
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold">2</div>
                     <Link href="/ai-provider-register/step-3" className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-gray-500 font-bold">3</Link>
                 </div>
 

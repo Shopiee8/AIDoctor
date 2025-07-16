@@ -14,7 +14,7 @@ export default function AiProviderRegisterStepThree() {
                 <div className="flex justify-center gap-2 my-4">
                     <Link href="/ai-provider-register" className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary font-bold">1</Link>
                     <Link href="/ai-provider-register/step-2" className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary font-bold">2</Link>
-                    <Link href="/ai-provider-register/step-3" className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold">3</Link>
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold">3</div>
                 </div>
 
                 <CardTitle className="text-2xl font-headline">Registration Complete</CardTitle>

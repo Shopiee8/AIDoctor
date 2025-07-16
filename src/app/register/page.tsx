@@ -9,7 +9,7 @@ export default function RegisterPage() {
       icon: User,
       title: "As a Patient",
       description: "Book appointments, manage your health, and consult with AI or human doctors.",
-      href: "/patient-register/step-1",
+      href: "/patient-register",
     },
     {
       icon: Stethoscope,
