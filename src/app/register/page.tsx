@@ -44,7 +44,7 @@ export default function RegisterPage() {
               <Input id="password" type="password" />
             </div>
             <Button type="submit" className="w-full" asChild>
-                <Link href="/doctor-register">Create an account</Link>
+                <Link href="/patient-register/step-1">Create an account</Link>
             </Button>
              <Button variant="outline" className="w-full" asChild>
               <a href="/api/auth/google">Sign up with Google</a>
