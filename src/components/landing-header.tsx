@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -16,7 +17,8 @@ import {
   Instagram,
   Linkedin,
   Bot,
-  User
+  User,
+  MessageSquarePlus,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -93,11 +95,8 @@ export function LandingHeader() {
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <div className="hidden lg:flex items-center gap-2">
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/login"><LogIn className="mr-2 h-4 w-4" />Login</Link>
-              </Button>
-              <Button asChild variant="default" size="sm">
-                <Link href="/register"><UserPlus className="mr-2 h-4 w-4" />Register</Link>
+              <Button asChild>
+                <Link href="/consultation"><MessageSquarePlus className="mr-2 h-4 w-4" />AI Consultation</Link>
               </Button>
             </div>
             <Sheet>
@@ -133,10 +132,10 @@ export function LandingHeader() {
                   </nav>
                   <div className="flex flex-col gap-2 mt-4">
                      <Button asChild>
-                       <Link href="/login">Log In</Link>
+                       <Link href="/consultation">Start AI Consultation</Link>
                      </Button>
                      <Button asChild variant="outline">
-                       <Link href="/register">Register</Link>
+                       <Link href="/login">Login / Register</Link>
                      </Button>
                   </div>
                 </div>

@@ -1,17 +1,19 @@
 
+
 "use client";
 
 import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, MapPin, Search, Star, Bot, User } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Search, Star, Bot, User, MessageSquarePlus } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import Link from 'next/link';
 
 export function HomeBanner() {
   const [date, setDate] = useState<Date | undefined>();
@@ -26,23 +28,24 @@ export function HomeBanner() {
   };
 
   return (
-    <section className="w-full py-12 md:py-20 lg:py-24 relative overflow-hidden bg-gray-50/50">
-       <div className="absolute inset-0 z-0 opacity-20">
+    <section className="w-full py-12 md:py-20 lg:py-24 relative overflow-hidden bg-background">
+       <div className="absolute inset-0 z-0 opacity-10">
             <Image
               src="/assets/img/download.jpg"
               alt="abstract background"
               fill
               className="object-cover pointer-events-none"
+              priority
             />
         </div>
-        <div className="container px-6 md:px-8 relative z-10 mx-auto">
+        <div className="container px-4 md:px-6 relative z-10 mx-auto">
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
           <div className="flex flex-col justify-center space-y-4">
             <div className="flex items-center gap-2">
               <div className="flex -space-x-2">
-                <Image width={24} height={24} className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://placehold.co/24x24.png" alt="Doctor 1" data-ai-hint="doctor portrait" />
-                <Image width={24} height={24} className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://placehold.co/24x24.png" alt="Doctor 2" data-ai-hint="doctor portrait" />
-                <Image width={24} height={24} className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://placehold.co/24x24.png" alt="Doctor 3" data-ai-hint="doctor portrait" />
+                <Image width={24} height={24} className="inline-block h-6 w-6 rounded-full ring-2 ring-card" src="https://placehold.co/24x24.png" alt="Doctor 1" data-ai-hint="doctor portrait" />
+                <Image width={24} height={24} className="inline-block h-6 w-6 rounded-full ring-2 ring-card" src="https://placehold.co/24x24.png" alt="Doctor 2" data-ai-hint="doctor portrait" />
+                <Image width={24} height={24} className="inline-block h-6 w-6 rounded-full ring-2 ring-card" src="https://placehold.co/24x24.png" alt="Doctor 3" data-ai-hint="doctor portrait" />
               </div>
               <div>
                 <h6 className="font-semibold text-xs">Trusted by 5K+ Patients</h6>
@@ -57,18 +60,27 @@ export function HomeBanner() {
               </div>
             </div>
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl xl:text-5xl/none font-headline">
-              Find Your Perfect Doctor: <span className="text-primary">AI</span> or <span className="text-primary">Human</span>
+              Intelligent healthcare, instantly.
+              Talk to our <span className="text-primary">AI Doctor</span> now.
             </h1>
             <p className="max-w-[600px] text-muted-foreground md:text-xl">
-              Access immediate care from our advanced AI doctors or connect with top-tier human specialists. Your health, your choice.
+              Get immediate answers to your health questions, or connect with a human specialist. Your health, your choice.
             </p>
-            <div className="rounded-lg bg-card/80 backdrop-blur-sm p-4 shadow-lg border">
+            <div className="w-full max-w-md space-y-2">
+               <Button size="lg" className="w-full text-lg h-12" asChild>
+                <Link href="/consultation"><MessageSquarePlus className="mr-3 h-6 w-6" /> Start AI Consultation</Link>
+               </Button>
+                <p className="text-center text-xs text-muted-foreground">
+                    Or, find a human specialist below.
+                </p>
+            </div>
+             <div className="rounded-lg bg-card/80 backdrop-blur-sm p-4 shadow-lg border mt-4">
               <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-center" id="search-form">
                 <div className="relative col-span-1 md:col-span-2">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Search AI doctors, specialists, clinics..."
+                    placeholder="Search human specialists, clinics..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     className="pl-9 h-10 text-sm"
@@ -106,7 +118,7 @@ export function HomeBanner() {
                 </Button>
               </form>
                <Button type="submit" className="w-full mt-2 hidden md:flex h-10 text-sm" form="search-form">
-                  <Search className="mr-2 h-4 w-4" /> Search
+                  <Search className="mr-2 h-4 w-4" /> Search Human Doctor
                 </Button>
             </div>
           </div>
