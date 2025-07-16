@@ -29,13 +29,13 @@ export default function DoctorRegisterPage() {
                                 <Link href="/" className="inline-block mb-4">
                                     <Stethoscope className="h-8 w-8 text-primary mx-auto" />
                                 </Link>
-                                <CardTitle className="text-2xl font-headline">Doctor Register</CardTitle>
+                                <CardTitle className="text-2xl font-headline">Doctor Registration</CardTitle>
                                 <CardDescription>
                                     Not a Doctor? <Link href="/register" className="underline">Sign up as a Patient</Link>
                                 </CardDescription>
                             </div>
                            
-                            <form action="/doctor/dashboard">
+                            <form action="/doctor-register/step-1">
                                 <div className="grid gap-4">
                                     <div className="grid gap-2">
                                         <Label htmlFor="name">Name</Label>
@@ -64,15 +64,13 @@ export default function DoctorRegisterPage() {
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                          <Button variant="outline" className="w-full" asChild>
-                                            <a href="/api/auth/facebook">
-                                                {/* Replace with actual icon if you add a library */}
+                                            <a href="#">
                                                 <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" /></svg>
                                                 Facebook
                                             </a>
                                         </Button>
                                          <Button variant="outline" className="w-full" asChild>
-                                            <a href="/api/auth/google">
-                                                 {/* Replace with actual icon if you add a library */}
+                                            <a href="#">
                                                  <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.19,4.73C14.76,4.73 16.04,5.7 17.22,6.73L19.33,4.5C17.22,2.73 14.91,1.7 12.19,1.7C6.42,1.7 1.95,6.58 1.95,12C1.95,17.42 6.42,22.3 12.19,22.3C17.6,22.3 21.54,18.5 21.54,12.21C21.54,11.64 21.48,11.36 21.35,11.1Z" /></svg>
                                                  Google
                                             </a>
