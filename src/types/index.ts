@@ -6,4 +6,5 @@ export type NavItem = {
   icon: LucideIcon;
   label?: string;
   disabled?: boolean;
+  badge?: string;
 };
