@@ -24,6 +24,29 @@ const formSchema = z.object({
     state: z.string().min(1, 'State is required'),
 });
 
+// Helper function to remove undefined properties from an object
+function cleanUndefined(obj: any): any {
+    if (obj === null || obj === undefined) {
+        return obj;
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(v => cleanUndefined(v));
+    }
+    if (typeof obj !== 'object') {
+        return obj;
+    }
+
+    return Object.entries(obj).reduce((acc, [key, value]) => {
+        if (value !== undefined) {
+            const cleanedValue = cleanUndefined(value);
+            if(cleanedValue !== undefined) {
+                 acc[key] = cleanedValue;
+            }
+        }
+        return acc;
+    }, {} as any);
+}
+
 export default function PatientRegisterStepFive() {
     const router = useRouter();
     const { user } = useAuth();
@@ -56,8 +79,10 @@ export default function PatientRegisterStepFive() {
                 email: user.email,
                 createdAt: new Date(),
             };
+
+            const cleanedData = cleanUndefined(registrationData);
             
-            await setDoc(doc(db, "users", user.uid), registrationData, { merge: true });
+            await setDoc(doc(db, "users", user.uid), cleanedData, { merge: true });
             
             toast({ title: 'Registration Complete!', description: 'Your profile has been created successfully.' });
             clearStore();
