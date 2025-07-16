@@ -54,64 +54,50 @@ export default function PatientRegisterStepOne() {
     setIsLoading(true);
     setError(null);
     setUploadProgress(0);
+    const storageRef = ref(storage, `profile_pictures/${user.uid}/${imageFile.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, imageFile);
 
     try {
-      const storageRef = ref(storage, `profile_pictures/${user.uid}/${imageFile.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, imageFile);
+      // Attach listener for progress
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        }
+      );
 
-      // This promise will handle the entire upload lifecycle.
-      await new Promise<void>((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setUploadProgress(progress);
-          },
-          (uploadError) => {
-            // This is the primary error handler from the upload task itself
-            console.error('Upload failed:', uploadError);
-            let description = `File upload failed. Code: ${uploadError.code}. Please check Firebase Storage rules and CORS configuration.`;
-             toast({
-              title: 'Upload Failed',
-              description: description,
-              variant: 'destructive',
-            });
-            reject(uploadError); // Reject the promise to trigger the outer catch block
-          },
-          async () => {
-            // This runs only on successful completion of the upload
-            try {
-              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-              const userDocRef = doc(db, 'users', user.uid);
-              await setDoc(userDocRef, { photoURL: downloadURL }, { merge: true });
+      // Await completion of the upload
+      await uploadTask;
 
-              toast({
-                title: 'Success!',
-                description: 'Your profile picture has been uploaded.',
-              });
-              
-              router.push('/patient-register/step-2');
-              resolve(); // Resolve the promise on success
-            } catch (dbError: any) {
-              console.error('Failed to save URL to database:', dbError);
-              toast({
-                title: 'Database Error',
-                description: 'Could not save profile picture URL.',
-                variant: 'destructive',
-              });
-              reject(dbError); // Reject the promise if database write fails
-            }
-          }
-        );
+      // Get URL and save to DB
+      const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+      const userDocRef = doc(db, 'users', user.uid);
+      await setDoc(userDocRef, { photoURL: downloadURL }, { merge: true });
+
+      toast({
+        title: 'Success!',
+        description: 'Your profile picture has been uploaded.',
       });
-    } catch (err) {
-      // This outer catch block handles rejections from the promise, including CORS/network errors.
-      console.error("An error occurred during the upload process:", err);
-      setError('Upload failed. Please try again.');
+      
+      router.push('/patient-register/step-2');
+
+    } catch (uploadError: any) {
+        console.error('Upload failed:', uploadError);
+        let description = 'File upload failed. Please try again.';
+        if (uploadError.code === 'storage/unauthorized' || uploadError.code === 'storage/object-not-found') {
+            description = 'Upload failed. Please check Firebase Storage rules and ensure you are logged in.';
+        }
+        toast({
+          title: 'Upload Failed',
+          description: description,
+          variant: 'destructive',
+        });
+        setError(description);
     } finally {
-      // This will run whether the upload succeeds or fails, preventing infinite loading.
-      setIsLoading(false);
-      setUploadProgress(null);
+        // This block will ALWAYS run, ensuring the loading state is reset.
+        setIsLoading(false);
+        setUploadProgress(null);
     }
   };
 
