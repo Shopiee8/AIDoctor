@@ -37,8 +37,17 @@ export default function PatientRegisterStepTwo() {
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: personalDetails,
+        defaultValues: {
+            ...personalDetails,
+            weight: personalDetails.weight || undefined,
+            height: personalDetails.height || undefined,
+            age: personalDetails.age || undefined,
+            bloodType: personalDetails.bloodType || '',
+            allergies: personalDetails.allergies || '',
+        },
     });
+    
+    const gender = form.watch('gender');
 
     function onSubmit(data: z.infer<typeof formSchema>) {
         setPersonalDetails(data);
@@ -100,14 +109,14 @@ export default function PatientRegisterStepTwo() {
                             <FormField control={form.control} name="weight" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Your Weight (kg)</FormLabel>
-                                    <FormControl><Input type="number" placeholder="70" {...field} /></FormControl>
+                                    <FormControl><Input type="number" placeholder="70" {...field} value={field.value ?? ''} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}/>
                             <FormField control={form.control} name="height" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Your Height (cm)</FormLabel>
-                                    <FormControl><Input type="number" placeholder="175" {...field} /></FormControl>
+                                    <FormControl><Input type="number" placeholder="175" {...field} value={field.value ?? ''} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}/>
@@ -117,7 +126,7 @@ export default function PatientRegisterStepTwo() {
                             <FormField control={form.control} name="age" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Your Age</FormLabel>
-                                    <FormControl><Input type="number" placeholder="35" {...field} /></FormControl>
+                                    <FormControl><Input type="number" placeholder="35" {...field} value={field.value ?? ''} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}/>
@@ -163,12 +172,14 @@ export default function PatientRegisterStepTwo() {
                                     <FormLabel>Are you currently taking any medication?</FormLabel>
                                 </FormItem>
                             )}/>
-                             <FormField control={form.control} name="isPregnant" render={({ field }) => (
-                                <FormItem className="flex items-center space-x-2">
-                                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                                    <FormLabel>Are you pregnant?</FormLabel>
-                                </FormItem>
-                            )}/>
+                             {gender === 'female' && (
+                                <FormField control={form.control} name="isPregnant" render={({ field }) => (
+                                    <FormItem className="flex items-center space-x-2">
+                                        <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                        <FormLabel>Are you pregnant?</FormLabel>
+                                    </FormItem>
+                                )}/>
+                             )}
                         </div>
                         <Button type="submit" className="w-full">Continue</Button>
                     </form>
