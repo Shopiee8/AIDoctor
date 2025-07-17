@@ -37,7 +37,7 @@ const patientNavItems: NavItem[] = [
   { title: "Medical Records", href: "/dashboard/medical-records", icon: FileText },
   { title: "Wallet", href: "/dashboard/wallet", icon: Wallet },
   { title: "Invoices", href: "/dashboard/invoices", icon: FileText },
-  { title: "Message", href: "/dashboard/messages", icon: MessageSquare, badge: "7" },
+  { title: "Messages", href: "/dashboard/messages", icon: MessageSquare, badge: "7" },
   { title: "Vitals", href: "/dashboard/vitals", icon: HeartPulse },
   { title: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
