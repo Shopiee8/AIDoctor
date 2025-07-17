@@ -299,30 +299,32 @@ function AddPaymentDialog() {
             <DialogHeader>
                 <DialogTitle>Add Payment</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-                <div className="grid gap-2">
-                    <Label htmlFor="amount">Enter Amount <span className="text-destructive">*</span></Label>
-                    <Input id="amount" placeholder="$100.00" />
+            <form>
+                <div className="space-y-4 py-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="amount">Enter Amount <span className="text-destructive">*</span></Label>
+                        <Input id="amount" placeholder="$100.00" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="payment-gateway">Select Payment Gateway <span className="text-destructive">*</span></Label>
+                        <Select>
+                            <SelectTrigger id="payment-gateway">
+                                <SelectValue placeholder="Select Gateway" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="card">Card</SelectItem>
+                                <SelectItem value="paypal">Paypal</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="payment-gateway">Select Payment Gateway <span className="text-destructive">*</span></Label>
-                     <Select>
-                        <SelectTrigger id="payment-gateway">
-                            <SelectValue placeholder="Select Gateway" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="card">Card</SelectItem>
-                            <SelectItem value="paypal">Paypal</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
-            <DialogFooter>
-                <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                </DialogClose>
-                <Button>Add to Wallet</Button>
-            </DialogFooter>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                    </DialogClose>
+                    <Button type="submit">Add to Wallet</Button>
+                </DialogFooter>
+            </form>
         </DialogContent>
     )
 }
@@ -577,7 +579,7 @@ function OtherAccountsDialog({ accounts }: { accounts: BankDetails[] }) {
     };
 
     return (
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl">
             <DialogHeader>
                 <DialogTitle>Other Accounts</DialogTitle>
             </DialogHeader>
