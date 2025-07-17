@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { LucideIcon } from 'lucide-react';
-import { Heart, Thermometer, Brain, Droplets, LineChart, User, Calendar, Bell, Wallet, Hospital, Video } from "lucide-react";
+import { Heart, Thermometer, Brain, Droplets, LineChart, User, Calendar, Bell, Wallet, Hospital, Video, Scale, Wind } from "lucide-react";
 
 // Types
 interface HealthRecord {
@@ -19,7 +19,8 @@ interface VitalsSummaryData {
     temperature?: number;
     glucoseLevel?: number;
     bloodPressure?: string;
-    // Add other raw vitals here as needed
+    bmi?: number;
+    spo2?: number;
 }
 
 interface HealthReport {
@@ -148,17 +149,23 @@ const transformVitalsToHealthRecords = (vitals?: VitalsSummaryData): HealthRecor
     
     const records: HealthRecord[] = [];
 
+    if (vitals.bloodPressure) {
+        records.push({ title: "Blood Pressure", value: `${vitals.bloodPressure} mmHg`, icon: Droplets, color: "text-red-500" });
+    }
     if (vitals.heartRate) {
         records.push({ title: "Heart Rate", value: `${vitals.heartRate} Bpm`, icon: Heart, color: "text-orange-500", trend: "+2%" });
+    }
+    if (vitals.glucoseLevel) {
+        records.push({ title: "Glucose Level", value: `${vitals.glucoseLevel} mg/dL`, icon: Brain, color: "text-blue-700" });
     }
     if (vitals.temperature) {
         records.push({ title: "Body Temperature", value: `${vitals.temperature} C`, icon: Thermometer, color: "text-amber-500" });
     }
-     if (vitals.glucoseLevel) {
-        records.push({ title: "Glucose Level", value: `${vitals.glucoseLevel} mg/dL`, icon: Brain, color: "text-blue-700" });
+    if (vitals.bmi) {
+        records.push({ title: "BMI", value: `${vitals.bmi} kg/m2`, icon: Scale, color: "text-purple-500" });
     }
-    if (vitals.bloodPressure) {
-        records.push({ title: "Blood Pressure", value: `${vitals.bloodPressure} mmHg`, icon: Droplets, color: "text-red-500" });
+    if (vitals.spo2) {
+        records.push({ title: "SPO2", value: `${vitals.spo2}%`, icon: Wind, color: "text-cyan-500" });
     }
 
     return records;
@@ -174,12 +181,14 @@ export const usePatientDataStore = create<PatientDataState>((set) => ({
         const unsubscribe = onSnapshot(userDocRef, (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.data();
+                
+                // Correctly transform the raw vitals summary into the healthRecords for the UI
                 const healthRecords = transformVitalsToHealthRecords(data.dashboard?.vitalsSummary);
 
                 // Use live data if it exists, otherwise use initial empty state.
                 set({
                     personalDetails: data.personalDetails || initialPatientDataState.personalDetails,
-                    healthRecords: healthRecords, // Use the transformed data
+                    healthRecords: healthRecords, // Use the correctly transformed data
                     healthReport: data.dashboard?.healthReport || initialPatientDataState.healthReport,
                     analytics: data.dashboard?.analytics || initialPatientDataState.analytics,
                     favorites: data.dashboard?.favorites || initialPatientDataState.favorites,
