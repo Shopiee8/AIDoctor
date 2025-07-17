@@ -174,8 +174,8 @@ const mockData = {
         { day: "25", weekday: "Sat", available: false },
     ],
     upcomingAppointments: [
-      { id: '1', doctor: "Dr. Edalin Hendry", specialty: "Dentist", image: "https://placehold.co/40x40.png", typeIcon: Hospital, dateTime: "21 Mar 2025 - 10:30 PM" },
-      { id: '2', doctor: "Dr. Juliet Gabriel", specialty: "Cardiologist", image: "https://placehold.co/40x40.png", typeIcon: Video, dateTime: "22 Mar 2025 - 10:30 PM" },
+      { doctor: "Dr. Edalin Hendry", specialty: "Dentist", image: "https://placehold.co/40x40.png", typeIcon: Hospital, dateTime: "21 Mar 2025 - 10:30 PM" },
+      { doctor: "Dr. Juliet Gabriel", specialty: "Cardiologist", image: "https://placehold.co/40x40.png", typeIcon: Video, dateTime: "22 Mar 2025 - 10:30 PM" },
     ],
     notifications: [
         { id: '1', icon: Calendar, color: "bg-purple-100 text-purple-600", message: "Booking Confirmed on 21 Mar 2025 10:30 AM", time: "Just Now" },
@@ -218,27 +218,28 @@ export const usePatientDataStore = create<PatientDataState>((set) => ({
         const unsubscribe = onSnapshot(userDocRef, (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.data();
+                // Use live data if it exists, otherwise use mock data as a fallback.
                 set({
                     personalDetails: data.personalDetails || mockData.personalDetails,
-                    healthRecords: data.healthRecords || mockData.healthRecords,
-                    healthReport: data.healthReport || mockData.healthReport,
-                    analytics: data.analytics || mockData.analytics,
-                    favorites: data.favorites || mockData.favorites,
-                    appointmentDates: data.appointmentDates || mockData.appointmentDates,
-                    upcomingAppointments: data.upcomingAppointments || mockData.upcomingAppointments,
-                    notifications: data.notifications || mockData.notifications,
-                    dependents: data.dependents || mockData.dependents,
-                    reports: data.reports || mockData.reports,
+                    healthRecords: data.dashboard?.healthRecords || mockData.healthRecords,
+                    healthReport: data.dashboard?.healthReport || mockData.healthReport,
+                    analytics: data.dashboard?.analytics || mockData.analytics,
+                    favorites: data.dashboard?.favorites || mockData.favorites,
+                    appointmentDates: data.dashboard?.appointmentDates || mockData.appointmentDates,
+                    upcomingAppointments: data.dashboard?.upcomingAppointments || mockData.upcomingAppointments,
+                    notifications: data.dashboard?.notifications || mockData.notifications,
+                    dependents: data.dashboard?.dependents || mockData.dependents,
+                    reports: data.dashboard?.reports || mockData.reports,
                     isLoading: false,
                 });
             } else {
-                // If no data exists, use mock data as a fallback
-                console.warn(`No data found for user ${userId}. Using mock data.`);
+                // If no user document exists, use mock data.
+                console.warn(`No data found for user ${userId}. Displaying mock data.`);
                 set({ ...mockData, isLoading: false });
             }
         }, (error) => {
             console.error("Error fetching patient data: ", error);
-            // On error, also use mock data
+            // On error, also use mock data as a fallback
             set({ ...mockData, isLoading: false });
         });
 

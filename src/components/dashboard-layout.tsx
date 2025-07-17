@@ -79,7 +79,7 @@ function PatientSidebar() {
     const { personalDetails } = usePatientDataStore();
 
     // A simple check to see if the current path is active
-    const isActive = (href: string) => pathname.includes(href);
+    const isActive = (href: string) => pathname === href;
 
     return (
         <>
@@ -205,10 +205,17 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
   const { fetchPatientData, clearPatientData } = usePatientDataStore();
 
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
     if (user && userRole === 'Patient') {
-      fetchPatientData(user.uid);
+      unsubscribe = fetchPatientData(user.uid);
     } else {
       clearPatientData();
+    }
+    
+    return () => {
+        if (unsubscribe) {
+            unsubscribe();
+        }
     }
   }, [user, userRole, fetchPatientData, clearPatientData]);
   

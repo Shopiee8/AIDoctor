@@ -684,6 +684,3 @@ function OtherAccountsDialog({ accounts }: { accounts: BankDetails[] }) {
 }
 
     
-
-
-
