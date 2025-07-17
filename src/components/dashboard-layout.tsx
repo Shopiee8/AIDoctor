@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from 'next/link';
@@ -33,7 +34,7 @@ const patientNavItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "My Appointments", href: "/dashboard/appointments", icon: Calendar },
   { title: "Favourites", href: "/dashboard/favourites", icon: Star },
-  { title: "Dependants", href: "/dashboard/dependents", icon: UserSquare },
+  { title: "Dependants", href: "/dashboard/dependents", icon: Users },
   { title: "Medical Records", href: "/dashboard/medical-records", icon: FileText },
   { title: "Wallet", href: "/dashboard/wallet", icon: Wallet },
   { title: "Invoices", href: "/dashboard/invoices", icon: FileText },
