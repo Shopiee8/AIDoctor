@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard-header';
 import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 const patientNavItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -80,20 +81,17 @@ function PatientSidebar() {
 
     // A simple check to see if the current path is active
     const isActive = (href: string) => pathname === href;
+    const fallbackInitial = user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'P';
 
     return (
         <>
             <SidebarHeader className="p-4">
                 <div className="flex flex-col items-center text-center">
                     <Link href="/dashboard/settings">
-                        <Image
-                            src={user?.photoURL || "https://placehold.co/80x80.png"}
-                            alt="User Image"
-                            width={80}
-                            height={80}
-                            className="rounded-full border-4 border-primary/20"
-                            data-ai-hint="person portrait"
-                        />
+                       <Avatar className="w-20 h-20 border-4 border-primary/20">
+                           <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} data-ai-hint="person portrait" />
+                           <AvatarFallback className="text-2xl">{fallbackInitial}</AvatarFallback>
+                       </Avatar>
                     </Link>
                     <div className="mt-3">
                         <h3 className="font-bold text-lg">

@@ -37,7 +37,7 @@ export function DashboardHeader() {
           <Button variant="secondary" size="icon" className="rounded-full">
             <Avatar>
               <AvatarImage src={user?.photoURL || "https://placehold.co/40x40.png"} data-ai-hint="person" />
-              <AvatarFallback>{user?.email?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+              <AvatarFallback>{user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
             </Avatar>
             <span className="sr-only">Toggle user menu</span>
           </Button>
@@ -46,10 +46,10 @@ export function DashboardHeader() {
           <DropdownMenuLabel>{user?.displayName || user?.email || 'My Account'}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link href="#">Profile</Link>
+            <Link href="/dashboard/settings">Profile</Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="#">Settings</Link>
+            <Link href="/dashboard/settings">Settings</Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout}>
