@@ -70,13 +70,17 @@ const updateUserDashboardVitals = async (userId: string) => {
         const latestVital = querySnapshot.docs[0].data();
         dashboardUpdate = {
             dashboard: {
-                healthRecords: [
-                    { title: "Heart Rate", value: `${latestVital.heartRate} Bpm`, icon: Heart, color: "text-orange-500", trend: "+2%" },
-                    { title: "Body Temperature", value: '37.0 C', icon: Thermometer, color: "text-amber-500" },
-                    { title: "Glucose Level", value: '90 mg/dL', icon: Brain, color: "text-blue-700" },
-                    { title: "Blood Pressure", value: '120/80 mmHg', icon: Droplets, color: "text-red-500" },
-                ],
-                healthReport: {
+                // Store raw data. The zustand store will handle formatting.
+                vitalsSummary: {
+                    heartRate: latestVital.heartRate,
+                    bmi: latestVital.bmi,
+                    // Add placeholders for data not yet collected
+                    temperature: 37.0,
+                    glucoseLevel: 90,
+                    bloodPressure: '120/80', // Keep as string for now
+                    spo2: 98,
+                },
+                healthReport: { // Keep report as is, can be made dynamic later
                     percentage: 75,
                     title: 'Your Health is Good!',
                     details: 'Keep up the good work.'
@@ -86,7 +90,7 @@ const updateUserDashboardVitals = async (userId: string) => {
     } else {
          dashboardUpdate = {
             dashboard: {
-                healthRecords: [],
+                vitalsSummary: null, // Clear summary if no vitals exist
                 healthReport: {
                     percentage: 0,
                     title: 'No Vitals Recorded',
@@ -329,7 +333,7 @@ function VitalsFormDialog({ user, existingRecord }: { user: any, existingRecord?
 
             setOpen(false);
             if (!isEditMode) {
-                form.reset(defaultAddValues);
+                 form.reset(defaultAddValues);
             }
         } catch (error) {
             console.error("Error saving vitals:", error);
@@ -433,4 +437,3 @@ function DeleteVitalsDialog({ recordId, userId }: { recordId: string, userId: st
         </AlertDialog>
     );
 }
-

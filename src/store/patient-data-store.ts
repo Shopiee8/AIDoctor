@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { LucideIcon } from 'lucide-react';
-import { Heart, Thermometer, TestTube2, Droplets, LineChart, User, Calendar, Bell, Wallet, Hospital, Video } from "lucide-react";
+import { Heart, Thermometer, Brain, Droplets, LineChart, User, Calendar, Bell, Wallet, Hospital, Video } from "lucide-react";
 
 // Types
 interface HealthRecord {
@@ -12,6 +12,14 @@ interface HealthRecord {
   icon: LucideIcon;
   color: string;
   trend?: string;
+}
+
+interface VitalsSummaryData {
+    heartRate?: number;
+    temperature?: number;
+    glucoseLevel?: number;
+    bloodPressure?: string;
+    // Add other raw vitals here as needed
 }
 
 interface HealthReport {
@@ -134,6 +142,28 @@ const initialPatientDataState: Omit<PatientDataState, 'fetchPatientData' | 'clea
     isLoading: true,
 };
 
+// This function transforms raw vitals data into the structure the UI needs
+const transformVitalsToHealthRecords = (vitals?: VitalsSummaryData): HealthRecord[] => {
+    if (!vitals) return [];
+    
+    const records: HealthRecord[] = [];
+
+    if (vitals.heartRate) {
+        records.push({ title: "Heart Rate", value: `${vitals.heartRate} Bpm`, icon: Heart, color: "text-orange-500", trend: "+2%" });
+    }
+    if (vitals.temperature) {
+        records.push({ title: "Body Temperature", value: `${vitals.temperature} C`, icon: Thermometer, color: "text-amber-500" });
+    }
+     if (vitals.glucoseLevel) {
+        records.push({ title: "Glucose Level", value: `${vitals.glucoseLevel} mg/dL`, icon: Brain, color: "text-blue-700" });
+    }
+    if (vitals.bloodPressure) {
+        records.push({ title: "Blood Pressure", value: `${vitals.bloodPressure} mmHg`, icon: Droplets, color: "text-red-500" });
+    }
+
+    return records;
+};
+
 
 export const usePatientDataStore = create<PatientDataState>((set) => ({
     ...initialPatientDataState,
@@ -144,10 +174,12 @@ export const usePatientDataStore = create<PatientDataState>((set) => ({
         const unsubscribe = onSnapshot(userDocRef, (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.data();
+                const healthRecords = transformVitalsToHealthRecords(data.dashboard?.vitalsSummary);
+
                 // Use live data if it exists, otherwise use initial empty state.
                 set({
                     personalDetails: data.personalDetails || initialPatientDataState.personalDetails,
-                    healthRecords: data.dashboard?.healthRecords || initialPatientDataState.healthRecords,
+                    healthRecords: healthRecords, // Use the transformed data
                     healthReport: data.dashboard?.healthReport || initialPatientDataState.healthReport,
                     analytics: data.dashboard?.analytics || initialPatientDataState.analytics,
                     favorites: data.dashboard?.favorites || initialPatientDataState.favorites,
