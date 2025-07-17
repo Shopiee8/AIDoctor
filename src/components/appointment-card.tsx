@@ -3,12 +3,11 @@
 
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { Video, Mic, MessageSquare, Hospital, Calendar, Clock, Eye, Trash2, CheckCircle, XCircle, Plus } from 'lucide-react';
+import { Video, Mic, MessageSquare, Hospital, Calendar, Clock, Eye, XCircle, CheckCircle, Plus } from 'lucide-react';
 import type { Appointment } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Badge } from './ui/badge';
 
 interface AppointmentCardProps {
     appointment: Appointment;
@@ -23,7 +22,7 @@ const appointmentTypeIcons = {
 };
 
 const statusConfig = {
-    Upcoming: { color: 'bg-blue-500', icon: Calendar },
+    Upcoming: { color: 'bg-yellow-400', icon: Clock },
     Completed: { color: 'bg-green-500', icon: CheckCircle },
     Cancelled: { color: 'bg-red-500', icon: XCircle },
 };
@@ -102,16 +101,11 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                     <Button variant="outline" size="sm" className="w-full" asChild>
                         <Link href={`/dashboard/appointments/${appointment.id}`}><Eye className="w-4 h-4 mr-2" /> View Details</Link>
                     </Button>
-                    {appointment.status === 'Completed' && (
+                    {(appointment.status === 'Completed' || appointment.status === 'Cancelled') && (
                          <Button size="sm" className="w-full">
                             <Plus className="w-4 h-4 mr-2" /> Book Again
                         </Button>
                     )}
-                     {appointment.status === 'Cancelled' && (
-                         <Button size="sm" className="w-full">
-                            <Plus className="w-4 h-4 mr-2" /> Book Again
-                        </Button>
-                     )}
                 </div>
             )}
         </div>

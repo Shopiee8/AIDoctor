@@ -21,4 +21,6 @@ export type Appointment = {
   appointmentType: 'Video' | 'Audio' | 'Chat' | 'In-person';
   dateTime: Date;
   status: 'Upcoming' | 'Completed' | 'Cancelled';
+  clinicName?: string;
+  clinicLocation?: string;
 };

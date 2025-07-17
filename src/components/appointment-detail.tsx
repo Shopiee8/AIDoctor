@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Video, Mic, MessageSquare, Hospital, Calendar, Clock, Mail, Phone, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Video, Mic, MessageSquare, Hospital, Calendar, Clock, Mail, Phone, MessageCircle, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AppointmentDetailProps {
@@ -29,7 +29,7 @@ const appointmentTypeIcons = {
 };
 
 const statusConfig = {
-    Upcoming: { color: 'bg-blue-100 text-blue-800', text: 'Upcoming' },
+    Upcoming: { color: 'bg-yellow-100 text-yellow-800', text: 'Upcoming' },
     Completed: { color: 'bg-green-100 text-green-800', text: 'Completed' },
     Cancelled: { color: 'bg-red-100 text-red-800', text: 'Cancelled' },
 };
@@ -145,7 +145,19 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
                                 <p className="text-muted-foreground">Visit Type</p>
                                 <p className="font-medium">{appointment.visitType}</p>
                             </div>
-                            <div className="space-y-1">
+                            {appointment.clinicName && (
+                                <div className="space-y-1">
+                                    <p className="text-muted-foreground">Clinic</p>
+                                    <p className="font-medium flex items-center gap-2"><Hospital className="h-4 w-4 text-primary" />{appointment.clinicName}</p>
+                                </div>
+                            )}
+                             {appointment.clinicLocation && (
+                                <div className="space-y-1">
+                                    <p className="text-muted-foreground">Location</p>
+                                    <p className="font-medium flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" />{appointment.clinicLocation}</p>
+                                </div>
+                            )}
+                             <div className="space-y-1">
                                 <p className="text-muted-foreground">Patient</p>
                                 <p className="font-medium">{user?.displayName || 'Self'}</p>
                             </div>
@@ -160,8 +172,9 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
                              <>
                                 <hr />
                                 <div className="flex flex-col sm:flex-row gap-2">
-                                    <Button className="w-full sm:w-auto">Reschedule Appointment</Button>
-                                    <Button variant="outline" className="w-full sm:w-auto">Cancel Appointment</Button>
+                                    <Button className="w-full sm:w-auto"><Video className="mr-2 h-4 w-4"/> Start Session</Button>
+                                    <Button variant="outline" className="w-full sm:w-auto">Reschedule Appointment</Button>
+                                    <Button variant="destructive" className="w-full sm:w-auto">Cancel Appointment</Button>
                                 </div>
                             </>
                         )}
