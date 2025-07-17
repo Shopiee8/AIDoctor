@@ -34,7 +34,7 @@ export default function Home() {
                     Get instant, confidential, and intelligent answers to your health questions. Our AI is available 24/7 to help you understand your symptoms and guide you on your next steps.
                 </p>
                 <Button size="lg" className="text-lg h-12" asChild>
-                    <Link href="/consultation"><MessageSquarePlus className="mr-3 h-6 w-6" /> Start Your AI Consultation Now</Link>
+                    <Link href="/dashboard/consultation"><MessageSquarePlus className="mr-3 h-6 w-6" /> Start Your AI Consultation Now</Link>
                 </Button>
             </div>
         </div>
