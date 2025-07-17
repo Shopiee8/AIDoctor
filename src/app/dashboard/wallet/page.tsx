@@ -7,12 +7,13 @@ import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
 import { collection, doc, onSnapshot, addDoc, query, orderBy, setDoc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { useForm } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -97,9 +98,15 @@ export default function WalletPage() {
                     });
 
                     if (isLoading) setIsLoading(false);
+                }, (error) => {
+                     console.error("Error fetching transactions:", error);
+                     toast({ title: "Error", description: "Could not fetch transactions.", variant: "destructive" });
                 });
 
                 return () => unsubTransactions();
+            }, (error) => {
+                 console.error("Error fetching cards:", error);
+                 toast({ title: "Error", description: "Could not fetch cards.", variant: "destructive" });
             });
 
             return () => unsubCards();
@@ -452,32 +459,22 @@ function EditCardDialog({ bankDetails }: { bankDetails: BankDetails }) {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
-    
-    const [formData, setFormData] = useState({
-        bankName: bankDetails.bankName || '',
-        accountName: bankDetails.accountName || '',
-        accountNumber: bankDetails.accountNumber || '',
-        expiryDate: bankDetails.expiryDate || '',
-        cvv: bankDetails.cvv || '',
-        branchName: bankDetails.branchName || '',
-        isDefault: bankDetails.isDefault || false,
+
+    const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
+        defaultValues: {
+            bankName: bankDetails.bankName || '',
+            accountName: bankDetails.accountName || '',
+            accountNumber: bankDetails.accountNumber || '',
+            expiryDate: bankDetails.expiryDate || '',
+            cvv: bankDetails.cvv || '',
+            branchName: bankDetails.branchName || '',
+            isDefault: bankDetails.isDefault || false,
+        }
     });
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { id, value } = e.target;
-        setFormData(prev => ({ ...prev, [id]: value }));
-    };
+    const branchValue = watch('branchName');
 
-    const handleSelectChange = (value: string) => {
-        setFormData(prev => ({ ...prev, branchName: value }));
-    };
-
-    const handleCheckboxChange = (checked: boolean) => {
-        setFormData(prev => ({ ...prev, isDefault: checked }));
-    };
-
-    const handleEditCard = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleEditCard = async (data: any) => {
         if (!user) {
             toast({ title: "Not Authenticated", description: "You must be logged in.", variant: "destructive" });
             return;
@@ -485,7 +482,7 @@ function EditCardDialog({ bankDetails }: { bankDetails: BankDetails }) {
         setIsLoading(true);
         try {
             const cardDocRef = doc(db, 'users', user.uid, 'cards', bankDetails.id);
-            await setDoc(cardDocRef, formData, { merge: true });
+            await setDoc(cardDocRef, data, { merge: true });
 
             toast({ title: "Success", description: "Card details updated." });
             document.getElementById('editCardClose')?.click();
@@ -503,34 +500,34 @@ function EditCardDialog({ bankDetails }: { bankDetails: BankDetails }) {
             <DialogHeader>
                 <DialogTitle>Edit Card</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleEditCard}>
+            <form onSubmit={handleSubmit(handleEditCard)}>
                  <div className="space-y-4 py-4">
                      <div className="grid gap-2">
                         <Label htmlFor="bankName">Bank Name</Label>
-                        <Input id="bankName" value={formData.bankName} onChange={handleInputChange} />
+                        <Input id="bankName" {...register("bankName")} />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="accountName">Card Holder Name</Label>
-                        <Input id="accountName" value={formData.accountName} onChange={handleInputChange} />
+                        <Input id="accountName" {...register("accountName")} />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="accountNumber">Card Number</Label>
-                        <Input id="accountNumber" value={formData.accountNumber} onChange={handleInputChange} />
+                        <Input id="accountNumber" {...register("accountNumber")} />
                     </div>
                      <div className="grid grid-cols-2 gap-4">
                          <div className="grid gap-2">
                             <Label htmlFor="expiryDate">Expire Date (MM/YY)</Label>
-                             <Input id="expiryDate" value={formData.expiryDate} onChange={handleInputChange} />
+                             <Input id="expiryDate" {...register("expiryDate")} />
                         </div>
                          <div className="grid gap-2">
                             <Label htmlFor="cvv">CVV</Label>
-                            <Input id="cvv" value={formData.cvv} onChange={handleInputChange} />
+                            <Input id="cvv" {...register("cvv")} />
                         </div>
                     </div>
                      <div className="grid gap-2">
-                        <Label htmlFor="branchName">Branch</Label>
-                         <Select value={formData.branchName.toLowerCase()} onValueChange={handleSelectChange}>
-                            <SelectTrigger id="branchName">
+                        <Label htmlFor="branchName-edit">Branch</Label>
+                         <Select defaultValue={bankDetails.branchName?.toLowerCase() || ''} onValueChange={(value) => setValue('branchName', value)}>
+                            <SelectTrigger id="branchName-edit">
                                 <SelectValue placeholder="Select Branch" />
                             </SelectTrigger>
                             <SelectContent>
@@ -542,8 +539,8 @@ function EditCardDialog({ bankDetails }: { bankDetails: BankDetails }) {
                 </div>
                 <DialogFooter className="justify-between sm:justify-between">
                     <div className="flex items-center space-x-2">
-                        <Checkbox id="isDefault" checked={formData.isDefault} onCheckedChange={handleCheckboxChange} />
-                        <Label htmlFor="isDefault">Mark as Default</Label>
+                        <Checkbox id="isDefault-edit" {...register("isDefault")} defaultChecked={bankDetails.isDefault} onCheckedChange={(checked) => setValue('isDefault', Boolean(checked))} />
+                        <Label htmlFor="isDefault-edit">Mark as Default</Label>
                     </div>
                      <div className="flex gap-2">
                         <DialogClose asChild>
