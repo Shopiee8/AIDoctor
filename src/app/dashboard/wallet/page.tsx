@@ -449,15 +449,15 @@ function EditCardDialog({ bankDetails }: { bankDetails: BankDetails }) {
              <div className="space-y-4 py-4">
                  <div className="grid gap-2">
                     <Label htmlFor="card-holder-edit">Bank Name</Label>
-                    <Input id="card-holder-edit" defaultValue={bankDetails.bankName} />
+                    <Input id="card-holder-edit" defaultValue={bankDetails.bankName || ''} />
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="card-holder-edit">Card Holder Name</Label>
-                    <Input id="card-holder-edit" defaultValue={bankDetails.accountName} />
+                    <Input id="card-holder-edit" defaultValue={bankDetails.accountName || ''} />
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="card-number-edit">Card Number</Label>
-                    <Input id="card-number-edit" defaultValue={bankDetails.accountNumber} />
+                    <Input id="card-number-edit" defaultValue={bankDetails.accountNumber || ''} />
                 </div>
                  <div className="grid grid-cols-2 gap-4">
                      <div className="grid gap-2">
@@ -471,7 +471,7 @@ function EditCardDialog({ bankDetails }: { bankDetails: BankDetails }) {
                 </div>
                  <div className="grid gap-2">
                     <Label htmlFor="branch-edit">Branch</Label>
-                     <Select defaultValue={bankDetails.branchName.toLowerCase()}>
+                     <Select defaultValue={bankDetails.branchName?.toLowerCase() || ''}>
                         <SelectTrigger id="branch-edit">
                             <SelectValue placeholder="Select Branch" />
                         </SelectTrigger>
@@ -542,4 +542,3 @@ function OtherAccountsDialog({ accounts }: { accounts: BankDetails[] }) {
         </DialogContent>
     )
 }
-
