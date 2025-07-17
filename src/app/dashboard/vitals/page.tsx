@@ -240,6 +240,10 @@ function VitalsFormDialog({ user, existingRecord }: { user: any, existingRecord?
             fbc: existingRecord.fbc,
             addedOn: new Date(existingRecord.addedOn),
         } : {
+            bmi: '' as any,
+            heartRate: '' as any,
+            weight: '' as any,
+            fbc: '' as any,
             addedOn: new Date(),
         }
     });
