@@ -3,7 +3,9 @@ import { create } from 'zustand';
 import { doc, onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { LucideIcon } from 'lucide-react';
-import { Heart, Thermometer, Brain, Droplets, LineChart, User, Calendar, Bell, Wallet, Hospital, Video, Scale, Wind, FileText } from "lucide-react";
+import { Heart, Thermometer, Brain, Droplets, LineChart, User, Calendar, Bell, Wallet, Hospital, Video, Scale, Wind, FileText, Plus } from "lucide-react";
+import type { Appointment } from '@/types';
+
 
 // Types
 interface HealthRecord {
@@ -69,15 +71,6 @@ interface Dependent {
     image: string;
 }
 
-interface ReportItem {
-    id: string;
-    doctor: string;
-    image: string;
-    date: string;
-    type: string;
-    status: 'Upcoming' | 'Completed' | 'Cancelled';
-}
-
 interface MedicalRecordItem {
     id: string;
     name: string;
@@ -101,7 +94,7 @@ interface InvoiceItem {
 }
 
 interface Reports {
-    appointments: ReportItem[];
+    appointments: Appointment[];
     medicalRecords: MedicalRecordItem[];
     prescriptions: PrescriptionItem[];
     invoices: InvoiceItem[];
@@ -158,10 +151,10 @@ const transformVitalsToHealthRecords = (vitals?: VitalsSummaryData): HealthRecor
         records.push({ title: "Glucose Level", value: `${vitals.glucoseLevel} mg/dL`, icon: Brain, color: "text-blue-700" });
     }
     if (vitals.temperature) {
-        records.push({ title: "Body Temperature", value: `${vitals.temperature} C`, icon: Thermometer, color: "text-amber-500" });
+        records.push({ title: "Body Temperature", value: `${vitals.temperature} °C`, icon: Thermometer, color: "text-amber-500" });
     }
     if (vitals.bmi) {
-        records.push({ title: "BMI", value: `${vitals.bmi} kg/m2`, icon: Scale, color: "text-purple-500" });
+        records.push({ title: "BMI", value: `${vitals.bmi} kg/m²`, icon: Scale, color: "text-purple-500" });
     }
     if (vitals.spo2) {
         records.push({ title: "SPO2", value: `${vitals.spo2}%`, icon: Wind, color: "text-cyan-500" });
@@ -179,6 +172,7 @@ export const usePatientDataStore = create<PatientDataState>((set, get) => ({
         const userDocRef = doc(db, 'users', userId);
         const recordsQuery = query(collection(db, 'users', userId, 'medical-records'), orderBy('date', 'desc'), limit(5));
         const prescriptionsQuery = query(collection(db, 'users', userId, 'prescriptions'), orderBy('date', 'desc'), limit(5));
+        const appointmentsQuery = query(collection(db, 'users', userId, 'appointments'), orderBy('dateTime', 'desc'), limit(5));
         
         const unsubUser = onSnapshot(userDocRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -195,7 +189,7 @@ export const usePatientDataStore = create<PatientDataState>((set, get) => ({
                     upcomingAppointments: data.dashboard?.upcomingAppointments || initialPatientDataState.upcomingAppointments,
                     notifications: data.dashboard?.notifications || initialPatientDataState.notifications,
                     dependents: data.dashboard?.dependents || initialPatientDataState.dependents,
-                    isLoading: false, // Set loading to false once main data is fetched
+                    isLoading: false,
                 });
             } else {
                 console.warn(`No data found for user ${userId}. Displaying empty dashboard.`);
@@ -207,16 +201,23 @@ export const usePatientDataStore = create<PatientDataState>((set, get) => ({
         });
 
         const unsubRecords = onSnapshot(recordsQuery, (snapshot) => {
-            const medicalRecords = snapshot.docs.map(doc => doc.data() as MedicalRecordItem);
+            const medicalRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MedicalRecordItem));
             set(state => ({
                 reports: { ...state.reports, medicalRecords }
             }));
         });
         
         const unsubPrescriptions = onSnapshot(prescriptionsQuery, (snapshot) => {
-            const prescriptions = snapshot.docs.map(doc => doc.data() as PrescriptionItem);
+            const prescriptions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PrescriptionItem));
             set(state => ({
                 reports: { ...state.reports, prescriptions }
+            }));
+        });
+
+        const unsubAppointments = onSnapshot(appointmentsQuery, (snapshot) => {
+            const appointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), dateTime: doc.data().dateTime.toDate() } as Appointment));
+            set(state => ({
+                reports: { ...state.reports, appointments }
             }));
         });
 
@@ -224,7 +225,8 @@ export const usePatientDataStore = create<PatientDataState>((set, get) => ({
             unsubUser();
             unsubRecords();
             unsubPrescriptions();
-        }; // Return the unsubscribe function for cleanup
+            unsubAppointments();
+        };
     },
     clearPatientData: () => set({...initialPatientDataState, isLoading: false}),
 }));

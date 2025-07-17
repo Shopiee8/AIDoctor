@@ -10,3 +10,14 @@ export type NavItem = {
   disabled?: boolean;
   badge?: string;
 };
+
+export type Appointment = {
+  id: string;
+  doctorName: string;
+  doctorSpecialty: string;
+  doctorImage: string;
+  visitType: 'General Visit' | 'Consultation' | 'Follow-up';
+  appointmentType: 'Video' | 'Audio' | 'Chat' | 'In-person';
+  dateTime: Date;
+  status: 'Upcoming' | 'Completed' | 'Cancelled';
+};
