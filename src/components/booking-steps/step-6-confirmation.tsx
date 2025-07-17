@@ -2,31 +2,35 @@
 "use client";
 
 import { useBookingStore } from "@/store/booking-store";
-import { CardContent, CardHeader } from "../ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { CheckCircle, Calendar, ArrowLeft } from "lucide-react";
+import { CheckCircle, Calendar, ArrowLeft, FileText, Plus } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export function Step6Confirmation() {
-    const { doctor, appointmentDate, appointmentTime, clinic, appointmentType, resetBooking } = useBookingStore();
+    const { doctor, appointmentDate, appointmentTime, clinic, appointmentType, resetBooking, closeBookingModal } = useBookingStore();
 
     return (
         <div className="p-6">
             <div className="flex flex-col items-center text-center">
                 <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
-                <h3 className="text-2xl font-bold font-headline mb-2">Booking Confirmed!</h3>
+                <h3 className="text-2xl font-bold font-headline mb-2">Appointment Booked Successfully!</h3>
                 <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                    Your appointment with <span className="font-semibold text-primary">{doctor.name}</span> has been successfully booked. Please be on time.
+                    Your appointment with <span className="font-semibold text-primary">{doctor.name}</span> has been confirmed.
+                    <br /> on{" "}
+                    <strong>
+                        {appointmentDate?.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} at {appointmentTime}
+                    </strong>
                 </p>
-
-                <div className="border rounded-lg p-6 w-full max-w-2xl text-left space-y-4 mb-6">
+                 <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+                     <Button className="w-full" asChild>
+                        <Link href="/dashboard/invoices"><FileText className="mr-2 h-4 w-4" /> View Invoice</Link>
+                    </Button>
+                    <Button variant="outline" className="w-full" onClick={closeBookingModal}><Plus className="mr-2 h-4 w-4" /> Book Another Appointment</Button>
+                </div>
+                <div className="border rounded-lg p-6 w-full max-w-2xl text-left space-y-4 my-6">
                      <div className="flex items-center gap-4 pb-4 border-b">
-                        <Avatar className="w-16 h-16 border">
-                            <AvatarImage src={doctor.image} />
-                            <AvatarFallback>{doctor.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
                         <div>
                             <h4 className="text-lg font-bold">{doctor.name}</h4>
                             <p className="text-primary">{doctor.specialty}</p>
@@ -54,14 +58,13 @@ export function Step6Confirmation() {
                     </div>
                      <div className="flex items-center gap-4 pt-4 border-t">
                         <Image src="https://placehold.co/100x100.png" width={80} height={80} alt="QR Code" data-ai-hint="qr code"/>
-                        <p className="text-xs text-muted-foreground">Scan this QR Code to download the details of your appointment.</p>
+                        <div className="space-y-2">
+                             <p className="text-xs text-muted-foreground">Scan this QR Code to download the details of your appointment.</p>
+                             <Button size="sm"><Calendar className="mr-2 h-4 w-4" /> Add to Calendar</Button>
+                        </div>
                      </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 w-full max-w-2xl">
-                    <Button className="w-full"><Calendar className="mr-2 h-4 w-4" /> Add to Calendar</Button>
-                    <Button variant="outline" className="w-full" onClick={resetBooking}><ArrowLeft className="mr-2 h-4 w-4" /> Start New Booking</Button>
-                </div>
             </div>
         </div>
     );
