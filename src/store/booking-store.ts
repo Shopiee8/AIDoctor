@@ -1,13 +1,6 @@
 
 import { create } from 'zustand';
-
-interface Doctor {
-    name: string;
-    specialty: string;
-    location: string;
-    rating: number;
-    image: string;
-}
+import type { Doctor } from './patient-data-store';
 
 interface BookingDetails {
     firstName: string;

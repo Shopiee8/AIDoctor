@@ -36,10 +36,16 @@ interface AnalyticsData {
     bloodPressure: { month: string; systolic: number; diastolic: number }[];
 }
 
-interface Favorite {
+export interface Doctor {
     name: string;
     specialty: string;
+    location: string;
+    rating: number;
     image: string;
+    isVerified?: boolean;
+    nextAvailable?: string;
+    lastBooked?: string;
+    isFavorited?: boolean;
 }
 
 interface AppointmentDate {
@@ -110,7 +116,7 @@ interface PatientDataState {
     healthRecords: HealthRecord[];
     healthReport: HealthReport;
     analytics: AnalyticsData;
-    favorites: Favorite[];
+    favorites: Doctor[];
     appointmentDates: AppointmentDate[];
     upcomingAppointments: UpcomingAppointment[];
     notifications: Notification[];
@@ -177,11 +183,10 @@ export const usePatientDataStore = create<PatientDataState>((set, get) => ({
         const unsubUser = onSnapshot(userDocRef, (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.data();
-                const healthRecords = transformVitalsToHealthRecords(data.dashboard?.vitalsSummary);
-
+                
                 set({
                     personalDetails: data.personalDetails || initialPatientDataState.personalDetails,
-                    healthRecords: healthRecords,
+                    healthRecords: transformVitalsToHealthRecords(data.dashboard?.vitalsSummary),
                     healthReport: data.dashboard?.healthReport || initialPatientDataState.healthReport,
                     analytics: data.dashboard?.analytics || initialPatientDataState.analytics,
                     favorites: data.dashboard?.favorites || initialPatientDataState.favorites,
