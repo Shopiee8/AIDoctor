@@ -32,6 +32,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 const patientNavItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { title: "AI Consultation", href: "/consultation", icon: Bot },
   { title: "My Appointments", href: "/dashboard/appointments", icon: Calendar },
   { title: "Favourites", href: "/dashboard/favourites", icon: Star },
   { title: "Dependants", href: "/dashboard/dependents", icon: Users },
