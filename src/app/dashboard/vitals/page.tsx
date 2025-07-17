@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -231,6 +232,14 @@ function VitalsFormDialog({ user, existingRecord }: { user: any, existingRecord?
     const { toast } = useToast();
     const isEditMode = !!existingRecord;
 
+    const defaultAddValues = {
+        bmi: '' as any,
+        heartRate: '' as any,
+        weight: '' as any,
+        fbc: '' as any,
+        addedOn: new Date(),
+    };
+
     const form = useForm<VitalsFormValues>({
         resolver: zodResolver(vitalsFormSchema),
         defaultValues: isEditMode ? {
@@ -239,13 +248,7 @@ function VitalsFormDialog({ user, existingRecord }: { user: any, existingRecord?
             weight: existingRecord.weight,
             fbc: existingRecord.fbc,
             addedOn: new Date(existingRecord.addedOn),
-        } : {
-            bmi: '' as any,
-            heartRate: '' as any,
-            weight: '' as any,
-            fbc: '' as any,
-            addedOn: new Date(),
-        }
+        } : defaultAddValues
     });
 
     async function onSubmit(data: VitalsFormValues) {
@@ -272,7 +275,9 @@ function VitalsFormDialog({ user, existingRecord }: { user: any, existingRecord?
                 toast({ title: "Success", description: "New vitals record added." });
             }
             setOpen(false);
-            form.reset();
+            if (!isEditMode) {
+                form.reset(defaultAddValues);
+            }
         } catch (error) {
             console.error("Error saving vitals:", error);
             toast({ title: "Error saving vitals", variant: "destructive" });
