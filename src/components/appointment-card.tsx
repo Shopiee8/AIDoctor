@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { Video, Mic, MessageSquare, Hospital, Calendar, Clock, Eye, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Video, Mic, MessageSquare, Hospital, Calendar, Clock, Eye, Trash2, CheckCircle, XCircle, Plus } from 'lucide-react';
 import type { Appointment } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
@@ -34,7 +34,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
     const statusColor = statusConfig[appointment.status].color;
 
     return (
-        <div className="border rounded-lg p-4 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow">
+        <Link href={`/dashboard/appointments/${appointment.id}`} className="block border rounded-lg p-4 flex flex-col gap-4 shadow-sm hover:shadow-md hover:border-primary transition-all group">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <Avatar className="h-12 w-12">
@@ -42,7 +42,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                         <AvatarFallback>{appointment.doctorName.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
-                        <h4 className="font-bold">{appointment.doctorName}</h4>
+                        <h4 className="font-bold group-hover:text-primary">{appointment.doctorName}</h4>
                         <p className="text-sm text-muted-foreground">{appointment.doctorSpecialty}</p>
                     </div>
                 </div>
@@ -70,7 +70,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 <div className="flex items-center justify-between gap-2">
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="w-full">
+                            <Button variant="outline" size="sm" className="w-full" onClick={(e) => e.stopPropagation()}>
                                 <XCircle className="w-4 h-4 mr-2" /> Cancel
                             </Button>
                         </AlertDialogTrigger>
@@ -82,8 +82,8 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel>No, keep it</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => onCancel(appointment.id)}>
+                                <AlertDialogCancel onClick={(e) => e.stopPropagation()}>No, keep it</AlertDialogCancel>
+                                <AlertDialogAction onClick={(e) => { e.stopPropagation(); onCancel(appointment.id); }}>
                                     Yes, cancel
                                 </AlertDialogAction>
                             </AlertDialogFooter>
@@ -110,6 +110,6 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                      )}
                 </div>
             )}
-        </div>
+        </Link>
     );
 }
