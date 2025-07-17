@@ -39,6 +39,8 @@ interface BankDetails {
     branchName: string;
     accountName: string;
     isDefault?: boolean;
+    expiryDate?: string;
+    cvv?: string;
 }
 
 interface WalletData {
@@ -64,18 +66,18 @@ export default function WalletPage() {
         }
 
         const walletDocRef = doc(db, 'users', user.uid);
-        const cardsQuery = query(collection(db, 'users', user.uid, 'cards'), orderBy('isDefault', 'desc'));
-        const transactionsQuery = query(collection(db, 'users', user.uid, 'transactions'), orderBy('date', 'desc'));
-
+        
         const unsubWallet = onSnapshot(walletDocRef, (walletSnap) => {
             const walletInfo = walletSnap.data();
 
+            const cardsQuery = query(collection(db, 'users', user.uid, 'cards'), orderBy('isDefault', 'desc'));
             const unsubCards = onSnapshot(cardsQuery, (cardsSnap) => {
                 const cards: BankDetails[] = [];
                 cardsSnap.forEach((doc) => {
                     cards.push({ id: doc.id, ...doc.data() } as BankDetails);
                 });
 
+                const transactionsQuery = query(collection(db, 'users', user.uid, 'transactions'), orderBy('date', 'desc'));
                 const unsubTransactions = onSnapshot(transactionsQuery, (transSnap) => {
                     const transactions: Transaction[] = [];
                     transSnap.forEach((doc) => {
@@ -441,59 +443,113 @@ function AddCardDialog() {
 }
 
 function EditCardDialog({ bankDetails }: { bankDetails: BankDetails }) {
+    const { user } = useAuth();
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
+    
+    const [formData, setFormData] = useState({
+        bankName: bankDetails.bankName || '',
+        accountName: bankDetails.accountName || '',
+        accountNumber: bankDetails.accountNumber || '',
+        expiryDate: bankDetails.expiryDate || '',
+        cvv: bankDetails.cvv || '',
+        branchName: bankDetails.branchName || '',
+        isDefault: bankDetails.isDefault || false,
+    });
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({ ...prev, [id]: value }));
+    };
+
+    const handleSelectChange = (value: string) => {
+        setFormData(prev => ({ ...prev, branchName: value }));
+    };
+
+    const handleCheckboxChange = (checked: boolean) => {
+        setFormData(prev => ({ ...prev, isDefault: checked }));
+    };
+
+    const handleEditCard = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user) {
+            toast({ title: "Not Authenticated", description: "You must be logged in.", variant: "destructive" });
+            return;
+        }
+        setIsLoading(true);
+        try {
+            const cardDocRef = doc(db, 'users', user.uid, 'cards', bankDetails.id);
+            await setDoc(cardDocRef, formData, { merge: true });
+
+            toast({ title: "Success", description: "Card details updated." });
+            document.getElementById('editCardClose')?.click();
+        } catch (error) {
+            console.error("Error updating card:", error);
+            toast({ title: "Error", description: "Could not update card details.", variant: "destructive" });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
     return (
          <DialogContent>
             <DialogHeader>
                 <DialogTitle>Edit Card</DialogTitle>
             </DialogHeader>
-             <div className="space-y-4 py-4">
-                 <div className="grid gap-2">
-                    <Label htmlFor="card-holder-edit">Bank Name</Label>
-                    <Input id="card-holder-edit" defaultValue={bankDetails.bankName || ''} />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="card-holder-edit">Card Holder Name</Label>
-                    <Input id="card-holder-edit" defaultValue={bankDetails.accountName || ''} />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="card-number-edit">Card Number</Label>
-                    <Input id="card-number-edit" defaultValue={bankDetails.accountNumber || ''} />
-                </div>
-                 <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleEditCard}>
+                 <div className="space-y-4 py-4">
                      <div className="grid gap-2">
-                        <Label htmlFor="expiry-date-edit">Expire Date</Label>
-                         <Input id="expiry-date-edit" defaultValue="12/28" />
+                        <Label htmlFor="bankName">Bank Name</Label>
+                        <Input id="bankName" value={formData.bankName} onChange={handleInputChange} />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="accountName">Card Holder Name</Label>
+                        <Input id="accountName" value={formData.accountName} onChange={handleInputChange} />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="accountNumber">Card Number</Label>
+                        <Input id="accountNumber" value={formData.accountNumber} onChange={handleInputChange} />
+                    </div>
+                     <div className="grid grid-cols-2 gap-4">
+                         <div className="grid gap-2">
+                            <Label htmlFor="expiryDate">Expire Date (MM/YY)</Label>
+                             <Input id="expiryDate" value={formData.expiryDate} onChange={handleInputChange} />
+                        </div>
+                         <div className="grid gap-2">
+                            <Label htmlFor="cvv">CVV</Label>
+                            <Input id="cvv" value={formData.cvv} onChange={handleInputChange} />
+                        </div>
                     </div>
                      <div className="grid gap-2">
-                        <Label htmlFor="cvv-edit">CVV</Label>
-                        <Input id="cvv-edit" defaultValue="556" />
+                        <Label htmlFor="branchName">Branch</Label>
+                         <Select value={formData.branchName} onValueChange={handleSelectChange}>
+                            <SelectTrigger id="branchName">
+                                <SelectValue placeholder="Select Branch" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="london">London</SelectItem>
+                                <SelectItem value="newyork">New York</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
-                 <div className="grid gap-2">
-                    <Label htmlFor="branch-edit">Branch</Label>
-                     <Select defaultValue={bankDetails.branchName?.toLowerCase() || ''}>
-                        <SelectTrigger id="branch-edit">
-                            <SelectValue placeholder="Select Branch" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="london">London</SelectItem>
-                            <SelectItem value="newyork">New York</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
-            <DialogFooter className="justify-between sm:justify-between">
-                <div className="flex items-center space-x-2">
-                    <Checkbox id="default-card-edit" defaultChecked={bankDetails.isDefault} />
-                    <Label htmlFor="default-card-edit">Mark as Default</Label>
-                </div>
-                 <div className="flex gap-2">
-                    <DialogClose asChild>
-                        <Button variant="outline">Cancel</Button>
-                    </DialogClose>
-                    <Button>Save Changes</Button>
-                </div>
-            </DialogFooter>
+                <DialogFooter className="justify-between sm:justify-between">
+                    <div className="flex items-center space-x-2">
+                        <Checkbox id="isDefault" checked={formData.isDefault} onCheckedChange={handleCheckboxChange} />
+                        <Label htmlFor="isDefault">Mark as Default</Label>
+                    </div>
+                     <div className="flex gap-2">
+                        <DialogClose asChild>
+                            <Button id="editCardClose" variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <Button type="submit" disabled={isLoading}>
+                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Save Changes
+                        </Button>
+                    </div>
+                </DialogFooter>
+            </form>
         </DialogContent>
     )
 }
