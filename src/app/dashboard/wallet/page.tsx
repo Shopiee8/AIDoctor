@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
-import { collection, doc, onSnapshot, addDoc, query, orderBy, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, onSnapshot, addDoc, query, orderBy, setDoc, deleteDoc, getDocs, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 
@@ -577,6 +577,38 @@ function OtherAccountsDialog({ accounts }: { accounts: BankDetails[] }) {
             toast({ title: "Error", description: "Could not delete the card.", variant: "destructive" });
         }
     };
+    
+    const handleSetDefault = async (newDefaultCardId: string) => {
+        if (!user) {
+            toast({ title: "Not Authenticated", variant: "destructive" });
+            return;
+        }
+
+        const batch = writeBatch(db);
+        const cardsCollectionRef = collection(db, 'users', user.uid, 'cards');
+
+        try {
+            // Get all cards to find the current default
+            const querySnapshot = await getDocs(cardsCollectionRef);
+            querySnapshot.forEach((doc) => {
+                // Unset the old default
+                if (doc.data().isDefault && doc.id !== newDefaultCardId) {
+                    batch.update(doc.ref, { isDefault: false });
+                }
+                // Set the new default
+                if (doc.id === newDefaultCardId) {
+                    batch.update(doc.ref, { isDefault: true });
+                }
+            });
+
+            await batch.commit();
+            toast({ title: "Default card updated successfully." });
+        } catch (error) {
+            console.error("Error setting default card: ", error);
+            toast({ title: "Error", description: "Could not update the default card.", variant: "destructive" });
+        }
+    };
+
 
     return (
         <DialogContent className="max-w-3xl">
@@ -589,23 +621,23 @@ function OtherAccountsDialog({ accounts }: { accounts: BankDetails[] }) {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 flex-1 text-sm">
                             <div>
                                 <p className="text-muted-foreground text-xs">Bank Name</p>
-                                <p className="font-medium">{account.bankName || 'N/A'}</p> 
+                                <p className="font-medium truncate">{account.bankName || 'N/A'}</p> 
                             </div>
                              <div>
                                 <p className="text-muted-foreground text-xs">Account No</p>
-                                <p className="font-medium">{account.accountNumber}</p>
+                                <p className="font-medium truncate">{account.accountNumber}</p>
                             </div>
                              <div>
                                 <p className="text-muted-foreground text-xs">Branch</p>
-                                <p className="font-medium">{account.branchName}</p>
+                                <p className="font-medium truncate">{account.branchName}</p>
                             </div>
                              <div>
                                 <p className="text-muted-foreground text-xs">Name on Card</p>
-                                <p className="font-medium">{account.accountName}</p>
+                                <p className="font-medium truncate">{account.accountName}</p>
                             </div>
                         </div>
-                         <div className="flex items-center gap-4">
-                            <Button variant="link" className="p-0 h-auto self-start md:self-center" disabled={account.isDefault}>
+                         <div className="flex items-center gap-4 flex-shrink-0">
+                            <Button variant="link" className="p-0 h-auto" disabled={account.isDefault} onClick={() => handleSetDefault(account.id)}>
                                 {account.isDefault ? 'Current' : 'Set as Default'}
                             </Button>
                              {!account.isDefault && (
@@ -647,3 +679,4 @@ function OtherAccountsDialog({ accounts }: { accounts: BankDetails[] }) {
 }
 
     
+
