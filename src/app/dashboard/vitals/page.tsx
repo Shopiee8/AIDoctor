@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, query, orderBy, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, query, orderBy, serverTimestamp, Timestamp, getDocs, limit } from 'firebase/firestore';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -58,6 +58,48 @@ const vitalsFormSchema = z.object({
 });
 
 type VitalsFormValues = z.infer<typeof vitalsFormSchema>;
+
+// --- Helper Function to update dashboard ---
+const updateUserDashboardVitals = async (userId: string) => {
+    const vitalsCollectionRef = collection(db, 'users', userId, 'vitals');
+    const q = query(vitalsCollectionRef, orderBy('timestamp', 'desc'), limit(1));
+    const querySnapshot = await getDocs(q);
+
+    let dashboardUpdate = {};
+    if (!querySnapshot.empty) {
+        const latestVital = querySnapshot.docs[0].data();
+        dashboardUpdate = {
+            dashboard: {
+                healthRecords: [
+                    { title: "Heart Rate", value: `${latestVital.heartRate} Bpm`, icon: Heart, color: "text-orange-500", trend: "+2%" },
+                    { title: "Body Temperature", value: '37.0 C', icon: Thermometer, color: "text-amber-500" },
+                    { title: "Glucose Level", value: '90 mg/dL', icon: Brain, color: "text-blue-700" },
+                    { title: "Blood Pressure", value: '120/80 mmHg', icon: Droplets, color: "text-red-500" },
+                ],
+                healthReport: {
+                    percentage: 75,
+                    title: 'Your Health is Good!',
+                    details: 'Keep up the good work.'
+                },
+            }
+        };
+    } else {
+         dashboardUpdate = {
+            dashboard: {
+                healthRecords: [],
+                healthReport: {
+                    percentage: 0,
+                    title: 'No Vitals Recorded',
+                    details: 'Add a vital record to see your summary.'
+                },
+            }
+        };
+    }
+
+    const userDocRef = doc(db, 'users', userId);
+    await setDoc(userDocRef, dashboardUpdate, { merge: true });
+};
+
 
 export default function VitalsPage() {
     const { user } = useAuth();
@@ -232,7 +274,7 @@ function VitalsFormDialog({ user, existingRecord }: { user: any, existingRecord?
     const { toast } = useToast();
     const isEditMode = !!existingRecord;
 
-    const defaultAddValues = {
+    const defaultAddValues: VitalsFormValues = {
         bmi: '' as any,
         heartRate: '' as any,
         weight: '' as any,
@@ -250,6 +292,13 @@ function VitalsFormDialog({ user, existingRecord }: { user: any, existingRecord?
             addedOn: new Date(existingRecord.addedOn),
         } : defaultAddValues
     });
+     
+    useEffect(() => {
+        if (!isEditMode) {
+            form.reset(defaultAddValues);
+        }
+    }, [open, isEditMode, form]);
+
 
     async function onSubmit(data: VitalsFormValues) {
         if (!user) {
@@ -274,6 +323,10 @@ function VitalsFormDialog({ user, existingRecord }: { user: any, existingRecord?
                 await addDoc(collectionRef, vitalsData);
                 toast({ title: "Success", description: "New vitals record added." });
             }
+            
+            // Update the dashboard summary
+            await updateUserDashboardVitals(user.uid);
+
             setOpen(false);
             if (!isEditMode) {
                 form.reset(defaultAddValues);
@@ -352,6 +405,7 @@ function DeleteVitalsDialog({ recordId, userId }: { recordId: string, userId: st
     const handleDelete = async () => {
         try {
             await deleteDoc(doc(db, 'users', userId, 'vitals', recordId));
+            await updateUserDashboardVitals(userId);
             toast({ title: "Record Deleted", description: "The vitals record has been removed." });
         } catch (error) {
             console.error("Error deleting record:", error);
@@ -379,3 +433,4 @@ function DeleteVitalsDialog({ recordId, userId }: { recordId: string, userId: st
         </AlertDialog>
     );
 }
+
