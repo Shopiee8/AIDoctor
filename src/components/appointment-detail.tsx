@@ -175,7 +175,7 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
                                     </p>
                                      <p className="text-xs text-red-600 mt-2">Cancelled By Doctor on {format(new Date(), 'dd MMM yyyy')}</p>
                                 </div>
-                                <div className="flex flex-col sm:flex-row gap-2">
+                                <div className="flex flex-col sm:flex-row gap-2 mt-4">
                                     <Button className="w-full sm:w-auto">Book Again</Button>
                                     <Button variant="outline" className="w-full sm:w-auto">Choose Another Doctor</Button>
                                 </div>
@@ -231,4 +231,3 @@ function AppointmentDetailSkeleton() {
         </div>
     );
 }
-
