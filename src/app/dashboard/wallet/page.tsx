@@ -86,7 +86,10 @@ export default function WalletPage() {
                         transactions.push({ id: doc.id, ...doc.data() } as Transaction);
                     });
                     
-                    const defaultCard = cards.find(c => c.isDefault);
+                    let defaultCard = cards.find(c => c.isDefault);
+                    if (!defaultCard && cards.length > 0) {
+                        defaultCard = cards[0];
+                    }
 
                     setWalletData({
                         totalBalance: walletInfo?.wallet?.totalBalance || 0,
@@ -215,7 +218,7 @@ export default function WalletPage() {
                                         <DialogTrigger asChild>
                                             <Button variant="link" className="p-0">Add Card</Button>
                                         </DialogTrigger>
-                                        <AddCardDialog />
+                                        <AddCardDialog existingCards={cards} />
                                     </Dialog>
                                 </div>
                                 <Dialog>
@@ -234,7 +237,7 @@ export default function WalletPage() {
                                 <DialogTrigger asChild>
                                     <Button>Add Card</Button>
                                 </DialogTrigger>
-                                <AddCardDialog />
+                                <AddCardDialog existingCards={cards} />
                             </Dialog>
                          </div>
                      )}
@@ -329,7 +332,7 @@ function AddPaymentDialog() {
     )
 }
 
-function AddCardDialog() {
+function AddCardDialog({ existingCards }: { existingCards: BankDetails[] }) {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
@@ -362,6 +365,8 @@ function AddCardDialog() {
         setIsLoading(true);
 
         try {
+            const isFirstCard = existingCards.length === 0;
+            
             const cardData = {
                 accountName: cardHolder,
                 accountNumber: cardNumber,
@@ -369,7 +374,7 @@ function AddCardDialog() {
                 cvv: cvv,
                 branchName: branch,
                 bankName: bankName,
-                isDefault: isDefault,
+                isDefault: isFirstCard ? true : isDefault,
             };
             
             const cardsCollectionRef = collection(db, 'users', user.uid, 'cards');
@@ -679,4 +684,6 @@ function OtherAccountsDialog({ accounts }: { accounts: BankDetails[] }) {
 }
 
     
+
+
 
