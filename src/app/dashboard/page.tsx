@@ -25,6 +25,8 @@ import 'react-circular-progressbar/dist/styles.css';
 import React from "react";
 import { usePatientDataStore } from "@/store/patient-data-store";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BookingModal } from "@/components/booking-modal";
+import { useBookingStore } from "@/store/booking-store";
 
 const chartConfig: ChartConfig = {
   desktop: {
@@ -54,6 +56,8 @@ export default function PatientDashboardPage() {
         reports,
         isLoading
     } = usePatientDataStore();
+
+    const { isBookingModalOpen, openBookingModal } = useBookingStore();
 
     if (isLoading) {
         return <DashboardSkeleton />;
@@ -151,7 +155,7 @@ export default function PatientDashboardPage() {
                     <div className="bg-primary text-primary-foreground p-6 rounded-lg text-center">
                         <h3 className="font-headline text-xl mb-1">Book a new Appointment</h3>
                         <p className="text-primary-foreground/80 text-sm mb-4">Start your health journey today.</p>
-                        <Button variant="secondary" className="w-full">
+                        <Button variant="secondary" className="w-full" onClick={openBookingModal}>
                             <Plus className="w-4 h-4 mr-2"/> Book Now
                         </Button>
                     </div>
@@ -421,6 +425,7 @@ export default function PatientDashboardPage() {
                     </Card>
                 </div>
             </div>
+            {isBookingModalOpen && <BookingModal />}
         </div>
     );
 }
