@@ -1,31 +1,27 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  apiKey: "AIzaSyAoIqQ3uX7FtcyJWiin4Ui-zVcxdIdCk08",
+  authDomain: "vizion-ai-f9834.firebaseapp.com",
   projectId: "vizion-ai-f9834",
-  storageBucket: "vizion-ai-f9834.appspot.com",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+  storageBucket: "vizion-ai-f9834.appspot.com", // fixed typo
+  messagingSenderId: "434583939793",
+  appId: "1:434583939793:web:bd0f5623e0d07d4b27b3f0",
+  measurementId: "G-N16CQ6JHE1"
 };
 
+const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase
-let app;
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApp();
+let analytics;
+if (typeof window !== "undefined") {
+  analytics = getAnalytics(app);
 }
 
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
-export { app, auth, db, storage };
+export { app, analytics, auth, db };
