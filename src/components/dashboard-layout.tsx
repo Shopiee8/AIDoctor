@@ -34,11 +34,11 @@ const patientNavItems: NavItem[] = [
   { title: "My Appointments", href: "/dashboard/appointments", icon: Calendar },
   { title: "Favourites", href: "/dashboard/favourites", icon: Star },
   { title: "Dependants", href: "/dashboard/dependents", icon: UserSquare },
-  { title: "Medical Records", href: "/dashboard/medical-records", icon: ClipboardPlus },
+  { title: "Medical Records", href: "/dashboard/medical-records", icon: FileText },
   { title: "Wallet", href: "/dashboard/wallet", icon: Wallet },
   { title: "Invoices", href: "/dashboard/invoices", icon: FileText },
   { title: "Message", href: "/dashboard/messages", icon: MessageSquare, badge: "7" },
-  { title: "Vitals", href: "/dashboard/vitals", icon: Activity },
+  { title: "Vitals", href: "/dashboard/vitals", icon: HeartPulse },
   { title: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 

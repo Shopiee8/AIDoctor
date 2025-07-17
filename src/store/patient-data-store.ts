@@ -1,9 +1,9 @@
 
 import { create } from 'zustand';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { LucideIcon } from 'lucide-react';
-import { Heart, Thermometer, Brain, Droplets, LineChart, User, Calendar, Bell, Wallet, Hospital, Video, Scale, Wind } from "lucide-react";
+import { Heart, Thermometer, Brain, Droplets, LineChart, User, Calendar, Bell, Wallet, Hospital, Video, Scale, Wind, FileText } from "lucide-react";
 
 // Types
 interface HealthRecord {
@@ -87,7 +87,6 @@ interface MedicalRecordItem {
 
 interface PrescriptionItem {
     id: string;
-    name: string;
     date: string;
     doctor: string;
     image: string;
@@ -172,23 +171,23 @@ const transformVitalsToHealthRecords = (vitals?: VitalsSummaryData): HealthRecor
 };
 
 
-export const usePatientDataStore = create<PatientDataState>((set) => ({
+export const usePatientDataStore = create<PatientDataState>((set, get) => ({
     ...initialPatientDataState,
     fetchPatientData: (userId: string) => {
         set({ isLoading: true });
+        
         const userDocRef = doc(db, 'users', userId);
-
-        const unsubscribe = onSnapshot(userDocRef, (snapshot) => {
+        const recordsQuery = query(collection(db, 'users', userId, 'medical-records'), orderBy('date', 'desc'), limit(5));
+        const prescriptionsQuery = query(collection(db, 'users', userId, 'prescriptions'), orderBy('date', 'desc'), limit(5));
+        
+        const unsubUser = onSnapshot(userDocRef, (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.data();
-                
-                // Correctly transform the raw vitals summary into the healthRecords for the UI
                 const healthRecords = transformVitalsToHealthRecords(data.dashboard?.vitalsSummary);
 
-                // Use live data if it exists, otherwise use initial empty state.
                 set({
                     personalDetails: data.personalDetails || initialPatientDataState.personalDetails,
-                    healthRecords: healthRecords, // Use the correctly transformed data
+                    healthRecords: healthRecords,
                     healthReport: data.dashboard?.healthReport || initialPatientDataState.healthReport,
                     analytics: data.dashboard?.analytics || initialPatientDataState.analytics,
                     favorites: data.dashboard?.favorites || initialPatientDataState.favorites,
@@ -196,21 +195,36 @@ export const usePatientDataStore = create<PatientDataState>((set) => ({
                     upcomingAppointments: data.dashboard?.upcomingAppointments || initialPatientDataState.upcomingAppointments,
                     notifications: data.dashboard?.notifications || initialPatientDataState.notifications,
                     dependents: data.dashboard?.dependents || initialPatientDataState.dependents,
-                    reports: data.dashboard?.reports || initialPatientDataState.reports,
-                    isLoading: false,
+                    isLoading: false, // Set loading to false once main data is fetched
                 });
             } else {
-                // If no user document exists, use initial empty state.
                 console.warn(`No data found for user ${userId}. Displaying empty dashboard.`);
                 set({ ...initialPatientDataState, isLoading: false });
             }
         }, (error) => {
             console.error("Error fetching patient data: ", error);
-            // On error, reset to initial empty state
             set({ ...initialPatientDataState, isLoading: false });
         });
 
-        return unsubscribe; // Return the unsubscribe function for cleanup
+        const unsubRecords = onSnapshot(recordsQuery, (snapshot) => {
+            const medicalRecords = snapshot.docs.map(doc => doc.data() as MedicalRecordItem);
+            set(state => ({
+                reports: { ...state.reports, medicalRecords }
+            }));
+        });
+        
+        const unsubPrescriptions = onSnapshot(prescriptionsQuery, (snapshot) => {
+            const prescriptions = snapshot.docs.map(doc => doc.data() as PrescriptionItem);
+            set(state => ({
+                reports: { ...state.reports, prescriptions }
+            }));
+        });
+
+        return () => {
+            unsubUser();
+            unsubRecords();
+            unsubPrescriptions();
+        }; // Return the unsubscribe function for cleanup
     },
     clearPatientData: () => set({...initialPatientDataState, isLoading: false}),
 }));
