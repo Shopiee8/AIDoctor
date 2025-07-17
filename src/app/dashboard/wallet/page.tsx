@@ -5,13 +5,14 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
-import { collection, doc, onSnapshot, addDoc, query, orderBy, setDoc } from 'firebase/firestore';
+import { collection, doc, onSnapshot, addDoc, query, orderBy, setDoc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -20,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { Wallet, Landmark, FileText, CalendarIcon, CircleDot, Loader2 } from 'lucide-react';
+import { Wallet, Landmark, FileText, CalendarIcon, CircleDot, Loader2, Trash2 } from 'lucide-react';
 
 // Define types for our data
 interface Transaction {
@@ -343,6 +344,11 @@ function AddCardDialog() {
             toast({ title: "Invalid Date", description: "Please select an expiry date.", variant: "destructive" });
             return;
         }
+        if (!bankName) {
+            toast({ title: "Bank Name Required", description: "Please enter a bank name.", variant: "destructive" });
+            return;
+        }
+
 
         setIsLoading(true);
 
@@ -523,7 +529,7 @@ function EditCardDialog({ bankDetails }: { bankDetails: BankDetails }) {
                     </div>
                      <div className="grid gap-2">
                         <Label htmlFor="branchName">Branch</Label>
-                         <Select value={formData.branchName} onValueChange={handleSelectChange}>
+                         <Select value={formData.branchName.toLowerCase()} onValueChange={handleSelectChange}>
                             <SelectTrigger id="branchName">
                                 <SelectValue placeholder="Select Branch" />
                             </SelectTrigger>
@@ -556,6 +562,23 @@ function EditCardDialog({ bankDetails }: { bankDetails: BankDetails }) {
 
 
 function OtherAccountsDialog({ accounts }: { accounts: BankDetails[] }) {
+    const { user } = useAuth();
+    const { toast } = useToast();
+
+    const handleDeleteCard = async (cardId: string) => {
+        if (!user) {
+            toast({ title: "Not Authenticated", variant: "destructive" });
+            return;
+        }
+        try {
+            await deleteDoc(doc(db, 'users', user.uid, 'cards', cardId));
+            toast({ title: "Card Deleted", description: "The card has been successfully removed." });
+        } catch (error) {
+            console.error("Error deleting card: ", error);
+            toast({ title: "Error", description: "Could not delete the card.", variant: "destructive" });
+        }
+    };
+
     return (
         <DialogContent className="max-w-2xl">
             <DialogHeader>
@@ -564,7 +587,7 @@ function OtherAccountsDialog({ accounts }: { accounts: BankDetails[] }) {
             <div className="py-4 space-y-4">
                 {accounts.length > 0 ? accounts.map((account) => (
                     <div key={account.id} className="border p-4 rounded-lg flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1 text-sm">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 flex-1 text-sm">
                             <div>
                                 <p className="text-muted-foreground text-xs">Bank Name</p>
                                 <p className="font-medium">{account.bankName || 'N/A'}</p> 
@@ -582,9 +605,34 @@ function OtherAccountsDialog({ accounts }: { accounts: BankDetails[] }) {
                                 <p className="font-medium">{account.accountName}</p>
                             </div>
                         </div>
-                        <Button variant="link" className="p-0 h-auto self-start md:self-center" disabled={account.isDefault}>
-                            {account.isDefault ? 'Current' : 'Set as Default'}
-                        </Button>
+                         <div className="flex items-center gap-4">
+                            <Button variant="link" className="p-0 h-auto self-start md:self-center" disabled={account.isDefault}>
+                                {account.isDefault ? 'Current' : 'Set as Default'}
+                            </Button>
+                             {!account.isDefault && (
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" size="icon" className="h-8 w-8">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action cannot be undone. This will permanently delete this card from your account.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeleteCard(account.id)}>
+                                                Delete
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                             )}
+                        </div>
                     </div>
                 )) : (
                     <p className="text-center text-muted-foreground">No other accounts found.</p>
