@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SidebarTrigger } from './ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
+import { ShoppingCartDropdown } from './shopping-cart-dropdown';
 
 export function DashboardHeader() {
   const { signOut, user } = useAuth();
@@ -28,12 +29,13 @@ export function DashboardHeader() {
       <div className="w-full flex-1">
         {/* Can add search or breadcrumbs here */}
       </div>
+      <ShoppingCartDropdown />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" size="icon" className="rounded-full">
             <Avatar>
               <AvatarImage src={user?.photoURL || "https://placehold.co/40x40.png"} data-ai-hint="person" />
-              <AvatarFallback>{user?.email?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+              <AvatarFallback>{user?.email?.[0]?.toUpperCase() || 'U'}</Fallback>
             </Avatar>
             <span className="sr-only">Toggle user menu</span>
           </Button>
