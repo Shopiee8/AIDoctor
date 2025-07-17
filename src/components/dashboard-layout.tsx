@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/types';
+import { useEffect } from 'react';
+import { usePatientDataStore } from '@/store/patient-data-store';
 
 import {
   SidebarProvider,
@@ -74,6 +76,7 @@ interface DashboardLayoutProps {
 function PatientSidebar() {
     const pathname = usePathname();
     const { user, signOut } = useAuth();
+    const { personalDetails } = usePatientDataStore();
 
     // A simple check to see if the current path is active
     const isActive = (href: string) => pathname.includes(href);
@@ -98,9 +101,11 @@ function PatientSidebar() {
                         </h3>
                         <div className="text-xs text-muted-foreground mt-1">
                             <p>Patient ID : PT254654</p>
-                            <span className="mt-1 inline-flex items-center gap-1.5">
-                                Female <span className="w-1 h-1 bg-muted-foreground/50 rounded-full" /> 32 years
-                            </span>
+                            {personalDetails.age && personalDetails.gender && (
+                                <span className="mt-1 inline-flex items-center gap-1.5 capitalize">
+                                    {personalDetails.gender} <span className="w-1 h-1 bg-muted-foreground/50 rounded-full" /> {personalDetails.age} years
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -196,6 +201,17 @@ function DefaultSidebar({ userRole }: { userRole: 'Doctor' | 'Admin' | 'AI Provi
 }
 
 export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
+  const { user } = useAuth();
+  const { fetchPatientData, clearPatientData } = usePatientDataStore();
+
+  useEffect(() => {
+    if (user && userRole === 'Patient') {
+      fetchPatientData(user.uid);
+    } else {
+      clearPatientData();
+    }
+  }, [user, userRole, fetchPatientData, clearPatientData]);
+  
   return (
     <SidebarProvider>
       <Sidebar>

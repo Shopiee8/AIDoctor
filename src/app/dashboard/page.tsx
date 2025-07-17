@@ -24,95 +24,42 @@ import { ChartConfig } from "@/components/ui/chart";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import React from "react";
-
-
-const healthRecords = [
-  { title: "Heart Rate", value: "140 Bpm", icon: Heart, color: "text-orange-500", trend: "+2%" },
-  { title: "Body Temperature", value: "37.5 C", icon: Thermometer, color: "text-amber-500" },
-  { title: "Glucose Level", value: "70-90", icon: TestTube2, color: "text-blue-500", trend: "-6%" },
-  { title: "Blood Pressure", value: "100/70", icon: Droplets, color: "text-red-500", trend: "+2%" },
-  { title: "SPO2", value: "96%", icon: LineChart, color: "text-indigo-500" },
-  { title: "BMI", value: "20.1 kg/m2", icon: User, color: "text-purple-500" },
-];
-
-const favorites = [
-    { name: "Dr. Edalin", specialty: "Endodontist", image: "https://placehold.co/40x40.png" },
-    { name: "Dr. Maloney", specialty: "Cardiologist", image: "https://placehold.co/40x40.png" },
-    { name: "Dr. Wayne", specialty: "Dental Specialist", image: "https://placehold.co/40x40.png" },
-    { name: "Dr. Marla", specialty: "Endodontist", image: "https://placehold.co/40x40.png" },
-];
-
-const appointmentDates = [
-    { day: "19", weekday: "Mon", available: false },
-    { day: "20", weekday: "Mon", available: false },
-    { day: "21", weekday: "Tue", available: true },
-    { day: "22", weekday: "Wed", available: true },
-    { day: "23", weekday: "Thu", available: false },
-    { day: "24", weekday: "Fri", available: false },
-    { day: "25", weekday: "Sat", available: false },
-];
-
-const upcomingAppointments = [
-  { doctor: "Dr. Edalin Hendry", specialty: "Dentist", image: "https://placehold.co/40x40.png", typeIcon: Hospital, dateTime: "21 Mar 2025 - 10:30 PM" },
-  { doctor: "Dr. Juliet Gabriel", specialty: "Cardiologist", image: "https://placehold.co/40x40.png", typeIcon: Video, dateTime: "22 Mar 2025 - 10:30 PM" },
-];
-
-const notifications = [
-    { icon: Calendar, color: "bg-purple-100 text-purple-600", message: "Booking Confirmed on 21 Mar 2025 10:30 AM", time: "Just Now" },
-    { icon: Bell, color: "bg-blue-100 text-blue-600", message: "You have a New Review for your Appointment", time: "5 Days ago" },
-    { icon: Calendar, color: "bg-red-100 text-red-600", message: "You have Appointment with Ahmed by 01:20 PM", time: "12:55 PM" },
-    { icon: Wallet, color: "bg-yellow-100 text-yellow-600", message: "Sent an amount of $200 for an Appointment", time: "2 Days ago" },
-];
-
-const dependents = [
-    { name: "Laura", relation: "Mother", age: 58, image: "https://placehold.co/40x40.png" },
-    { name: "Mathew", relation: "Father", age: 59, image: "https://placehold.co/40x40.png" },
-];
-
-const reports = {
-    appointments: [
-        { id: "#AP1236", doctor: "Dr. Robert Womack", image: "https://placehold.co/40x40.png", date: "21 Mar 2025, 10:30 AM", type: "Video call", status: "Upcoming" },
-        { id: "#AP3656", doctor: "Dr. Patricia Cassidy", image: "https://placehold.co/40x40.png", date: "28 Mar 2025, 11:40 AM", type: "Clinic Visit", status: "Completed" },
-        { id: "#AP1246", doctor: "Dr. Kevin Evans", image: "https://placehold.co/40x40.png", date: "02 Apr 2025, 09:20 AM", type: "Audio Call", status: "Completed" },
-        { id: "#AP6985", doctor: "Dr. Lisa Keating", image: "https://placehold.co/40x40.png", date: "15 Apr 2025, 04:10 PM", type: "Clinic Visit", status: "Cancelled" },
-    ],
-    medicalRecords: [
-        { id: "#MR1236", name: "Electrocardiography", date: "24 Mar 2025", comments: "Take Good Rest" },
-        { id: "#MR3656", name: "Complete Blood Count", date: "10 Apr 2025", comments: "Stable, no change" },
-    ],
-    prescriptions: [
-        { id: "#P1236", name: "Prescription", date: "21 Mar 2025", doctor: "Edalin Hendry", image: "https://placehold.co/40x40.png" },
-        { id: "#P3656", name: "Prescription", date: "28 Mar 2025", doctor: "John Homes", image: "https://placehold.co/40x40.png" },
-    ],
-    invoices: [
-        { id: "#INV1236", doctor: "Edalin Hendry", image: "https://placehold.co/40x40.png", date: "24 Mar 2025", amount: 300 },
-        { id: "#INV3656", doctor: "John Homes", image: "https://placehold.co/40x40.png", date: "17 Mar 2025", amount: 450 },
-    ],
-};
-
-const heartRateChartData = [
-  { month: "Mon", desktop: 140 }, { month: "Tue", desktop: 100 }, { month: "Wed", desktop: 180 }, { month: "Thu", desktop: 130 }, { month: "Fri", desktop: 100 }, { month: "Sat", desktop: 130 }
-]
-const bloodPressureChartData = [
-  { month: "Mon", systolic: 110, diastolic: 90 }, { month: "Tue", systolic: 90, diastolic: 60 }, { month: "Wed", systolic: 40, diastolic: 30 }, { month: "Thu", systolic: 120, diastolic: 60 }, { month: "Fri", systolic: 130, diastolic: 90 }, { month: "Sat", systolic: 130, diastolic: 70 }, { month: "Sun", systolic: 130, diastolic: 70 }
-]
+import { usePatientDataStore } from "@/store/patient-data-store";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const chartConfig: ChartConfig = {
   desktop: {
     label: "Heart Rate",
-    color: "#0E82FD",
+    color: "hsl(var(--primary))",
   },
   systolic: {
     label: "Systolic",
-    color: "#0E82FD",
+    color: "hsl(var(--primary))",
   },
   diastolic: {
     label: "Diastolic",
-    color: "#A7CFFF",
+    color: "hsl(var(--secondary))",
   },
 }
 
+
 export default function PatientDashboardPage() {
+    const { 
+        healthRecords, 
+        healthReport,
+        analytics, 
+        favorites, 
+        appointmentDates, 
+        upcomingAppointments, 
+        notifications, 
+        dependents, 
+        reports,
+        isLoading
+    } = usePatientDataStore();
+
+    if (isLoading) {
+        return <DashboardSkeleton />;
+    }
 
     return (
         <div className="space-y-6">
@@ -141,8 +88,8 @@ export default function PatientDashboardPage() {
                                 <div className="flex flex-col items-center justify-center text-center p-4 border rounded-lg">
                                      <div style={{ width: 200, height: 200 }}>
                                         <CircularProgressbar
-                                            value={95}
-                                            text="95%"
+                                            value={healthReport.percentage}
+                                            text={`${healthReport.percentage}%`}
                                             strokeWidth={7}
                                             styles={buildStyles({
                                                 textColor: 'hsl(var(--foreground))',
@@ -152,8 +99,8 @@ export default function PatientDashboardPage() {
                                             })}
                                         />
                                     </div>
-                                    <p className="mt-4 text-sm font-semibold">Your health is 95% Normal</p>
-                                    <p className="text-xs text-muted-foreground">Report generated on last visit: 25 Mar 2025</p>
+                                    <p className="mt-4 text-sm font-semibold">{healthReport.title}</p>
+                                    <p className="text-xs text-muted-foreground">{healthReport.details}</p>
                                     <Button asChild className="mt-4 w-full">
                                         <Link href="/dashboard/medical-records">View Details <ChevronRight className="w-4 h-4 ml-2"/></Link>
                                     </Button>
@@ -174,7 +121,7 @@ export default function PatientDashboardPage() {
                                 </TabsList>
                                 <TabsContent value="heart-rate">
                                    <Chart config={chartConfig} className="h-64">
-                                      <BarChart accessibilityLayer data={heartRateChartData}>
+                                      <BarChart accessibilityLayer data={analytics.heartRate}>
                                         <CartesianGrid vertical={false} />
                                         <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} />
                                         <YAxis tickLine={false} axisLine={false} />
@@ -185,7 +132,7 @@ export default function PatientDashboardPage() {
                                 </TabsContent>
                                 <TabsContent value="blood-pressure">
                                     <Chart config={chartConfig} className="h-64">
-                                      <BarChart accessibilityLayer data={bloodPressureChartData}>
+                                      <BarChart accessibilityLayer data={analytics.bloodPressure}>
                                         <CartesianGrid vertical={false} />
                                         <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} />
                                         <YAxis tickLine={false} axisLine={false} />
@@ -481,4 +428,88 @@ export default function PatientDashboardPage() {
 
         </div>
     );
+}
+
+
+function DashboardSkeleton() {
+    return (
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                <div className="xl:col-span-8 flex flex-col gap-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Health Records</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-2 gap-4">
+                                    {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-24" />)}
+                                </div>
+                                <Skeleton className="h-full min-h-48" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Analytics</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Skeleton className="h-72" />
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="xl:col-span-4 flex flex-col gap-6">
+                    <Skeleton className="h-28" />
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Favourites</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-12" />)}
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                 <div className="xl:col-span-5 flex flex-col gap-6">
+                     <Card>
+                        <CardHeader>
+                             <CardTitle>Appointments</CardTitle>
+                        </CardHeader>
+                         <CardContent className="space-y-4">
+                             <Skeleton className="h-16" />
+                             <Skeleton className="h-32" />
+                             <Skeleton className="h-32" />
+                         </CardContent>
+                     </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Dependants</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {[...Array(2)].map((_, i) => <Skeleton key={i} className="h-12" />)}
+                        </CardContent>
+                    </Card>
+                 </div>
+                 <div className="xl:col-span-7 flex flex-col gap-6">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Notifications</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                           {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-12" />)}
+                        </CardContent>
+                     </Card>
+                     <Card>
+                        <CardHeader>
+                             <CardTitle>Reports</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Skeleton className="h-64" />
+                        </CardContent>
+                     </Card>
+                 </div>
+            </div>
+        </div>
+    )
 }
