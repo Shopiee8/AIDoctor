@@ -7,7 +7,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -51,7 +50,6 @@ export default function PatientDashboardPage() {
         favorites, 
         appointmentDates, 
         upcomingAppointments, 
-        notifications, 
         dependents, 
         reports,
         isLoading
@@ -84,6 +82,7 @@ export default function PatientDashboardPage() {
                                             <h3 className="text-2xl font-bold mt-2">{record.value} {record.trend && <sup className={`text-xs font-normal ${record.trend.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>{record.trend}</sup>}</h3>
                                         </div>
                                     ))}
+                                    {healthRecords.length === 0 && <p className="text-muted-foreground col-span-2">No health records available.</p>}
                                 </div>
                                 <div className="flex flex-col items-center justify-center text-center p-4 border rounded-lg">
                                      <div style={{ width: 200, height: 200 }}>
@@ -181,6 +180,7 @@ export default function PatientDashboardPage() {
                                     </Button>
                                 </div>
                             ))}
+                             {favorites.length === 0 && <p className="text-muted-foreground text-sm">No favorite doctors added yet.</p>}
                         </CardContent>
                     </Card>
                 </div>
@@ -204,8 +204,12 @@ export default function PatientDashboardPage() {
                                         </CarouselItem>
                                     ))}
                                 </CarouselContent>
-                                <CarouselPrevious className="left-[-10px]" />
-                                <CarouselNext className="right-[-10px]"/>
+                                {appointmentDates.length > 5 && (
+                                    <>
+                                        <CarouselPrevious className="left-[-10px]" />
+                                        <CarouselNext className="right-[-10px]"/>
+                                    </>
+                                )}
                             </Carousel>
                             <div className="space-y-4 mt-4">
                                 {upcomingAppointments.map((appt, index) => (
@@ -230,6 +234,7 @@ export default function PatientDashboardPage() {
                                         </div>
                                     </div>
                                 ))}
+                                {upcomingAppointments.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">No upcoming appointments.</p>}
                             </div>
                         </CardContent>
                     </Card>
@@ -259,29 +264,17 @@ export default function PatientDashboardPage() {
                                     </div>
                                 </div>
                             ))}
+                             {dependents.length === 0 && <p className="text-muted-foreground text-sm">No dependents added.</p>}
                         </CardContent>
                     </Card>
                 </div>
                  <div className="xl:col-span-7 flex flex-col gap-6">
                      <Card>
-                        <CardHeader className="flex-row items-center justify-between">
+                        <CardHeader>
                             <CardTitle>Notifications</CardTitle>
-                            <Button asChild variant="link" size="sm"><Link href="#">View All</Link></Button>
                         </CardHeader>
                         <CardContent>
-                            <ul className="space-y-4">
-                                {notifications.map((note, index) => (
-                                <li key={index} className="flex items-start gap-3">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${note.color}`}>
-                                        <note.icon className="w-5 h-5"/>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm">{note.message}</p>
-                                        <p className="text-xs text-muted-foreground">{note.time}</p>
-                                    </div>
-                                </li>
-                                ))}
-                            </ul>
+                           <p className="text-muted-foreground text-sm">Real-time notifications will be managed by the bell icon in the header.</p>
                         </CardContent>
                     </Card>
                      <Card>
@@ -325,6 +318,7 @@ export default function PatientDashboardPage() {
                                                 </TableCell>
                                             </TableRow>
                                             ))}
+                                            {reports.appointments.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No appointment reports.</TableCell></TableRow>}
                                         </TableBody>
                                     </Table>
                                 </TabsContent>
@@ -351,6 +345,7 @@ export default function PatientDashboardPage() {
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
+                                             {reports.medicalRecords.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No medical records.</TableCell></TableRow>}
                                         </TableBody>
                                      </Table>
                                 </TabsContent>
@@ -383,6 +378,7 @@ export default function PatientDashboardPage() {
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
+                                            {reports.prescriptions.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">No prescription reports.</TableCell></TableRow>}
                                         </TableBody>
                                      </Table>
                                 </TabsContent>
@@ -416,6 +412,7 @@ export default function PatientDashboardPage() {
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
+                                            {reports.invoices.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No invoice reports.</TableCell></TableRow>}
                                         </TableBody>
                                     </Table>
                                  </TabsContent>
@@ -423,9 +420,7 @@ export default function PatientDashboardPage() {
                         </CardContent>
                     </Card>
                 </div>
-
             </div>
-
         </div>
     );
 }

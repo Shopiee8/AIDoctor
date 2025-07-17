@@ -120,10 +120,10 @@ interface PatientDataState {
     clearPatientData: () => void;
 }
 
-const initialPatientDataState = {
+const initialPatientDataState: Omit<PatientDataState, 'fetchPatientData' | 'clearPatientData'> = {
     personalDetails: {},
     healthRecords: [],
-    healthReport: { percentage: 0, title: '', details: ''},
+    healthReport: { percentage: 0, title: 'No report available', details: ''},
     analytics: { heartRate: [], bloodPressure: [] },
     favorites: [],
     appointmentDates: [],
@@ -134,80 +134,6 @@ const initialPatientDataState = {
     isLoading: true,
 };
 
-// Mock data to be used when Firestore data is not available
-const mockData = {
-    personalDetails: { age: 32, gender: 'female' },
-    healthRecords: [
-        { title: "Heart Rate", value: "140 Bpm", icon: Heart, color: "text-orange-500", trend: "+2%" },
-        { title: "Body Temperature", value: "37.5 C", icon: Thermometer, color: "text-amber-500" },
-        { title: "Glucose Level", value: "70-90", icon: TestTube2, color: "text-blue-500", trend: "-6%" },
-        { title: "Blood Pressure", value: "100/70", icon: Droplets, color: "text-red-500", trend: "+2%" },
-        { title: "SPO2", value: "96%", icon: LineChart, color: "text-indigo-500" },
-        { title: "BMI", value: "20.1 kg/m2", icon: User, color: "text-purple-500" },
-    ],
-    healthReport: {
-        percentage: 95,
-        title: "Your health is 95% Normal",
-        details: "Report generated on last visit: 25 Mar 2025"
-    },
-    analytics: {
-        heartRate: [
-          { month: "Mon", desktop: 140 }, { month: "Tue", desktop: 100 }, { month: "Wed", desktop: 180 }, { month: "Thu", desktop: 130 }, { month: "Fri", desktop: 100 }, { month: "Sat", desktop: 130 }
-        ],
-        bloodPressure: [
-          { month: "Mon", systolic: 110, diastolic: 90 }, { month: "Tue", systolic: 90, diastolic: 60 }, { month: "Wed", systolic: 40, diastolic: 30 }, { month: "Thu", systolic: 120, diastolic: 60 }, { month: "Fri", systolic: 130, diastolic: 90 }, { month: "Sat", systolic: 130, diastolic: 70 }, { month: "Sun", systolic: 130, diastolic: 70 }
-        ]
-    },
-    favorites: [
-        { name: "Dr. Edalin", specialty: "Endodontist", image: "https://placehold.co/40x40.png" },
-        { name: "Dr. Maloney", specialty: "Cardiologist", image: "https://placehold.co/40x40.png" },
-        { name: "Dr. Wayne", specialty: "Dental Specialist", image: "https://placehold.co/40x40.png" },
-        { name: "Dr. Marla", specialty: "Endodontist", image: "https://placehold.co/40x40.png" },
-    ],
-    appointmentDates: [
-        { day: "19", weekday: "Mon", available: false },
-        { day: "20", weekday: "Mon", available: false },
-        { day: "21", weekday: "Tue", available: true },
-        { day: "22", weekday: "Wed", available: true },
-        { day: "23", weekday: "Thu", available: false },
-        { day: "24", weekday: "Fri", available: false },
-        { day: "25", weekday: "Sat", available: false },
-    ],
-    upcomingAppointments: [
-      { doctor: "Dr. Edalin Hendry", specialty: "Dentist", image: "https://placehold.co/40x40.png", typeIcon: Hospital, dateTime: "21 Mar 2025 - 10:30 PM" },
-      { doctor: "Dr. Juliet Gabriel", specialty: "Cardiologist", image: "https://placehold.co/40x40.png", typeIcon: Video, dateTime: "22 Mar 2025 - 10:30 PM" },
-    ],
-    notifications: [
-        { id: '1', icon: Calendar, color: "bg-purple-100 text-purple-600", message: "Booking Confirmed on 21 Mar 2025 10:30 AM", time: "Just Now" },
-        { id: '2', icon: Bell, color: "bg-blue-100 text-blue-600", message: "You have a New Review for your Appointment", time: "5 Days ago" },
-        { id: '3', icon: Calendar, color: "bg-red-100 text-red-600", message: "You have Appointment with Ahmed by 01:20 PM", time: "12:55 PM" },
-        { id: '4', icon: Wallet, color: "bg-yellow-100 text-yellow-600", message: "Sent an amount of $200 for an Appointment", time: "2 Days ago" },
-    ],
-    dependents: [
-        { name: "Laura", relation: "Mother", age: 58, image: "https://placehold.co/40x40.png" },
-        { name: "Mathew", relation: "Father", age: 59, image: "https://placehold.co/40x40.png" },
-    ],
-    reports: {
-        appointments: [
-            { id: "#AP1236", doctor: "Dr. Robert Womack", image: "https://placehold.co/40x40.png", date: "21 Mar 2025, 10:30 AM", type: "Video call", status: "Upcoming" },
-            { id: "#AP3656", doctor: "Dr. Patricia Cassidy", image: "https://placehold.co/40x40.png", date: "28 Mar 2025, 11:40 AM", type: "Clinic Visit", status: "Completed" },
-            { id: "#AP1246", doctor: "Dr. Kevin Evans", image: "https://placehold.co/40x40.png", date: "02 Apr 2025, 09:20 AM", type: "Audio Call", status: "Completed" },
-            { id: "#AP6985", doctor: "Dr. Lisa Keating", image: "https://placehold.co/40x40.png", date: "15 Apr 2025, 04:10 PM", type: "Clinic Visit", status: "Cancelled" },
-        ],
-        medicalRecords: [
-            { id: "#MR1236", name: "Electrocardiography", date: "24 Mar 2025", comments: "Take Good Rest" },
-            { id: "#MR3656", name: "Complete Blood Count", date: "10 Apr 2025", comments: "Stable, no change" },
-        ],
-        prescriptions: [
-            { id: "#P1236", name: "Prescription", date: "21 Mar 2025", doctor: "Edalin Hendry", image: "https://placehold.co/40x40.png" },
-            { id: "#P3656", name: "Prescription", date: "28 Mar 2025", doctor: "John Homes", image: "https://placehold.co/40x40.png" },
-        ],
-        invoices: [
-            { id: "#INV1236", doctor: "Edalin Hendry", image: "https://placehold.co/40x40.png", date: "24 Mar 2025", amount: 300 },
-            { id: "#INV3656", doctor: "John Homes", image: "https://placehold.co/40x40.png", date: "17 Mar 2025", amount: 450 },
-        ],
-    },
-}
 
 export const usePatientDataStore = create<PatientDataState>((set) => ({
     ...initialPatientDataState,
@@ -218,32 +144,32 @@ export const usePatientDataStore = create<PatientDataState>((set) => ({
         const unsubscribe = onSnapshot(userDocRef, (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.data();
-                // Use live data if it exists, otherwise use mock data as a fallback.
+                // Use live data if it exists, otherwise use initial empty state.
                 set({
-                    personalDetails: data.personalDetails || mockData.personalDetails,
-                    healthRecords: data.dashboard?.healthRecords || mockData.healthRecords,
-                    healthReport: data.dashboard?.healthReport || mockData.healthReport,
-                    analytics: data.dashboard?.analytics || mockData.analytics,
-                    favorites: data.dashboard?.favorites || mockData.favorites,
-                    appointmentDates: data.dashboard?.appointmentDates || mockData.appointmentDates,
-                    upcomingAppointments: data.dashboard?.upcomingAppointments || mockData.upcomingAppointments,
-                    notifications: data.dashboard?.notifications || mockData.notifications,
-                    dependents: data.dashboard?.dependents || mockData.dependents,
-                    reports: data.dashboard?.reports || mockData.reports,
+                    personalDetails: data.personalDetails || initialPatientDataState.personalDetails,
+                    healthRecords: data.dashboard?.healthRecords || initialPatientDataState.healthRecords,
+                    healthReport: data.dashboard?.healthReport || initialPatientDataState.healthReport,
+                    analytics: data.dashboard?.analytics || initialPatientDataState.analytics,
+                    favorites: data.dashboard?.favorites || initialPatientDataState.favorites,
+                    appointmentDates: data.dashboard?.appointmentDates || initialPatientDataState.appointmentDates,
+                    upcomingAppointments: data.dashboard?.upcomingAppointments || initialPatientDataState.upcomingAppointments,
+                    notifications: data.dashboard?.notifications || initialPatientDataState.notifications,
+                    dependents: data.dashboard?.dependents || initialPatientDataState.dependents,
+                    reports: data.dashboard?.reports || initialPatientDataState.reports,
                     isLoading: false,
                 });
             } else {
-                // If no user document exists, use mock data.
-                console.warn(`No data found for user ${userId}. Displaying mock data.`);
-                set({ ...mockData, isLoading: false });
+                // If no user document exists, use initial empty state.
+                console.warn(`No data found for user ${userId}. Displaying empty dashboard.`);
+                set({ ...initialPatientDataState, isLoading: false });
             }
         }, (error) => {
             console.error("Error fetching patient data: ", error);
-            // On error, also use mock data as a fallback
-            set({ ...mockData, isLoading: false });
+            // On error, reset to initial empty state
+            set({ ...initialPatientDataState, isLoading: false });
         });
 
         return unsubscribe; // Return the unsubscribe function for cleanup
     },
-    clearPatientData: () => set(initialPatientDataState),
+    clearPatientData: () => set({...initialPatientDataState, isLoading: false}),
 }));
