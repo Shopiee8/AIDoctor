@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
-import { collection, doc, onSnapshot, addDoc, query, orderBy } from 'firebase/firestore';
+import { collection, doc, onSnapshot, addDoc, query, orderBy, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 import { Button } from '@/components/ui/button';
@@ -32,18 +33,21 @@ interface Transaction {
 }
 
 interface BankDetails {
+    id: string;
     bankName: string;
     accountNumber: string;
     branchName: string;
     accountName: string;
+    isDefault?: boolean;
 }
 
 interface WalletData {
     totalBalance: number;
     totalTransaction: number;
     lastPayment: string;
-    bankDetails?: BankDetails;
+    cards: BankDetails[];
     transactions: Transaction[];
+    defaultCard?: BankDetails;
 }
 
 
@@ -57,45 +61,54 @@ export default function WalletPage() {
         if (!user) {
             setIsLoading(false);
             return;
-        };
+        }
 
         const walletDocRef = doc(db, 'users', user.uid);
+        const cardsQuery = query(collection(db, 'users', user.uid, 'cards'), orderBy('isDefault', 'desc'));
         const transactionsQuery = query(collection(db, 'users', user.uid, 'transactions'), orderBy('date', 'desc'));
 
-        const unsubscribe = onSnapshot(walletDocRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                 onSnapshot(transactionsQuery, (querySnapshot) => {
+        const unsubWallet = onSnapshot(walletDocRef, (walletSnap) => {
+            const walletInfo = walletSnap.data();
+
+            const unsubCards = onSnapshot(cardsQuery, (cardsSnap) => {
+                const cards: BankDetails[] = [];
+                cardsSnap.forEach((doc) => {
+                    cards.push({ id: doc.id, ...doc.data() } as BankDetails);
+                });
+
+                const unsubTransactions = onSnapshot(transactionsQuery, (transSnap) => {
                     const transactions: Transaction[] = [];
-                    querySnapshot.forEach((doc) => {
+                    transSnap.forEach((doc) => {
                         transactions.push({ id: doc.id, ...doc.data() } as Transaction);
                     });
-                     setWalletData({
-                        totalBalance: data.wallet?.totalBalance || 0,
-                        totalTransaction: data.wallet?.totalTransaction || 0,
-                        lastPayment: data.wallet?.lastPayment || 'N/A',
-                        bankDetails: data.wallet?.bankDetails,
-                        transactions: transactions
+                    
+                    const defaultCard = cards.find(c => c.isDefault);
+
+                    setWalletData({
+                        totalBalance: walletInfo?.wallet?.totalBalance || 0,
+                        totalTransaction: walletInfo?.wallet?.totalTransaction || 0,
+                        lastPayment: walletInfo?.wallet?.lastPayment || 'N/A',
+                        cards: cards,
+                        transactions: transactions,
+                        defaultCard: defaultCard
                     });
-                    setIsLoading(false);
+
+                    if (isLoading) setIsLoading(false);
                 });
-            } else {
-                 setWalletData({
-                    totalBalance: 0,
-                    totalTransaction: 0,
-                    lastPayment: 'N/A',
-                    transactions: []
-                });
-                setIsLoading(false);
-            }
+
+                return () => unsubTransactions();
+            });
+
+            return () => unsubCards();
         }, (error) => {
             console.error("Error fetching wallet data:", error);
             toast({ title: "Error", description: "Could not fetch wallet data.", variant: "destructive" });
             setIsLoading(false);
         });
 
-        return () => unsubscribe();
-    }, [user, toast]);
+        return () => unsubWallet();
+    }, [user, toast, isLoading]);
+
 
     if (isLoading) {
         return (
@@ -112,17 +125,13 @@ export default function WalletPage() {
                     <CardTitle>Wallet</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p>No wallet data found. Please add a payment method to get started.</p>
-                     <Dialog>
-                        <DialogTrigger asChild>
-                             <Button className="mt-4">Add Payment Details</Button>
-                        </DialogTrigger>
-                        <AddCardDialog />
-                    </Dialog>
+                    <p>Could not load wallet data. Please try again later.</p>
                 </CardContent>
             </Card>
         )
     }
+    
+    const { totalBalance, totalTransaction, lastPayment, cards, transactions, defaultCard } = walletData;
 
     return (
         <div className="space-y-6">
@@ -141,47 +150,47 @@ export default function WalletPage() {
                             <Wallet className="w-4 h-4 mr-2 text-yellow-500" />
                             Total Balance
                             </h3>
-                            <p className="text-2xl font-bold">${walletData.totalBalance.toFixed(2)}</p>
+                            <p className="text-2xl font-bold">${totalBalance.toFixed(2)}</p>
                         </div>
                         <div className="border p-4 rounded-lg">
                             <h3 className="text-sm text-muted-foreground flex items-center">
                             <FileText className="w-4 h-4 mr-2 text-green-500" />
                             Total Transaction
                             </h3>
-                             <p className="text-2xl font-bold">${walletData.totalTransaction.toFixed(2)}</p>
+                             <p className="text-2xl font-bold">${totalTransaction.toFixed(2)}</p>
                         </div>
                         </div>
                         <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">Last Payment: {walletData.lastPayment}</p>
+                        <p className="text-sm text-muted-foreground">Last Payment: {lastPayment}</p>
                         <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button>Add Payment</Button>
-                                </DialogTrigger>
-                                <AddPaymentDialog />
-                            </Dialog>
+                            <DialogTrigger asChild>
+                                <Button>Add Payment</Button>
+                            </DialogTrigger>
+                            <AddPaymentDialog />
+                        </Dialog>
                         </div>
                     </div>
 
                     {/* Right Side: Bank Details */}
-                    {walletData.bankDetails ? (
+                    {defaultCard ? (
                         <div className="border p-6 rounded-lg bg-secondary/30">
                             <h3 className="font-semibold mb-4">Bank Details</h3>
                             <ul className="space-y-3 text-sm">
                             <li className="flex justify-between">
                                 <span className="text-muted-foreground">Bank Name</span>
-                                <span className="font-medium">{walletData.bankDetails.bankName}</span>
+                                <span className="font-medium">{defaultCard.bankName}</span>
                             </li>
                             <li className="flex justify-between">
                                 <span className="text-muted-foreground">Account Number</span>
-                                <span className="font-medium">{walletData.bankDetails.accountNumber}</span>
+                                <span className="font-medium">{defaultCard.accountNumber}</span>
                             </li>
                             <li className="flex justify-between">
                                 <span className="text-muted-foreground">Branch Name</span>
-                                <span className="font-medium">{walletData.bankDetails.branchName}</span>
+                                <span className="font-medium">{defaultCard.branchName}</span>
                             </li>
                             <li className="flex justify-between">
                                 <span className="text-muted-foreground">Account Name</span>
-                                <span className="font-medium">{walletData.bankDetails.accountName}</span>
+                                <span className="font-medium">{defaultCard.accountName}</span>
                             </li>
                             </ul>
                             <div className="mt-4 pt-4 border-t flex items-center justify-between">
@@ -190,7 +199,7 @@ export default function WalletPage() {
                                         <DialogTrigger asChild>
                                             <Button variant="link" className="p-0">Edit Details</Button>
                                         </DialogTrigger>
-                                        <EditCardDialog bankDetails={walletData.bankDetails} />
+                                        <EditCardDialog bankDetails={defaultCard} />
                                     </Dialog>
                                     <Dialog>
                                         <DialogTrigger asChild>
@@ -203,7 +212,7 @@ export default function WalletPage() {
                                     <DialogTrigger asChild>
                                         <Button variant="link" className="p-0">Other Accounts</Button>
                                     </DialogTrigger>
-                                    <OtherAccountsDialog />
+                                    <OtherAccountsDialog accounts={cards} />
                                 </Dialog>
                             </div>
                         </div>
@@ -241,7 +250,7 @@ export default function WalletPage() {
                     </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {walletData.transactions.map((item) => (
+                    {transactions.map((item) => (
                         <TableRow key={item.id}>
                         <TableCell className="font-medium text-primary">
                             <Link href="#">#{item.id.substring(0,6)}</Link>
@@ -258,7 +267,7 @@ export default function WalletPage() {
                         </TableCell>
                         </TableRow>
                     ))}
-                     {walletData.transactions.length === 0 && (
+                     {transactions.length === 0 && (
                         <TableRow>
                             <TableCell colSpan={6} className="text-center text-muted-foreground">
                                 No transactions yet.
@@ -313,13 +322,14 @@ function AddCardDialog() {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [date, setDate] = useState<Date>();
+    const [isDefault, setIsDefault] = useState(false);
     
-    // Simple form state
+    // This state is just for the form fields, not for the whole page
     const [cardHolder, setCardHolder] = useState('');
     const [cardNumber, setCardNumber] = useState('');
     const [cvv, setCvv] = useState('');
     const [branch, setBranch] = useState('');
-    const [isDefault, setIsDefault] = useState(false);
+    const [bankName, setBankName] = useState('');
 
     const handleAddCard = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -336,29 +346,25 @@ function AddCardDialog() {
 
         try {
             const cardData = {
-                cardHolderName: cardHolder,
-                cardNumber: cardNumber,
+                accountName: cardHolder,
+                accountNumber: cardNumber,
                 expiryDate: format(date, 'MM/yy'),
                 cvv: cvv,
-                branch: branch,
+                branchName: branch,
+                bankName: bankName,
                 isDefault: isDefault,
             };
             
-            // In a real app, you would likely save this to a 'cards' sub-collection
-            // For simplicity, we'll add it to a single doc for now, but this isn't ideal for multiple cards.
             const cardsCollectionRef = collection(db, 'users', user.uid, 'cards');
             await addDoc(cardsCollectionRef, cardData);
 
             toast({ title: "Success", description: "New card added successfully." });
-            // Here you might trigger a re-fetch of the cards data on the main page
-            // For now, we just close the dialog. The parent component's onSnapshot will handle the update.
+            document.getElementById('addCardClose')?.click();
         } catch (error) {
             console.error("Error adding card:", error);
             toast({ title: "Error", description: "Could not add the card.", variant: "destructive" });
         } finally {
             setIsLoading(false);
-            // Manually trigger close, as DialogClose inside the button doesn't work well with async handlers.
-            document.getElementById('addCardClose')?.click();
         }
     };
 
@@ -369,6 +375,10 @@ function AddCardDialog() {
             </DialogHeader>
             <form onSubmit={handleAddCard}>
                 <div className="space-y-4 py-4">
+                     <div className="grid gap-2">
+                        <Label htmlFor="bank-name">Bank Name <span className="text-destructive">*</span></Label>
+                        <Input id="bank-name" placeholder="e.g., Citi Bank Inc" value={bankName} onChange={e => setBankName(e.target.value)} required />
+                    </div>
                     <div className="grid gap-2">
                         <Label htmlFor="card-holder">Card Holder Name <span className="text-destructive">*</span></Label>
                         <Input id="card-holder" placeholder="John Doe" value={cardHolder} onChange={e => setCardHolder(e.target.value)} required />
@@ -399,7 +409,7 @@ function AddCardDialog() {
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="branch">Branch <span className="text-destructive">*</span></Label>
-                        <Select onValueChange={setBranch} value={branch}>
+                        <Select onValueChange={setBranch} value={branch} required>
                             <SelectTrigger id="branch">
                                 <SelectValue placeholder="Select Branch" />
                             </SelectTrigger>
@@ -437,26 +447,30 @@ function EditCardDialog({ bankDetails }: { bankDetails: BankDetails }) {
                 <DialogTitle>Edit Card</DialogTitle>
             </DialogHeader>
              <div className="space-y-4 py-4">
+                 <div className="grid gap-2">
+                    <Label htmlFor="card-holder-edit">Bank Name</Label>
+                    <Input id="card-holder-edit" defaultValue={bankDetails.bankName} />
+                </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="card-holder-edit">Card Holder Name <span className="text-destructive">*</span></Label>
+                    <Label htmlFor="card-holder-edit">Card Holder Name</Label>
                     <Input id="card-holder-edit" defaultValue={bankDetails.accountName} />
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="card-number-edit">Card Number <span className="text-destructive">*</span></Label>
+                    <Label htmlFor="card-number-edit">Card Number</Label>
                     <Input id="card-number-edit" defaultValue={bankDetails.accountNumber} />
                 </div>
                  <div className="grid grid-cols-2 gap-4">
                      <div className="grid gap-2">
-                        <Label htmlFor="expiry-date-edit">Expire Date <span className="text-destructive">*</span></Label>
+                        <Label htmlFor="expiry-date-edit">Expire Date</Label>
                          <Input id="expiry-date-edit" defaultValue="12/28" />
                     </div>
                      <div className="grid gap-2">
-                        <Label htmlFor="cvv-edit">CVV <span className="text-destructive">*</span></Label>
+                        <Label htmlFor="cvv-edit">CVV</Label>
                         <Input id="cvv-edit" defaultValue="556" />
                     </div>
                 </div>
                  <div className="grid gap-2">
-                    <Label htmlFor="branch-edit">Branch <span className="text-destructive">*</span></Label>
+                    <Label htmlFor="branch-edit">Branch</Label>
                      <Select defaultValue={bankDetails.branchName.toLowerCase()}>
                         <SelectTrigger id="branch-edit">
                             <SelectValue placeholder="Select Branch" />
@@ -470,7 +484,7 @@ function EditCardDialog({ bankDetails }: { bankDetails: BankDetails }) {
             </div>
             <DialogFooter className="justify-between sm:justify-between">
                 <div className="flex items-center space-x-2">
-                    <Checkbox id="default-card-edit" defaultChecked />
+                    <Checkbox id="default-card-edit" defaultChecked={bankDetails.isDefault} />
                     <Label htmlFor="default-card-edit">Mark as Default</Label>
                 </div>
                  <div className="flex gap-2">
@@ -485,48 +499,31 @@ function EditCardDialog({ bankDetails }: { bankDetails: BankDetails }) {
 }
 
 
-function OtherAccountsDialog() {
-     const [accounts, setAccounts] = useState<any[]>([]);
-     const { user } = useAuth();
-     
-     useEffect(() => {
-        if (!user) return;
-        const q = query(collection(db, 'users', user.uid, 'cards'));
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const fetchedAccounts: any[] = [];
-            querySnapshot.forEach((doc) => {
-                fetchedAccounts.push({ id: doc.id, ...doc.data() });
-            });
-            setAccounts(fetchedAccounts);
-        });
-        return () => unsubscribe();
-     }, [user]);
-
+function OtherAccountsDialog({ accounts }: { accounts: BankDetails[] }) {
     return (
         <DialogContent className="max-w-2xl">
             <DialogHeader>
                 <DialogTitle>Other Accounts</DialogTitle>
             </DialogHeader>
             <div className="py-4 space-y-4">
-                {accounts.length > 0 ? accounts.map((account, index) => (
-                    <div key={index} className="border p-4 rounded-lg flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                {accounts.length > 0 ? accounts.map((account) => (
+                    <div key={account.id} className="border p-4 rounded-lg flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1 text-sm">
                             <div>
                                 <p className="text-muted-foreground text-xs">Bank Name</p>
-                                {/* This assumes branch is the bank name, adjust if needed */}
-                                <p className="font-medium">{account.branch || 'N/A'}</p> 
+                                <p className="font-medium">{account.bankName || 'N/A'}</p> 
                             </div>
                              <div>
                                 <p className="text-muted-foreground text-xs">Account No</p>
-                                <p className="font-medium">{account.cardNumber}</p>
+                                <p className="font-medium">{account.accountNumber}</p>
                             </div>
                              <div>
                                 <p className="text-muted-foreground text-xs">Branch</p>
-                                <p className="font-medium">{account.branch}</p>
+                                <p className="font-medium">{account.branchName}</p>
                             </div>
                              <div>
                                 <p className="text-muted-foreground text-xs">Name on Card</p>
-                                <p className="font-medium">{account.cardHolderName}</p>
+                                <p className="font-medium">{account.accountName}</p>
                             </div>
                         </div>
                         <Button variant="link" className="p-0 h-auto self-start md:self-center" disabled={account.isDefault}>
@@ -545,4 +542,4 @@ function OtherAccountsDialog() {
         </DialogContent>
     )
 }
-    
+
