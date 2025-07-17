@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SidebarTrigger } from './ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
 import { ShoppingCartDropdown } from './shopping-cart-dropdown';
+import { NotificationDropdown } from './notification-dropdown';
 
 export function DashboardHeader() {
   const { signOut, user } = useAuth();
@@ -29,6 +30,7 @@ export function DashboardHeader() {
       <div className="w-full flex-1">
         {/* Can add search or breadcrumbs here */}
       </div>
+      <NotificationDropdown />
       <ShoppingCartDropdown />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
