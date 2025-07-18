@@ -42,7 +42,11 @@ function ResultsComponent() {
                     // Defensive checks to prevent runtime errors
                     const nameMatch = doc.name ? doc.name.toLowerCase().includes(searchQuery) : false;
                     const specialtyMatch = doc.specialty ? doc.specialty.toLowerCase().includes(searchQuery) : false;
-                    const locationMatch = doc.location ? doc.location.toLowerCase().includes(locationQuery) : false;
+                    
+                    // If a location is provided, filter by it. If not, don't filter by location.
+                    const locationMatch = locationQuery 
+                        ? (doc.location ? doc.location.toLowerCase().includes(locationQuery) : false)
+                        : true;
                     
                     return (nameMatch || specialtyMatch) && locationMatch;
                 });
