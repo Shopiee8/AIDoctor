@@ -49,6 +49,7 @@ const doctorNavItems: NavItem[] = [
   { title: "Appointments", href: "/doctor/dashboard/appointments", icon: Calendar },
   { title: "My Patients", href: "/doctor/dashboard/my-patients", icon: Users },
   { title: "Schedule Timings", href: "/doctor/dashboard/schedule", icon: Clock },
+  { title: "Invoices", href: "/doctor/dashboard/invoices", icon: FileText },
   { title: "Referrals", href: "/doctor/dashboard/referrals", icon: Send },
   { title: "MDT Meetings", href: "/doctor/dashboard/meetings", icon: UserPlus },
   { title: "AI Consults", href: "/doctor/dashboard", icon: MessageSquare, isExact: true },
