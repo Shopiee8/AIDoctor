@@ -20,72 +20,7 @@ import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload, Plus, Trash2, Loader2, Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-
-const ServiceInformation = () => {
-    const [services, setServices] = useState(['Digital Bllods', 'Surgery']);
-    const [newService, setNewService] = useState('');
-
-    const addService = () => {
-        if (newService.trim()) {
-            setServices([...services, newService.trim()]);
-            setNewService('');
-        }
-    }
-    const removeService = (index: number) => {
-        setServices(services.filter((_, i) => i !== index));
-    }
-
-    return (
-        <Card>
-            <CardHeader><CardTitle>Service Information</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-                 {services.map((service, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                        <Input value={service} readOnly />
-                        <Button variant="destructive" size="icon" onClick={() => removeService(index)}><Trash2 className="h-4 w-4" /></Button>
-                    </div>
-                ))}
-                <div className="flex items-center gap-2">
-                    <Input placeholder="Add new service" value={newService} onChange={(e) => setNewService(e.target.value)} />
-                    <Button onClick={addService}><Plus className="mr-2 h-4 w-4" /> Add</Button>
-                </div>
-            </CardContent>
-        </Card>
-    )
-}
-
-const SpecializationInformation = () => {
-    const [specializations, setSpecializations] = useState(['Urology', 'Orthopedic']);
-    const [newSpec, setNewSpec] = useState('');
-
-    const addSpec = () => {
-        if (newSpec.trim()) {
-            setSpecializations([...specializations, newSpec.trim()]);
-            setNewSpec('');
-        }
-    }
-     const removeSpec = (index: number) => {
-        setSpecializations(specializations.filter((_, i) => i !== index));
-    }
-
-    return (
-        <Card>
-            <CardHeader><CardTitle>Specialization</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-                 {specializations.map((spec, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                        <Input value={spec} readOnly />
-                        <Button variant="destructive" size="icon" onClick={() => removeSpec(index)}><Trash2 className="h-4 w-4" /></Button>
-                    </div>
-                ))}
-                <div className="flex items-center gap-2">
-                    <Input placeholder="Add new specialization" value={newSpec} onChange={(e) => setNewSpec(e.target.value)} />
-                    <Button onClick={addSpec}><Plus className="mr-2 h-4 w-4" /> Add</Button>
-                </div>
-            </CardContent>
-        </Card>
-    )
-}
+import { InfoCard } from '@/components/doctor/info-card';
 
 const passwordFormSchema = z.object({
     currentPassword: z.string().min(1, { message: "Current password is required." }),
@@ -326,8 +261,9 @@ export default function DoctorSettingsPage() {
 
         <TabsContent value="services">
             <div className="grid lg:grid-cols-2 gap-6">
-                <ServiceInformation />
-                <SpecializationInformation />
+                <InfoCard title="Services" placeholder="e.g. Digital Bllods" initialItems={['Digital Bllods', 'Surgery']} />
+                <InfoCard title="Specialization" placeholder="e.g. Urology" initialItems={['Urology', 'Orthopedic']} />
+                <InfoCard title="Awards" placeholder="e.g. Best Surgeon" initialItems={['Best Surgeon 2023']} hasExtraFields={true} />
             </div>
         </TabsContent>
         
