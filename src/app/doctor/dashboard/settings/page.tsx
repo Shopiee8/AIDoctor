@@ -24,6 +24,7 @@ import { InfoCard } from '@/components/doctor/info-card';
 import { EducationCard } from '@/components/doctor/education-card';
 import { ExperienceCard } from '@/components/doctor/experience-card';
 import { RegistrationCard } from '@/components/doctor/registration-card';
+import { SocialLinksCard } from '@/components/doctor/social-links-card';
 
 const passwordFormSchema = z.object({
     currentPassword: z.string().min(1, { message: "Current password is required." }),
@@ -113,6 +114,7 @@ export default function DoctorSettingsPage() {
           <TabsTrigger value="registrations">Registrations</TabsTrigger>
           <TabsTrigger value="memberships">Memberships</TabsTrigger>
           <TabsTrigger value="insurance">Insurance</TabsTrigger>
+          <TabsTrigger value="social">Social Media</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="account">Account Settings</TabsTrigger>
         </TabsList>
@@ -302,6 +304,10 @@ export default function DoctorSettingsPage() {
 
         <TabsContent value="insurance">
             <InfoCard title="Accepted Insurance" placeholder="e.g. Blue Cross" initialItems={['Star Health', 'United Healthcare']} />
+        </TabsContent>
+
+        <TabsContent value="social">
+            <SocialLinksCard />
         </TabsContent>
         
         <TabsContent value="account">

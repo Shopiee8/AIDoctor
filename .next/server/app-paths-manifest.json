@@ -3,6 +3,8 @@
   "/doctor/dashboard/invoices/page": "app/doctor/dashboard/invoices/page.js",
   "/doctor/dashboard/my-patients/page": "app/doctor/dashboard/my-patients/page.js",
   "/doctor/dashboard/page": "app/doctor/dashboard/page.js",
+  "/doctor/dashboard/referrals/page": "app/doctor/dashboard/referrals/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/login/page": "app/login/page.js",
   "/page": "app/page.js"
 }
