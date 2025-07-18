@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/types';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { usePatientDataStore } from '@/store/patient-data-store';
 
 import {
@@ -29,6 +29,8 @@ import {
 import { DashboardHeader } from '@/components/dashboard-header';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Switch } from './ui/switch';
+import { Label } from './ui/label';
 
 const patientNavItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -158,8 +160,9 @@ function PatientSidebar() {
 
 function DefaultSidebar({ userRole }: { userRole: 'Doctor' | 'Admin' | 'AI Provider' }) {
     const pathname = usePathname();
+    const { user, signOut } = useAuth();
     const navItems = navItemsMap[userRole] || [];
-    const Icon = userRole === 'AI Provider' ? Bot : userRole === 'Admin' ? Shield : Stethoscope;
+    const [isAvailable, setIsAvailable] = useState(true);
 
     const isActive = (href: string, isExact?: boolean) => {
         if (isExact) {
@@ -168,16 +171,43 @@ function DefaultSidebar({ userRole }: { userRole: 'Doctor' | 'Admin' | 'AI Provi
         return pathname.startsWith(href);
     };
 
-    return (
-        <>
-            <SidebarHeader>
-                <div className="flex items-center gap-2">
-                    <Icon className="w-7 h-7 text-primary" />
-                    <div className="flex flex-col">
-                        <span className="text-lg font-semibold tracking-tight font-headline">AIDoctor</span>
-                        <span className="text-xs text-muted-foreground">{userRole}</span>
+    const HeaderContent = () => {
+        if (userRole === 'Doctor') {
+             const fallbackInitial = user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'D';
+            return (
+                <div className="flex flex-col items-center text-center">
+                    <Link href="/doctor/dashboard/settings">
+                       <Avatar className="w-20 h-20 border-4 border-primary/20">
+                           <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'Doctor'} data-ai-hint="doctor portrait" />
+                           <AvatarFallback className="text-2xl">{fallbackInitial}</AvatarFallback>
+                       </Avatar>
+                    </Link>
+                    <div className="mt-3">
+                        <h3 className="font-bold text-lg">
+                            <Link href="/doctor/dashboard/settings">{user?.displayName || 'Doctor Name'}</Link>
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-1">BDS, MDS - Oral & Maxillofacial Surgery</p>
                     </div>
                 </div>
+            )
+        }
+        
+        const Icon = userRole === 'AI Provider' ? Bot : Shield;
+        return (
+            <div className="flex items-center gap-2">
+                <Icon className="w-7 h-7 text-primary" />
+                <div className="flex flex-col">
+                    <span className="text-lg font-semibold tracking-tight font-headline">AIDoctor</span>
+                    <span className="text-xs text-muted-foreground">{userRole}</span>
+                </div>
+            </div>
+        )
+    };
+
+    return (
+        <>
+            <SidebarHeader className="p-4">
+                <HeaderContent />
             </SidebarHeader>
             <SidebarContent>
                 <SidebarMenu>
@@ -198,16 +228,31 @@ function DefaultSidebar({ userRole }: { userRole: 'Doctor' | 'Admin' | 'AI Provi
                 </SidebarMenu>
             </SidebarContent>
             <SidebarFooter>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild>
-                            <Link href="#">
-                                <Settings className="w-4 h-4" />
-                                <span>Settings</span>
-                            </Link>
+                 <SidebarMenu>
+                    {userRole === 'Doctor' && (
+                        <SidebarMenuItem>
+                            <div className="p-4 border-t w-full">
+                                 <div className="flex items-center justify-between">
+                                    <Label htmlFor="availability-switch" className="font-medium text-sm">
+                                        Availability
+                                    </Label>
+                                    <Switch
+                                        id="availability-switch"
+                                        checked={isAvailable}
+                                        onCheckedChange={setIsAvailable}
+                                    />
+                                </div>
+                                {isAvailable && <p className="text-xs text-green-600 mt-1">You are available now</p>}
+                            </div>
+                        </SidebarMenuItem>
+                    )}
+                     <SidebarMenuItem>
+                        <SidebarMenuButton onClick={signOut}>
+                            <LogOut className="w-5 h-5" />
+                            <span>Logout</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
-                </SidebarMenu>
+                 </SidebarMenu>
             </SidebarFooter>
         </>
     );
