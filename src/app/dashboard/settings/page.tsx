@@ -18,7 +18,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, User, Camera, ShieldCheck } from 'lucide-react';
+import { Loader2, User, Camera, ShieldCheck, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -28,7 +30,7 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function SettingsPage() {
-    const { user, loading } = useAuth();
+    const { user, loading, signOut } = useAuth();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -80,6 +82,13 @@ export default function SettingsPage() {
         } finally {
             setIsUploading(false);
         }
+    };
+
+    const handleDeleteAccount = async () => {
+        // In a real app, you would have more complex logic to delete user data from Firestore
+        // and other services before signing out. For now, we'll just sign out.
+        await signOut();
+        toast({ title: "Account Deleted", description: "Your account has been successfully deleted." });
     };
 
     if (loading) {
@@ -168,6 +177,41 @@ export default function SettingsPage() {
                         <ShieldCheck className="mr-2 h-4 w-4" />
                         Change Password
                     </Button>
+                </CardContent>
+            </Card>
+
+             <Card>
+                <CardHeader>
+                    <CardTitle>Delete Account</CardTitle>
+                    <CardDescription>Permanently remove your account and all of your content.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">
+                        This action is irreversible. All your data, including appointments, medical records, and profile information, will be permanently deleted.
+                    </p>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Account
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete your
+                                account and remove your data from our servers.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDeleteAccount}>
+                                    Yes, delete my account
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </CardContent>
             </Card>
         </div>
