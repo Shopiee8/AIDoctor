@@ -174,7 +174,7 @@ function DefaultSidebar({ userRole }: { userRole: 'Doctor' | 'Admin' | 'AI Provi
             <SidebarContent>
                 <SidebarMenu>
                     {navItems.map((item) => (
-                        <SidebarMenuItem key={item.href}>
+                        <SidebarMenuItem key={`${item.href}-${item.title}`}>
                             <SidebarMenuButton
                                 asChild
                                 isActive={isActive(item.href)}
