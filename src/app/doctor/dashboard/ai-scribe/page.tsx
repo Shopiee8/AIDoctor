@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { scribe, ScribeOutput } from '@/ai/flows/scribe-flow';
 import toast from 'react-hot-toast';
+import { Input } from '@/components/ui/input';
 
 const sampleTranscript = `Doctor: Good morning, Alex. What brings you in today?
 
