@@ -4,12 +4,18 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Star, MapPin, Calendar, CheckCircle, Clock, Languages, Award, ThumbsUp, Bot, User, Sparkles, GraduationCap } from 'lucide-react';
+import { Heart, Star, MapPin, Calendar, CheckCircle, Clock, Languages, Award, ThumbsUp, Bot, User, Sparkles, GraduationCap, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { useBookingStore } from '@/store/booking-store';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 
 export interface Doctor {
@@ -98,11 +104,22 @@ function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
                     </div>
 
                     <div className="space-y-2 mb-3">
-                        <div className="flex justify-between items-center text-xs">
-                            <span className="text-muted-foreground flex items-center gap-1"><Sparkles className="w-3 h-3 text-primary" /> AI Match</span>
-                            <span className="font-bold">{doctor.aiMatchScore || 89}%</span>
-                        </div>
-                        <Progress value={doctor.aiMatchScore || 89} className="h-1.5" />
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="w-full">
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-muted-foreground flex items-center gap-1"><Sparkles className="w-3 h-3 text-primary" /> AI Match</span>
+                                            <span className="font-bold">{doctor.aiMatchScore || 89}%</span>
+                                        </div>
+                                        <Progress value={doctor.aiMatchScore || 89} className="h-1.5 mt-1" />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p className="max-w-xs text-xs">This score is calculated based on factors like specialty relevance, patient reviews, successful consultations, and availability.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     </div>
 
                     <div className="flex items-end justify-between flex-wrap gap-2 mt-auto border-t pt-3">
@@ -174,10 +191,19 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
                             {doctor.location}
                         </p>
                          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                           <p className="d-flex align-items-center mb-0"><i className="isax isax-language-circle text-dark me-2" /><Languages className="w-4 h-4 mr-1.5 text-primary" />{doctor.languages}</p>
-                           <p className="d-flex align-items-center mb-0"><i className="isax isax-like-1 text-dark me-2" /><ThumbsUp className="w-4 h-4 mr-1.5 text-primary" />{doctor.votes} Votes</p>
-                           <p className="d-flex align-items-center mb-0"><i className="isax isax-archive-14 text-dark me-2" /><Award className="w-4 h-4 mr-1.5 text-primary" />{doctor.experience} of Experience</p>
-                           <p className="d-flex align-items-center mb-0"><i className="isax isax-archive-14 text-dark me-2" /><Sparkles className="w-4 h-4 mr-1.5 text-primary" />{doctor.aiMatchScore || 89}% AI Match</p>
+                           <p className="d-flex align-items-center mb-0"><Languages className="w-4 h-4 mr-1.5 text-primary" />{doctor.languages}</p>
+                           <p className="d-flex align-items-center mb-0"><ThumbsUp className="w-4 h-4 mr-1.5 text-primary" />{doctor.votes} Votes</p>
+                           <p className="d-flex align-items-center mb-0"><Award className="w-4 h-4 mr-1.5 text-primary" />{doctor.experience} of Experience</p>
+                           <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <p className="flex items-center"><Sparkles className="w-4 h-4 mr-1.5 text-primary" />{doctor.aiMatchScore || 89}% AI Match</p>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p className="max-w-xs text-xs">This score is calculated based on factors like specialty relevance, patient reviews, successful consultations, and availability.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                           </TooltipProvider>
                         </div>
                     </div>
                     <div className="flex items-center justify-between flex-wrap gap-2 mt-auto border-t pt-3">
