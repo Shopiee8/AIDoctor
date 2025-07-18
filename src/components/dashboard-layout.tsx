@@ -24,7 +24,7 @@ import {
 import { 
     Stethoscope, LayoutDashboard, HeartPulse, ClipboardPlus, Calendar, FileText, 
     Bot, FileClock, Bell, MessageSquare, Send, Users, Settings, Cpu, Star, 
-    UserSquare, Wallet, LogOut, Activity, Shield
+    UserSquare, Wallet, LogOut, Activity, Shield, ListCollapse, UserPlus, Clock, UserCog
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard-header';
 import Image from 'next/image';
@@ -46,9 +46,13 @@ const patientNavItems: NavItem[] = [
 
 const doctorNavItems: NavItem[] = [
   { title: "Dashboard", href: "/doctor/dashboard", icon: LayoutDashboard },
-  { title: "AI Consults", href: "/doctor/dashboard", icon: MessageSquare },
+  { title: "Appointments", href: "/doctor/dashboard/appointments", icon: Calendar },
+  { title: "My Patients", href: "/doctor/dashboard/my-patients", icon: Users },
+  { title: "Schedule Timings", href: "/doctor/dashboard/schedule", icon: Clock },
   { title: "Referrals", href: "/doctor/dashboard/referrals", icon: Send },
-  { title: "MDT Meetings", href: "/doctor/dashboard/meetings", icon: Users },
+  { title: "MDT Meetings", href: "/doctor/dashboard/meetings", icon: UserPlus },
+  { title: "AI Consults", href: "/doctor/dashboard", icon: MessageSquare, isExact: true },
+  { title: "Profile Settings", href: "/doctor/dashboard/settings", icon: UserCog },
 ];
 
 const adminNavItems: NavItem[] = [
@@ -153,8 +157,8 @@ function DefaultSidebar({ userRole }: { userRole: 'Doctor' | 'Admin' | 'AI Provi
     const navItems = navItemsMap[userRole] || [];
     const Icon = userRole === 'AI Provider' ? Bot : userRole === 'Admin' ? Shield : Stethoscope;
 
-    const isActive = (href: string) => {
-        if (href === '/admin/dashboard' || href === '/doctor/dashboard') {
+    const isActive = (href: string, isExact?: boolean) => {
+        if (isExact) {
             return pathname === href;
         }
         return pathname.startsWith(href);
@@ -177,8 +181,8 @@ function DefaultSidebar({ userRole }: { userRole: 'Doctor' | 'Admin' | 'AI Provi
                         <SidebarMenuItem key={`${item.href}-${item.title}`}>
                             <SidebarMenuButton
                                 asChild
-                                isActive={isActive(item.href)}
-                                className={cn(isActive(item.href) && "bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary")}
+                                isActive={isActive(item.href, !!item.isExact)}
+                                className={cn(isActive(item.href, !!item.isExact) && "bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary")}
                             >
                                 <Link href={item.href}>
                                     <item.icon className="w-4 h-4" />
