@@ -555,6 +555,10 @@ body {
   grid-column: 1 / -1;
 }
 
+.m-0 {
+  margin: 0;
+}
+
 .-mx-1 {
   margin-left: -.25rem;
   margin-right: -.25rem;
@@ -721,6 +725,10 @@ body {
 
 .ms-2 {
   margin-inline-start: .5rem;
+}
+
+.me-2 {
+  margin-inline-end: .5rem;
 }
 
 .block {
@@ -1591,6 +1599,10 @@ body {
 
 .border-dashed {
   border-style: dashed;
+}
+
+.border-none {
+  border-style: none;
 }
 
 .border-\[--color-border\] {
