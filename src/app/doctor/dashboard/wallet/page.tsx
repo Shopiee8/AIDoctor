@@ -39,30 +39,36 @@ export default function DoctorWalletPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col sm:flex-row gap-4">
-                        <button 
-                            className={`flex-1 p-4 border rounded-lg flex items-center justify-between transition-all ${activeMethod === 'stripe' ? 'border-primary ring-2 ring-primary' : 'hover:border-primary/50'}`}
+                        <div 
+                            role="button"
+                            tabIndex={0}
+                            className={`flex-1 p-4 border rounded-lg flex items-center justify-between transition-all cursor-pointer ${activeMethod === 'stripe' ? 'border-primary ring-2 ring-primary' : 'hover:border-primary/50'}`}
                             onClick={() => setActiveMethod('stripe')}
+                            onKeyDown={(e) => e.key === 'Enter' && setActiveMethod('stripe')}
                         >
                             <Image src="https://placehold.co/100x32.png" alt="Stripe" width={100} height={32} data-ai-hint="stripe logo" />
                              <Dialog>
                                 <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm"><Settings className="mr-2 h-4 w-4" /> Configure</Button>
+                                    <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()}><Settings className="mr-2 h-4 w-4" /> Configure</Button>
                                 </DialogTrigger>
                                 <PayoutConfigurationDialog method="Stripe" />
                             </Dialog>
-                        </button>
-                         <button 
-                            className={`flex-1 p-4 border rounded-lg flex items-center justify-between transition-all ${activeMethod === 'paypal' ? 'border-primary ring-2 ring-primary' : 'hover:border-primary/50'}`}
+                        </div>
+                         <div
+                            role="button"
+                            tabIndex={0}
+                            className={`flex-1 p-4 border rounded-lg flex items-center justify-between transition-all cursor-pointer ${activeMethod === 'paypal' ? 'border-primary ring-2 ring-primary' : 'hover:border-primary/50'}`}
                             onClick={() => setActiveMethod('paypal')}
+                            onKeyDown={(e) => e.key === 'Enter' && setActiveMethod('paypal')}
                         >
                             <Image src="https://placehold.co/100x32.png" alt="Paypal" width={100} height={32} data-ai-hint="paypal logo" />
                             <Dialog>
                                 <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm"><Settings className="mr-2 h-4 w-4" /> Configure</Button>
+                                    <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()}><Settings className="mr-2 h-4 w-4" /> Configure</Button>
                                 </DialogTrigger>
                                 <PayoutConfigurationDialog method="Paypal" />
                             </Dialog>
-                        </button>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

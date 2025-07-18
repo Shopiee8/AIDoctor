@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, where, orderBy, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -61,13 +61,17 @@ export default function DoctorInvoicesPage() {
             return;
         }
 
-        const invoicesQuery = query(collection(db, 'invoices'), where('doctorId', '==', user.uid), orderBy('date', 'desc'));
+        // The query requires a composite index on doctorId and date. 
+        // Removing orderBy to prevent app crash until index is created in Firebase Console.
+        const invoicesQuery = query(collection(db, 'invoices'), where('doctorId', '==', user.uid));
 
         const unsubscribe = onSnapshot(invoicesQuery, (snapshot) => {
             const fetchedInvoices = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
             } as Invoice));
+            // Manual sort as a temporary workaround
+            fetchedInvoices.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
             setInvoices(fetchedInvoices);
             setIsLoading(false);
         }, (error) => {
@@ -140,7 +144,7 @@ function CreateInvoiceDialog({ doctorId }: { doctorId?: string }) {
         const fetchPatients = async () => {
             if (!open) return;
             // In a real app, this would likely fetch patients associated with the doctor.
-            // For now, we fetch all users with a 'Patient' role. This is not scalable.
+            // For this demo, we fetch all users with a 'Patient' role. This is not scalable.
             const usersRef = collection(db, 'users');
             const q = query(usersRef); // Ideally, add where('role', '==', 'Patient')
             const querySnapshot = await getDocs(q);
@@ -322,5 +326,3 @@ function CreateInvoiceDialog({ doctorId }: { doctorId?: string }) {
         </Dialog>
     );
 }
-
-    
