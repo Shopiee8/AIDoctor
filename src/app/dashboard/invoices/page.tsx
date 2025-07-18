@@ -65,7 +65,7 @@ const invoices = [
   },
 ];
 
-export default function InvoicesPage() {
+function InvoicesPage() {
   const [selectedInvoice, setSelectedInvoice] = useState(invoices[0]);
 
   return (
@@ -168,17 +168,11 @@ export default function InvoicesPage() {
                 <div className="grid md:grid-cols-3 gap-6 mb-8 text-sm">
                     <div>
                         <p className="font-semibold mb-1">Billing From</p>
-                        <address className="not-italic text-muted-foreground">
-                            {selectedInvoice.billingFrom?.name || 'N/A'}<br/>
-                            {selectedInvoice.billingFrom?.address.replace(/, /g, '<br/>')}
-                        </address>
+                        <address className="not-italic text-muted-foreground" dangerouslySetInnerHTML={{ __html: selectedInvoice.billingFrom?.name ? `${selectedInvoice.billingFrom.name}<br/>${selectedInvoice.billingFrom.address.replace(/, /g, '<br/>')}` : 'N/A' }} />
                     </div>
                      <div>
                         <p className="font-semibold mb-1">Billing To</p>
-                        <address className="not-italic text-muted-foreground">
-                            {selectedInvoice.billingTo?.name || 'N/A'}<br/>
-                            {selectedInvoice.billingTo?.address.replace(/, /g, '<br/>')}
-                        </address>
+                         <address className="not-italic text-muted-foreground" dangerouslySetInnerHTML={{ __html: selectedInvoice.billingTo?.name ? `${selectedInvoice.billingTo.name}<br/>${selectedInvoice.billingTo.address.replace(/, /g, '<br/>')}` : 'N/A' }} />
                     </div>
                      <div>
                         <p className="font-semibold mb-1">Payment Method</p>
