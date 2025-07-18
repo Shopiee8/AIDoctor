@@ -32,13 +32,18 @@ function ResultsComponent() {
                 
                 const allDoctors: Doctor[] = [];
                 querySnapshot.forEach((doc) => {
-                    allDoctors.push({ id: doc.id, ...doc.data() } as Doctor);
+                    // Simple check to ensure basic data exists
+                    if (doc.data().name && doc.data().specialty) {
+                        allDoctors.push({ id: doc.id, ...doc.data() } as Doctor);
+                    }
                 });
                 
                 const filtered = allDoctors.filter(doc => {
-                    const nameMatch = doc.name.toLowerCase().includes(searchQuery);
-                    const specialtyMatch = doc.specialty.toLowerCase().includes(searchQuery);
-                    const locationMatch = doc.location.toLowerCase().includes(locationQuery);
+                    // Defensive checks to prevent runtime errors
+                    const nameMatch = doc.name ? doc.name.toLowerCase().includes(searchQuery) : false;
+                    const specialtyMatch = doc.specialty ? doc.specialty.toLowerCase().includes(searchQuery) : false;
+                    const locationMatch = doc.location ? doc.location.toLowerCase().includes(locationQuery) : false;
+                    
                     return (nameMatch || specialtyMatch) && locationMatch;
                 });
                 
