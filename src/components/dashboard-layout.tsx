@@ -24,7 +24,7 @@ import {
 import { 
     Stethoscope, LayoutDashboard, HeartPulse, ClipboardPlus, Calendar, FileText, 
     Bot, FileClock, Bell, MessageSquare, Send, Users, Settings, Cpu, Star, 
-    UserSquare, Wallet, LogOut, Activity, Shield, ListCollapse, UserPlus, Clock, UserCog
+    UserSquare, Wallet, LogOut, Activity, Shield, ListCollapse, UserPlus, Clock, UserCog, Mic
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard-header';
 import Image from 'next/image';
@@ -49,6 +49,7 @@ const doctorNavItems: NavItem[] = [
   { title: "Appointments", href: "/doctor/dashboard/appointments", icon: Calendar },
   { title: "My Patients", href: "/doctor/dashboard/my-patients", icon: Users },
   { title: "Schedule Timings", href: "/doctor/dashboard/schedule", icon: Clock },
+  { title: "AI Scribe", href: "/doctor/dashboard/ai-scribe", icon: Mic },
   { title: "Messages", href: "/doctor/dashboard/messages", icon: MessageSquare },
   { title: "Wallet", href: "/doctor/dashboard/wallet", icon: Wallet },
   { title: "Invoices", href: "/doctor/dashboard/invoices", icon: FileText },
@@ -245,5 +246,3 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
     </SidebarProvider>
   );
 }
-
-    
