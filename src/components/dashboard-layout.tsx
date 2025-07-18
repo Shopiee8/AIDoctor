@@ -24,7 +24,7 @@ import {
 import { 
     Stethoscope, LayoutDashboard, HeartPulse, ClipboardPlus, Calendar, FileText, 
     Bot, FileClock, Bell, MessageSquare, Send, Users, Settings, Cpu, Star, 
-    UserSquare, Wallet, LogOut, Activity, Shield, ListCollapse, UserPlus, Clock, UserCog, Mic
+    UserSquare, Wallet, LogOut, Activity, Shield, ListCollapse, UserPlus, Clock, UserCog, Mic, Key, Share2, Award
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard-header';
 import Image from 'next/image';
@@ -52,13 +52,14 @@ const doctorNavItems: NavItem[] = [
   { title: "My Patients", href: "/doctor/dashboard/my-patients", icon: Users },
   { title: "Schedule Timings", href: "/doctor/dashboard/schedule", icon: Clock },
   { title: "AI Scribe", href: "/doctor/dashboard/ai-scribe", icon: Mic },
-  { title: "Messages", href: "/doctor/dashboard/messages", icon: MessageSquare },
-  { title: "Wallet", href: "/doctor/dashboard/wallet", icon: Wallet },
-  { title: "Invoices", href: "/doctor/dashboard/invoices", icon: FileText },
-  { title: "Referrals", href: "/doctor/dashboard/referrals", icon: Send },
   { title: "MDT Meetings", href: "/doctor/dashboard/meetings", icon: UserPlus },
-  { title: "AI Consults", href: "/doctor/dashboard", icon: Bot, isExact: true },
+  { title: "Reviews", href: "/doctor/dashboard/reviews", icon: Star },
+  { title: "Accounts", href: "/doctor/dashboard/accounts", icon: Wallet },
+  { title: "Invoices", href: "/doctor/dashboard/invoices", icon: FileText },
+  { title: "Messages", href: "/doctor/dashboard/messages", icon: MessageSquare },
   { title: "Profile Settings", href: "/doctor/dashboard/settings", icon: UserCog },
+  { title: "Social Media", href: "/doctor/dashboard/social-media", icon: Share2 },
+  { title: "Change Password", href: "/doctor/dashboard/change-password", icon: Key },
 ];
 
 const adminNavItems: NavItem[] = [

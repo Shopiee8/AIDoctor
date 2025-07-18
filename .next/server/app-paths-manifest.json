@@ -1,4 +1,5 @@
 {
+  "/dashboard/page": "app/dashboard/page.js",
   "/doctor/dashboard/appointments/page": "app/doctor/dashboard/appointments/page.js",
   "/doctor/dashboard/invoices/page": "app/doctor/dashboard/invoices/page.js",
   "/doctor/dashboard/my-patients/page": "app/doctor/dashboard/my-patients/page.js",
