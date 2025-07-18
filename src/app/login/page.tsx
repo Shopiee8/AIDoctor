@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -25,19 +26,21 @@ export default function LoginPage() {
     try {
       const user = await signIn(email, password);
        if (user) {
-        // This is a simplification. In a real app, you'd fetch the user's role from a database.
-        // For now, we'll make an assumption based on email or have a default.
-        const userRole = localStorage.getItem('userRole') || 'Patient';
         toast({ title: 'Login Successful!', description: `Welcome back!` });
-        
+
+        // Special check for the admin user
+        if (user.email === 'admin@aidoctor.com') {
+            router.push('/admin/dashboard');
+            return;
+        }
+
+        // Existing role-based redirection
+        const userRole = localStorage.getItem('userRole') || 'Patient';
         switch (userRole) {
             case 'Doctor':
                 router.push('/doctor/dashboard');
                 break;
-            case 'Admin':
-                router.push('/admin/dashboard');
-                break;
-             case 'AI Provider':
+            case 'AI Provider':
                 router.push('/ai-provider/dashboard');
                 break;
             default:
