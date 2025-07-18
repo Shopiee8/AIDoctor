@@ -136,7 +136,7 @@ export default function DoctorDashboardPage() {
                 <Card>
                     <CardHeader className="flex flex-row justify-between items-center">
                         <CardTitle>Recent Invoices</CardTitle>
-                        <Button variant="link" asChild><Link href="/doctor/invoices">View All</Link></Button>
+                        <Button variant="link" asChild><Link href="/doctor/dashboard/invoices">View All</Link></Button>
                     </CardHeader>
                      <CardContent>
                         <div className="table-responsive">
