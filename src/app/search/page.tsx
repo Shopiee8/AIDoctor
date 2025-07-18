@@ -113,12 +113,12 @@ export default function SearchPage() {
            <div className="container relative z-10">
                 <div className="text-center mb-6">
                     <nav aria-label="breadcrumb">
-                        <ol className="breadcrumb justify-center bg-transparent p-0 m-0">
+                        <ol className="breadcrumb justify-center bg-transparent p-0 m-0 text-sm">
                             <li className="breadcrumb-item"><Link href="/" className="text-muted-foreground">Home</Link></li>
                             <li className="breadcrumb-item text-primary" aria-current="page">Search Doctors</li>
                         </ol>
                     </nav>
-                    <h2 className="text-3xl font-bold font-headline mt-2">Find a Doctor</h2>
+                    <h2 className="text-3xl font-bold font-headline mt-2">Find Your Doctor</h2>
                 </div>
                 <SearchBar />
            </div>

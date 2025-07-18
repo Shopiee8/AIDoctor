@@ -4,11 +4,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Star, MapPin, Calendar, CheckCircle, Clock, Languages, Award, ThumbsUp, Bot, User } from 'lucide-react';
+import { Heart, Star, MapPin, Calendar, CheckCircle, Clock, Languages, Award, ThumbsUp, Bot, User, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { useBookingStore } from '@/store/booking-store';
 import { Badge } from './ui/badge';
+import { Progress } from './ui/progress';
+
 
 export interface Doctor {
     id: string;
@@ -29,6 +31,7 @@ export interface Doctor {
     fees?: string;
     available?: boolean;
     type: 'AI' | 'Human';
+    aiMatchScore?: number;
 }
 
 interface DoctorCardProps {
@@ -49,17 +52,22 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
         openBookingModal(doctor);
     };
 
+    const aiMatchScore = doctor.aiMatchScore || Math.floor(Math.random() * (99 - 85 + 1)) + 85;
+
     return (
-        <div className="card doctor-list-card border rounded-lg bg-card text-card-foreground shadow-sm">
-            <div className="md:flex items-stretch">
-                <div className="card-img card-img-hover relative w-full md:w-48 flex-shrink-0">
+        <div className={cn(
+            "doctor-card-container card doctor-list-card border rounded-lg bg-card text-card-foreground shadow-sm transition-all hover:shadow-xl hover:-translate-y-1",
+            doctor.type === 'AI' && "ai-doctor-card"
+        )}>
+            <div className="flex flex-col h-full">
+                <div className="card-img card-img-hover relative w-full h-52 flex-shrink-0">
                     <Link href="#">
                         <Image 
                             src={doctor.image} 
                             alt={doctor.name} 
-                            width={200}
-                            height={200}
-                            className="w-full h-full object-cover rounded-t-lg md:rounded-l-lg md:rounded-r-none"
+                            width={300}
+                            height={220}
+                            className="w-full h-full object-cover rounded-t-lg"
                             data-ai-hint={doctor.imageHint || "doctor portrait"}
                         />
                     </Link>
@@ -76,62 +84,43 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
                         <Heart className={cn("w-5 h-5", isFavorited && "fill-current")} />
                     </button>
                 </div>
-                <div className="card-body p-0 flex-1">
-                    <div className="flex items-center justify-between border-b p-3">
-                        <Link href="#" className="font-medium text-sm text-primary">
+                <div className="card-body p-4 flex flex-col flex-1">
+                     <div className="flex items-center justify-between border-b pb-2">
+                        <Link href="#" className="font-medium text-xs text-primary">
                             {doctor.specialty}
                         </Link>
                          <Badge variant={doctor.type === 'AI' ? 'default' : 'secondary'} className="shadow-sm">
                             {doctor.type === 'AI' ? <Bot className="w-3.5 h-3.5 mr-1" /> : <User className="w-3.5 h-3.5 mr-1" />}
-                            {doctor.type}
+                            {doctor.type === 'AI' ? 'AI Doctor' : 'Human'}
                         </Badge>
                     </div>
-                    <div className="p-4">
-                        <div className="doctor-info-detail pb-3">
-                            <div className="grid sm:grid-cols-2 gap-y-3">
-                                <div className="space-y-1">
-                                    <h6 className="flex items-center text-base font-bold">
-                                        <Link href="#">{doctor.name}</Link>
-                                        {doctor.isVerified && <CheckCircle className="w-4 h-4 text-green-500 ms-2" />}
-                                    </h6>
-                                    {doctor.degree ? <p className="text-xs text-muted-foreground">{doctor.degree}</p> : <div className="flex items-center gap-1 text-xs text-primary"><Bot className="w-3 h-3" /> AI Specialist</div>}
-                                    <p className="flex items-center text-xs text-muted-foreground">
-                                        <MapPin className="w-3 h-3 mr-1.5" />
-                                        {doctor.location}
-                                    </p>
-                                </div>
-                                <div className="space-y-1.5 text-xs text-muted-foreground">
-                                    {doctor.languages && (
-                                        <p className="flex items-center"><Languages className="w-3 h-3 mr-1.5" /> {doctor.languages}</p>
-                                    )}
-                                     {doctor.votes && (
-                                        <p className="flex items-center"><ThumbsUp className="w-3 h-3 mr-1.5" /> {doctor.votes}</p>
-                                    )}
-                                     {doctor.experience && (
-                                        <p className="flex items-center"><Award className="w-3 h-3 mr-1.5" /> {doctor.experience} of Experience</p>
-                                    )}
-                                </div>
-                            </div>
+                    <div className="py-3 flex-grow">
+                         <h6 className="flex items-center text-lg font-bold font-headline">
+                            <Link href="#">{doctor.name}</Link>
+                            {doctor.isVerified && <CheckCircle className="w-4 h-4 text-green-500 ms-2" />}
+                        </h6>
+                        {doctor.degree ? <p className="text-xs text-muted-foreground">{doctor.degree}</p> : <div className="flex items-center gap-1 text-xs text-primary"><Bot className="w-3 h-3" /> AI Specialist</div>}
+                        <p className="flex items-center text-xs text-muted-foreground mt-1">
+                            <MapPin className="w-3 h-3 mr-1.5" />
+                            {doctor.location}
+                        </p>
+                    </div>
+                     <div className="space-y-2 mb-3">
+                        <div className="flex justify-between items-center text-xs">
+                            <span className="text-muted-foreground flex items-center gap-1"><Sparkles className="w-3 h-3 text-primary" /> AI Match</span>
+                            <span className="font-bold">{aiMatchScore}%</span>
                         </div>
-                        <div className="flex items-end justify-between flex-wrap gap-3 mt-3">
-                            <div className="flex items-center gap-4">
-                                <div>
-                                    <p className="text-xs text-muted-foreground">Consultation Fees</p>
-                                    <h3 className="text-lg font-bold text-primary">{doctor.fees}</h3>
-                                </div>
-                                {doctor.nextAvailable && (
-                                     <div className="text-xs text-muted-foreground">
-                                        <p>Next available at</p>
-                                        <p className="font-semibold text-foreground">{doctor.nextAvailable}</p>
-                                    </div>
-                                )}
-                            </div>
-                           
-                            <Button size="sm" onClick={handleBookNow}>
-                                <Calendar className="w-4 h-4 mr-2" />
-                                {doctor.type === 'AI' ? 'Consult Now' : 'Book Appointment'}
-                            </Button>
+                        <Progress value={aiMatchScore} className="h-1.5" />
+                    </div>
+                    <div className="flex items-end justify-between flex-wrap gap-2 mt-auto border-t pt-3">
+                        <div>
+                            <p className="text-xs text-muted-foreground">Fees</p>
+                            <h3 className="text-md font-bold text-primary">{doctor.fees}</h3>
                         </div>
+                        <Button size="sm" onClick={handleBookNow}>
+                            <Calendar className="w-4 h-4 mr-2" />
+                            {doctor.type === 'AI' ? 'Consult Now' : 'Book'}
+                        </Button>
                     </div>
                 </div>
             </div>

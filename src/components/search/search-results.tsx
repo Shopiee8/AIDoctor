@@ -39,11 +39,9 @@ function ResultsComponent() {
                 });
                 
                 const filtered = allDoctors.filter(doc => {
-                    // Defensive checks to prevent runtime errors
                     const nameMatch = doc.name ? doc.name.toLowerCase().includes(searchQuery) : false;
                     const specialtyMatch = doc.specialty ? doc.specialty.toLowerCase().includes(searchQuery) : false;
                     
-                    // If a location is provided, filter by it. If not, don't filter by location.
                     const locationMatch = locationQuery 
                         ? (doc.location ? doc.location.toLowerCase().includes(locationQuery) : false)
                         : true;
@@ -85,7 +83,7 @@ function ResultsComponent() {
                     </AlertDescription>
                 </Alert>
             ) : (
-                <div className="space-y-6">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {doctors.map((doctor) => (
                         <DoctorCard key={doctor.id} doctor={doctor} />
                     ))}

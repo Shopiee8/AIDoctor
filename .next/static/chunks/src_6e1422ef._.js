@@ -491,7 +491,7 @@ const AuthContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project
 const doctorSeedData = [
     {
         id: "ai-julia",
-        name: "Julia, AI Agent",
+        name: "Julia, AI Doctor",
         specialty: "AI Cardiologist",
         location: "Virtual",
         rating: 4.9,
@@ -523,7 +523,7 @@ const doctorSeedData = [
     },
     {
         id: "ai-sam",
-        name: "Sam, AI Agent",
+        name: "Sam, AI Doctor",
         specialty: "AI General Practice",
         location: "Virtual",
         rating: 4.8,
