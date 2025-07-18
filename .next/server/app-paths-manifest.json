@@ -1,5 +1,7 @@
 {
   "/doctor/dashboard/appointments/page": "app/doctor/dashboard/appointments/page.js",
+  "/doctor/dashboard/my-patients/page": "app/doctor/dashboard/my-patients/page.js",
   "/doctor/dashboard/page": "app/doctor/dashboard/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
   "/page": "app/page.js"
 }
