@@ -179,7 +179,7 @@ export default function SettingsPage() {
                                     <div className="flex items-center gap-4">
                                         <div className="relative">
                                             <Avatar className="w-24 h-24 cursor-pointer" onClick={handleAvatarClick}>
-                                                <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
+                                                <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || 'User'} />
                                                 <AvatarFallback className="text-3xl">{user?.displayName?.[0] || user?.email?.[0]}</AvatarFallback>
                                             </Avatar>
                                             <div className="absolute bottom-0 right-0 bg-primary rounded-full p-1.5 border-2 border-background">

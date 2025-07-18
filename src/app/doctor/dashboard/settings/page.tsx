@@ -128,7 +128,7 @@ export default function DoctorSettingsPage() {
             <CardContent className="space-y-6">
                <div className="flex items-center gap-4">
                     <Avatar className="h-24 w-24">
-                        <AvatarImage src={user?.photoURL || 'https://placehold.co/100x100.png'} />
+                        <AvatarImage src={user?.photoURL || undefined} />
                         <AvatarFallback>{doctorData.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="space-y-2">

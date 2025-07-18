@@ -102,7 +102,7 @@ function PatientSidebar() {
                 <div className="flex flex-col items-center text-center">
                     <Link href="/dashboard/settings">
                        <Avatar className="w-20 h-20 border-4 border-primary/20">
-                           <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} data-ai-hint="person portrait" />
+                           <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || 'User'} data-ai-hint="person portrait" />
                            <AvatarFallback className="text-2xl">{fallbackInitial}</AvatarFallback>
                        </Avatar>
                     </Link>
@@ -179,7 +179,7 @@ function DefaultSidebar({ userRole }: { userRole: 'Doctor' | 'Admin' | 'AI Provi
                 <div className="flex flex-col items-center text-center">
                     <Link href="/doctor/dashboard/settings">
                        <Avatar className="w-20 h-20 border-4 border-primary/20">
-                           <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'Doctor'} data-ai-hint="doctor portrait" />
+                           <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || 'Doctor'} data-ai-hint="doctor portrait" />
                            <AvatarFallback className="text-2xl">{fallbackInitial}</AvatarFallback>
                        </Avatar>
                     </Link>

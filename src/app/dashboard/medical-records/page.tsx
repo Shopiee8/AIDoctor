@@ -157,7 +157,7 @@ export default function MedicalRecordsPage() {
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
                                                     <Avatar className="h-8 w-8">
-                                                        <AvatarImage src={record.recordForImage || user?.photoURL || ''} />
+                                                        <AvatarImage src={record.recordForImage || user?.photoURL || undefined} />
                                                         <AvatarFallback>{record.recordFor?.[0] || 'U'}</AvatarFallback>
                                                     </Avatar>
                                                     <span>{record.recordFor}</span>
