@@ -57,3 +57,32 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .ai-doctor-card {
+    @apply bg-secondary border-primary/20;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ai-doctor-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+      transparent,
+      hsl(var(--primary) / 0.1),
+      transparent 30%
+    );
+    animation: rotate 4s linear infinite;
+  }
+
+  @keyframes rotate {
+    100% {
+      transform: rotate(1turn);
+    }
+  }
+}

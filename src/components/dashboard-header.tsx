@@ -36,7 +36,7 @@ export function DashboardHeader() {
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" size="icon" className="rounded-full">
             <Avatar>
-              <AvatarImage src={user?.photoURL || "https://placehold.co/40x40.png"} data-ai-hint="person" />
+              <AvatarImage src={user?.photoURL || undefined} data-ai-hint="person" />
               <AvatarFallback>{user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
             </Avatar>
             <span className="sr-only">Toggle user menu</span>

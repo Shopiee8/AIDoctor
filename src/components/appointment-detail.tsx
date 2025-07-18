@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Video, Mic, MessageSquare, Hospital, Calendar, Clock, Mail, Phone, MessageCircle, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ClinicGallery } from './clinic-gallery';
 
 interface AppointmentDetailProps {
     appointmentId: string;
@@ -97,116 +98,128 @@ export function AppointmentDetail({ appointmentId }: AppointmentDetailProps) {
                 <h1 className="text-2xl font-bold font-headline">Appointment Details</h1>
             </div>
             
-            <Card>
-                <CardContent className="p-6">
-                    <div className="space-y-6">
-                        {/* Header */}
-                        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                            <div className="flex items-center gap-4">
-                                <Avatar className="w-16 h-16 border">
-                                    <AvatarImage src={appointment.doctorImage} />
-                                    <AvatarFallback>{appointment.doctorName[0]}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <h2 className="text-xl font-bold">{appointment.doctorName}</h2>
-                                    <p className="text-muted-foreground">{appointment.doctorSpecialty}</p>
-                                    <div className="text-sm text-muted-foreground mt-2 space-y-1">
-                                         <p className="flex items-center gap-2"><Mail className="h-4 w-4" /> doctor@example.com</p>
-                                         <p className="flex items-center gap-2"><Phone className="h-4 w-4" /> +1 123 456 7890</p>
+            <div className="grid lg:grid-cols-2 gap-6">
+                <div className="space-y-6">
+                    <Card>
+                        <CardContent className="p-6">
+                            <div className="space-y-6">
+                                {/* Header */}
+                                <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <Avatar className="w-16 h-16 border">
+                                            <AvatarImage src={appointment.doctorImage} />
+                                            <AvatarFallback>{appointment.doctorName[0]}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <h2 className="text-xl font-bold">{appointment.doctorName}</h2>
+                                            <p className="text-muted-foreground">{appointment.doctorSpecialty}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                                        <Badge className={`text-sm px-3 py-1 ${statusInfo.color}`}>{statusInfo.text}</Badge>
+                                        <div className="text-lg font-bold text-primary">
+                                            $200.00
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="flex-shrink-0 flex flex-col items-end gap-2">
-                                <Badge className={`text-sm px-3 py-1 ${statusInfo.color}`}>{statusInfo.text}</Badge>
-                                <div className="text-lg font-bold text-primary">
-                                    $200.00
-                                </div>
-                            </div>
-                        </div>
 
-                        {/* Divider */}
-                        <hr />
+                                {/* Divider */}
+                                <hr />
 
-                        {/* Details Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
-                            <div className="space-y-1">
-                                <p className="text-muted-foreground">Appointment Date</p>
-                                <p className="font-medium flex items-center gap-2"><Calendar className="h-4 w-4 text-primary" />{format(appointment.dateTime, 'eeee, MMMM d, yyyy')}</p>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-muted-foreground">Appointment Time</p>
-                                <p className="font-medium flex items-center gap-2"><Clock className="h-4 w-4 text-primary" />{format(appointment.dateTime, 'p')}</p>
-                            </div>
-                             <div className="space-y-1">
-                                <p className="text-muted-foreground">Appointment Type</p>
-                                <p className="font-medium flex items-center gap-2"><TypeIcon className="h-4 w-4 text-primary" />{appointment.appointmentType} Consultation</p>
-                            </div>
-                             <div className="space-y-1">
-                                <p className="text-muted-foreground">Visit Type</p>
-                                <p className="font-medium">{appointment.visitType}</p>
-                            </div>
-                            {appointment.clinicName && (
-                                <div className="space-y-1">
-                                    <p className="text-muted-foreground">Clinic</p>
-                                    <p className="font-medium flex items-center gap-2"><Hospital className="h-4 w-4 text-primary" />{appointment.clinicName}</p>
+                                {/* Details Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                                    <div className="space-y-1">
+                                        <p className="text-muted-foreground">Appointment Date</p>
+                                        <p className="font-medium flex items-center gap-2"><Calendar className="h-4 w-4 text-primary" />{format(appointment.dateTime, 'eeee, MMMM d, yyyy')}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-muted-foreground">Appointment Time</p>
+                                        <p className="font-medium flex items-center gap-2"><Clock className="h-4 w-4 text-primary" />{format(appointment.dateTime, 'p')}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-muted-foreground">Appointment Type</p>
+                                        <p className="font-medium flex items-center gap-2"><TypeIcon className="h-4 w-4 text-primary" />{appointment.appointmentType} Consultation</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-muted-foreground">Visit Type</p>
+                                        <p className="font-medium">{appointment.visitType}</p>
+                                    </div>
+                                    {appointment.clinicName && (
+                                        <div className="space-y-1">
+                                            <p className="text-muted-foreground">Clinic</p>
+                                            <p className="font-medium flex items-center gap-2"><Hospital className="h-4 w-4 text-primary" />{appointment.clinicName}</p>
+                                        </div>
+                                    )}
+                                    {appointment.clinicLocation && (
+                                        <div className="space-y-1">
+                                            <p className="text-muted-foreground">Location</p>
+                                            <p className="font-medium flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" />{appointment.clinicLocation}</p>
+                                        </div>
+                                    )}
+                                    <div className="space-y-1">
+                                        <p className="text-muted-foreground">Patient</p>
+                                        <p className="font-medium">{user?.displayName || 'Self'}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-muted-foreground">Appointment ID</p>
+                                        <p className="font-medium text-primary">#{appointment.id.slice(0, 8)}</p>
+                                    </div>
                                 </div>
-                            )}
-                             {appointment.clinicLocation && (
-                                <div className="space-y-1">
-                                    <p className="text-muted-foreground">Location</p>
-                                    <p className="font-medium flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" />{appointment.clinicLocation}</p>
-                                </div>
-                            )}
-                             <div className="space-y-1">
-                                <p className="text-muted-foreground">Patient</p>
-                                <p className="font-medium">{user?.displayName || 'Self'}</p>
+                                
+                                {/* Action Buttons */}
+                                {appointment.status === 'Upcoming' && (
+                                    <>
+                                        <hr />
+                                        <div className="flex flex-col sm:flex-row gap-2">
+                                            <Button className="w-full sm:w-auto"><Video className="mr-2 h-4 w-4"/> Start Session</Button>
+                                            <Button variant="outline" className="w-full sm:w-auto">Reschedule Appointment</Button>
+                                            <Button variant="destructive" className="w-full sm:w-auto">Cancel Appointment</Button>
+                                        </div>
+                                    </>
+                                )}
+                                {appointment.status === 'Cancelled' && (
+                                    <>
+                                        <hr />
+                                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                                            <h4 className="font-semibold text-red-800">Cancellation Reason</h4>
+                                            <p className="text-sm text-red-700 mt-1">
+                                                I have an urgent surgery, so I am cancelling the appointment. You can reschedule for next week.
+                                            </p>
+                                            <p className="text-xs text-red-600 mt-2">Cancelled By Doctor on {format(new Date(), 'dd MMM yyyy')}</p>
+                                        </div>
+                                        <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                                            <Button className="w-full sm:w-auto">Book Again</Button>
+                                            <Button variant="outline" className="w-full sm:w-auto">Choose Another Doctor</Button>
+                                        </div>
+                                    </>
+                                )}
+                                {appointment.status === 'Completed' && (
+                                    <>
+                                        <hr />
+                                        <div className="flex flex-col sm:flex-row gap-2">
+                                            <Button className="w-full sm:w-auto">Book Again</Button>
+                                            <Button variant="outline" className="w-full sm:w-auto">Leave a Review</Button>
+                                            <Button variant="outline" className="w-full sm:w-auto">View Prescription</Button>
+                                        </div>
+                                    </>
+                                )}
                             </div>
-                             <div className="space-y-1">
-                                <p className="text-muted-foreground">Appointment ID</p>
-                                <p className="font-medium text-primary">#{appointment.id.slice(0, 8)}</p>
-                            </div>
-                        </div>
-                        
-                         {/* Action Buttons */}
-                        {appointment.status === 'Upcoming' && (
-                             <>
-                                <hr />
-                                <div className="flex flex-col sm:flex-row gap-2">
-                                    <Button className="w-full sm:w-auto"><Video className="mr-2 h-4 w-4"/> Start Session</Button>
-                                    <Button variant="outline" className="w-full sm:w-auto">Reschedule Appointment</Button>
-                                    <Button variant="destructive" className="w-full sm:w-auto">Cancel Appointment</Button>
-                                </div>
-                            </>
-                        )}
-                        {appointment.status === 'Cancelled' && (
-                             <>
-                                <hr />
-                                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                                    <h4 className="font-semibold text-red-800">Cancellation Reason</h4>
-                                    <p className="text-sm text-red-700 mt-1">
-                                        I have an urgent surgery, so I am cancelling the appointment. You can reschedule for next week.
-                                    </p>
-                                     <p className="text-xs text-red-600 mt-2">Cancelled By Doctor on {format(new Date(), 'dd MMM yyyy')}</p>
-                                </div>
-                                <div className="flex flex-col sm:flex-row gap-2 mt-4">
-                                    <Button className="w-full sm:w-auto">Book Again</Button>
-                                    <Button variant="outline" className="w-full sm:w-auto">Choose Another Doctor</Button>
-                                </div>
-                            </>
-                        )}
-                        {appointment.status === 'Completed' && (
-                             <>
-                                <hr />
-                                <div className="flex flex-col sm:flex-row gap-2">
-                                    <Button className="w-full sm:w-auto">Book Again</Button>
-                                    <Button variant="outline" className="w-full sm:w-auto">Leave a Review</Button>
-                                    <Button variant="outline" className="w-full sm:w-auto">View Prescription</Button>
-                                </div>
-                            </>
-                        )}
+                        </CardContent>
+                    </Card>
+                </div>
+                {appointment.appointmentType === 'In-person' && (
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Clinic Gallery</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <ClinicGallery />
+                            </CardContent>
+                        </Card>
                     </div>
-                </CardContent>
-            </Card>
+                )}
+            </div>
         </div>
     );
 }

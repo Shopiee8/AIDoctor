@@ -44,10 +44,18 @@ interface MedicalRecord {
 
 interface Prescription {
   id: string;
-  name: string;
   date: string;
   doctor: string;
   doctorImage?: string;
+  items: {
+      name: string;
+      quantity: number;
+      days: number;
+      morning: boolean;
+      afternoon: boolean;
+      evening: boolean;
+      night: boolean;
+  }[];
 }
 
 const recordFormSchema = z.object({
@@ -149,7 +157,7 @@ export default function MedicalRecordsPage() {
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
                                                     <Avatar className="h-8 w-8">
-                                                        <AvatarImage src={record.recordForImage || user?.photoURL || ''} />
+                                                        <AvatarImage src={record.recordForImage || user?.photoURL || undefined} />
                                                         <AvatarFallback>{record.recordFor?.[0] || 'U'}</AvatarFallback>
                                                     </Avatar>
                                                     <span>{record.recordFor}</span>
@@ -190,9 +198,9 @@ export default function MedicalRecordsPage() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>ID</TableHead>
-                                        <TableHead>Name</TableHead>
                                         <TableHead>Date</TableHead>
                                         <TableHead>Prescribed By</TableHead>
+                                        <TableHead>Medications</TableHead>
                                         <TableHead className="text-right">Action</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -200,7 +208,6 @@ export default function MedicalRecordsPage() {
                                     {prescriptions.length > 0 ? prescriptions.map((item) => (
                                         <TableRow key={item.id}>
                                             <TableCell className="font-medium text-primary">#{item.id.slice(0, 6)}</TableCell>
-                                            <TableCell className="font-medium flex items-center gap-2"><FileText className="h-4 w-4 text-primary" /> {item.name}</TableCell>
                                             <TableCell>{format(new Date(item.date), 'dd MMM yyyy')}</TableCell>
                                             <TableCell>
                                                  <div className="flex items-center gap-2">
@@ -210,6 +217,12 @@ export default function MedicalRecordsPage() {
                                                     </Avatar>
                                                     <span>{item.doctor}</span>
                                                 </div>
+                                            </TableCell>
+                                             <TableCell>
+                                                <ul className="list-disc list-inside text-sm">
+                                                    {item.items.slice(0, 2).map((med, i) => <li key={i}>{med.name}</li>)}
+                                                    {item.items.length > 2 && <li>...and {item.items.length - 2} more</li>}
+                                                </ul>
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <Button variant="outline" size="sm">Download</Button>

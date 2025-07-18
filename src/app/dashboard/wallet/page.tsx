@@ -444,7 +444,7 @@ function AddCardDialog({ existingCards }: { existingCards: BankDetails[] }) {
                 </div>
                 <DialogFooter className="justify-between sm:justify-between">
                     <div className="flex items-center space-x-2">
-                        <Checkbox id="default-card" checked={isDefault} onCheckedChange={(checked) => setIsDefault(checked)} />
+                        <Checkbox id="default-card" checked={isDefault} onCheckedChange={(checked) => setIsDefault(!!checked)} />
                         <Label htmlFor="default-card">Mark as Default</Label>
                     </div>
                     <div className="flex gap-2">
@@ -546,7 +546,7 @@ function EditCardDialog({ bankDetails }: { bankDetails: BankDetails }) {
                 </div>
                 <DialogFooter className="justify-between sm:justify-between">
                     <div className="flex items-center space-x-2">
-                        <Checkbox id="isDefault-edit" {...register("isDefault")} defaultChecked={bankDetails.isDefault} onCheckedChange={(checked) => setValue('isDefault', checked)} />
+                        <Checkbox id="isDefault-edit" {...register("isDefault")} defaultChecked={bankDetails.isDefault} onCheckedChange={(checked) => setValue('isDefault', !!checked)} />
                         <Label htmlFor="isDefault-edit">Mark as Default</Label>
                     </div>
                      <div className="flex gap-2">
@@ -682,6 +682,8 @@ function OtherAccountsDialog({ accounts }: { accounts: BankDetails[] }) {
         </DialogContent>
     )
 }
+
+    
 
     
 
