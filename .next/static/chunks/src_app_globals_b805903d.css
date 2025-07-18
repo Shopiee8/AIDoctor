@@ -2664,6 +2664,10 @@ body {
   --tw-ring-color: hsl(var(--sidebar-ring));
 }
 
+.ring-primary {
+  --tw-ring-color: hsl(var(--primary));
+}
+
 .ring-offset-background {
   --tw-ring-offset-color: hsl(var(--background));
 }
@@ -2887,6 +2891,10 @@ body {
 
 .hover\:border-primary:hover {
   border-color: hsl(var(--primary));
+}
+
+.hover\:border-primary\/50:hover {
+  border-color: hsl(var(--primary) / .5);
 }
 
 .hover\:bg-accent:hover {
