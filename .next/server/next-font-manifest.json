@@ -1,7 +1,5 @@
 {
-  "app": {
-    "[project]/src/app/dashboard/messages/page": []
-  },
+  "app": {},
   "appUsingSizeAdjust": false,
   "pages": {},
   "pagesUsingSizeAdjust": false
