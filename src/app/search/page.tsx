@@ -1,4 +1,7 @@
 
+'use client';
+
+import React from 'react';
 import { LandingHeader } from "@/components/landing-header";
 import { Footer } from "@/components/home/footer";
 import { SearchFilters } from "@/components/search/search-filters";
@@ -12,14 +15,29 @@ import { Calendar as CalendarIcon, MapPin, Search } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import { format } from 'date-fns';
+import { useRouter } from 'next/navigation';
+
 
 function SearchBar() {
-  // In a real app, this state would be connected to the search logic
+  const router = useRouter();
   const [date, setDate] = React.useState<Date | undefined>();
+  const [query, setQuery] = React.useState('');
+  const [location, setLocation] = React.useState('');
+  
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (query) params.set('query', query);
+    if (location) params.set('location', location);
+    if (date) params.set('date', format(date, 'yyyy-MM-dd'));
+    
+    router.push(`/search?${params.toString()}`);
+  };
 
   return (
     <div className="bg-primary/5 rounded-lg">
-        <form>
+        <form onSubmit={handleSearch}>
             <div className="grid md:grid-cols-4 items-center gap-1 p-2">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -27,6 +45,8 @@ function SearchBar() {
                         type="text"
                         placeholder="Search Doctors, Clinics..."
                         className="pl-9 h-12 bg-background border-none"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
                     />
                 </div>
                 <div className="relative">
@@ -35,6 +55,8 @@ function SearchBar() {
                         type="text"
                         placeholder="Location"
                         className="pl-9 h-12 bg-background border-none"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
                     />
                 </div>
                 <div className="relative">
@@ -48,7 +70,7 @@ function SearchBar() {
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date ? date.toLocaleDateString() : <span>Pick a date</span>}
+                          {date ? format(date, 'PPP') : <span>Pick a date</span>}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
