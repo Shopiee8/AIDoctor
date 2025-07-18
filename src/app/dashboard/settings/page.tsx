@@ -11,20 +11,32 @@ import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCre
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
 import Image from 'next/image';
+import { format } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, User, Camera, ShieldCheck, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, User, Camera, ShieldCheck, Trash2, Eye, EyeOff, CalendarIcon } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email(),
+  phone: z.string().optional(),
+  dob: z.date().optional(),
+  bloodGroup: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  country: z.string().optional(),
+  pincode: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -54,6 +66,7 @@ export default function SettingsPage() {
 
     const profileForm = useForm<ProfileFormValues>({
         resolver: zodResolver(profileFormSchema),
+        // This should be populated from user's Firestore data in a real app
         values: {
             displayName: user?.displayName || '',
             email: user?.email || '',
@@ -74,7 +87,8 @@ export default function SettingsPage() {
         setIsSubmitting(true);
         try {
             await updateProfile(user, { displayName: data.displayName });
-            toast({ title: "Profile Updated", description: "Your display name has been updated." });
+            // Here you would also save the other form data (data) to Firestore
+            toast({ title: "Profile Updated", description: "Your profile information has been updated." });
         } catch (error) {
             console.error("Error updating profile:", error);
             toast({ title: "Error", description: "Could not update your profile.", variant: "destructive" });
@@ -149,57 +163,100 @@ export default function SettingsPage() {
                     <CardDescription>This is how others will see you on the site.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex items-center gap-4 mb-8">
-                        <div className="relative">
-                            <Avatar className="w-24 h-24 cursor-pointer" onClick={handleAvatarClick}>
-                                <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
-                                <AvatarFallback className="text-3xl">{user?.displayName?.[0] || user?.email?.[0]}</AvatarFallback>
-                            </Avatar>
-                            <div className="absolute bottom-0 right-0 bg-primary rounded-full p-1.5 border-2 border-background">
-                                {isUploading ? <Loader2 className="w-4 h-4 text-primary-foreground animate-spin" /> : <Camera className="w-4 h-4 text-primary-foreground" />}
+                     <Form {...profileForm}>
+                        <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-8">
+                             <div className="flex items-center gap-4">
+                                <div className="relative">
+                                    <Avatar className="w-24 h-24 cursor-pointer" onClick={handleAvatarClick}>
+                                        <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
+                                        <AvatarFallback className="text-3xl">{user?.displayName?.[0] || user?.email?.[0]}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="absolute bottom-0 right-0 bg-primary rounded-full p-1.5 border-2 border-background">
+                                        {isUploading ? <Loader2 className="w-4 h-4 text-primary-foreground animate-spin" /> : <Camera className="w-4 h-4 text-primary-foreground" />}
+                                    </div>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleFileChange}
+                                        className="hidden"
+                                        accept="image/png, image/jpeg"
+                                    />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold">{user?.displayName || "User"}</h3>
+                                    <p className="text-sm text-muted-foreground">{user?.email}</p>
+                                </div>
                             </div>
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleFileChange}
-                                className="hidden"
-                                accept="image/png, image/jpeg"
-                            />
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-bold">{user?.displayName || "User"}</h3>
-                            <p className="text-sm text-muted-foreground">{user?.email}</p>
-                        </div>
-                    </div>
-                    
-                    <Form {...profileForm}>
-                        <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4 max-w-lg">
-                            <FormField
-                                control={profileForm.control}
-                                name="displayName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Display Name</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Your Name" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={profileForm.control}
-                                name="email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Email</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Your Email" {...field} disabled />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <FormField control={profileForm.control} name="displayName" render={({ field }) => (
+                                    <FormItem><FormLabel>Display Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                )}/>
+                                <FormField control={profileForm.control} name="email" render={({ field }) => (
+                                    <FormItem><FormLabel>Email</FormLabel><FormControl><Input {...field} disabled /></FormControl><FormMessage /></FormItem>
+                                )}/>
+                                <FormField control={profileForm.control} name="phone" render={({ field }) => (
+                                    <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                )}/>
+                                <FormField control={profileForm.control} name="dob" render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                    <FormLabel>Date of Birth</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button variant={"outline"} className="pl-3 text-left font-normal">
+                                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                </FormItem>
+                                )}/>
+                                <FormField control={profileForm.control} name="bloodGroup" render={({ field }) => (
+                                <FormItem><FormLabel>Blood Group</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Select blood group" /></SelectTrigger></FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="A+">A+</SelectItem>
+                                        <SelectItem value="A-">A-</SelectItem>
+                                        <SelectItem value="B+">B+</SelectItem>
+                                        <SelectItem value="B-">B-</SelectItem>
+                                        <SelectItem value="AB+">AB+</SelectItem>
+                                        <SelectItem value="AB-">AB-</SelectItem>
+                                        <SelectItem value="O+">O+</SelectItem>
+                                        <SelectItem value="O-">O-</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage /></FormItem>
+                                )}/>
+                            </div>
+
+                             <div className="space-y-2 pt-4 border-t">
+                                <h4 className="font-medium">Address</h4>
+                                <div className="grid md:grid-cols-2 gap-6">
+                                     <FormField control={profileForm.control} name="address" render={({ field }) => (
+                                        <FormItem className="md:col-span-2"><FormLabel>Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                     <FormField control={profileForm.control} name="city" render={({ field }) => (
+                                        <FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                    <FormField control={profileForm.control} name="state" render={({ field }) => (
+                                        <FormItem><FormLabel>State</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                    <FormField control={profileForm.control} name="country" render={({ field }) => (
+                                        <FormItem><FormLabel>Country</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                    <FormField control={profileForm.control} name="pincode" render={({ field }) => (
+                                        <FormItem><FormLabel>Pincode / Zip Code</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                </div>
+                             </div>
+
                             <Button type="submit" disabled={isSubmitting}>
                                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Update Profile
@@ -316,4 +373,4 @@ export default function SettingsPage() {
             </Card>
         </div>
     )
- 
+}
