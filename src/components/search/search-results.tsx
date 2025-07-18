@@ -7,13 +7,17 @@ import { collection, getDocs, query, where, orderBy, startAt, endAt } from 'fire
 import { db } from '@/lib/firebase';
 import { DoctorCard, type Doctor } from "@/components/doctor-card";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, List, LayoutGrid } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
+
+type ViewMode = 'list' | 'grid';
 
 function ResultsComponent() {
     const searchParams = useSearchParams();
     const [doctors, setDoctors] = useState<Doctor[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [viewMode, setViewMode] = useState<ViewMode>('list');
 
     useEffect(() => {
         const fetchDoctors = async () => {
@@ -71,9 +75,19 @@ function ResultsComponent() {
 
     return (
         <div className="space-y-6">
-            <h3 className="text-xl font-bold">
-                Showing <span className="text-primary">{doctors.length}</span> Results For You
-            </h3>
+            <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold">
+                    Showing <span className="text-primary">{doctors.length}</span> Results For You
+                </h3>
+                 <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
+                    <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="icon" className="h-8 w-8" onClick={() => setViewMode('list')}>
+                        <List className="h-4 w-4" />
+                    </Button>
+                    <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="icon" className="h-8 w-8" onClick={() => setViewMode('grid')}>
+                        <LayoutGrid className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
 
             {doctors.length === 0 ? (
                 <Alert>
@@ -83,9 +97,11 @@ function ResultsComponent() {
                     </AlertDescription>
                 </Alert>
             ) : (
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                 <div className={cn(
+                    viewMode === 'list' ? 'space-y-6' : 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6'
+                 )}>
                     {doctors.map((doctor) => (
-                        <DoctorCard key={doctor.id} doctor={doctor} />
+                        <DoctorCard key={doctor.id} doctor={doctor} viewMode={viewMode} />
                     ))}
                 </div>
             )}
