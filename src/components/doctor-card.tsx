@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Star, MapPin, Calendar, CheckCircle } from 'lucide-react';
+import { Heart, Star, MapPin, Calendar, CheckCircle, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { useBookingStore } from '@/store/booking-store';
+import { Badge } from './ui/badge';
 
 export interface Doctor {
     name: string;
@@ -14,6 +15,7 @@ export interface Doctor {
     location: string;
     rating: number;
     image: string;
+    imageHint?: string;
     isVerified?: boolean;
     nextAvailable?: string;
     lastBooked?: string;
@@ -40,49 +42,48 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
     };
 
     return (
-        <div className="border rounded-lg overflow-hidden group transition-all hover:shadow-lg hover:-translate-y-1">
+        <div className="border rounded-lg overflow-hidden group transition-all hover:shadow-lg hover:-translate-y-1 bg-card">
+             <div className="relative">
+                <button
+                    onClick={handleFavoriteClick}
+                    className="absolute top-3 right-3 z-10 p-1.5 bg-background/60 backdrop-blur-sm rounded-full text-destructive transition-colors hover:bg-destructive/10"
+                >
+                    <Heart className={cn("w-5 h-5", isFavorited && "fill-current")} />
+                </button>
+                <div className="absolute top-3 left-3 z-10">
+                     <Badge className="shadow-md">
+                        <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
+                        {doctor.rating}
+                    </Badge>
+                </div>
+                <Image
+                    src={doctor.image}
+                    alt={doctor.name}
+                    width={300}
+                    height={200}
+                    data-ai-hint={doctor.imageHint || 'doctor portrait'}
+                    className="rounded-t-md object-cover w-full aspect-[4/3] group-hover:scale-105 transition-transform duration-300"
+                />
+            </div>
             <div className="p-4">
-                <div className="relative">
-                    <button
-                        onClick={handleFavoriteClick}
-                        className="absolute top-2 right-2 z-10 p-1.5 bg-background/60 backdrop-blur-sm rounded-full text-destructive transition-colors hover:bg-destructive/10"
-                    >
-                        <Heart className={cn("w-5 h-5", isFavorited && "fill-current")} />
-                    </button>
-                    <Image
-                        src={doctor.image}
-                        alt={doctor.name}
-                        width={300}
-                        height={200}
-                        className="rounded-md object-cover w-full aspect-[4/3] group-hover:scale-105 transition-transform duration-300"
-                    />
-                </div>
-                <div className="mt-4">
-                    <h3 className="font-bold font-headline text-lg flex items-center">
-                        <Link href="#" className="hover:text-primary transition-colors">{doctor.name}</Link>
-                        {doctor.isVerified && <CheckCircle className="w-4 h-4 ml-2 text-primary" />}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">{doctor.specialty}</p>
-                    
-                    <div className="flex items-center gap-1 text-sm mt-2">
-                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                        <span className="font-semibold">{doctor.rating.toFixed(1)}</span>
-                    </div>
-
-                    <ul className="text-xs text-muted-foreground space-y-1.5 mt-3">
-                        {doctor.nextAvailable && (
-                            <li className="flex items-center gap-2">
-                                <Calendar className="w-3.5 h-3.5" />
-                                <span>Next Availability: {doctor.nextAvailable}</span>
-                            </li>
-                        )}
+                <Badge variant="secondary" className="mb-2">{doctor.specialty}</Badge>
+                <h3 className="font-bold font-headline text-lg flex items-center">
+                    <Link href="#" className="hover:text-primary transition-colors">{doctor.name}</Link>
+                    {doctor.isVerified && <CheckCircle className="w-4 h-4 ml-2 text-primary" />}
+                </h3>
+                
+                <ul className="text-sm text-muted-foreground space-y-1.5 mt-2">
+                    <li className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-primary" />
+                        <span>{doctor.location}</span>
+                    </li>
+                    {doctor.nextAvailable && (
                         <li className="flex items-center gap-2">
-                            <MapPin className="w-3.5 h-3.5" />
-                            <span>{doctor.location}</span>
+                            <Clock className="w-4 h-4 text-primary" />
+                            <span>Available: {doctor.nextAvailable}</span>
                         </li>
-                    </ul>
-                     {doctor.lastBooked && <p className="text-xs text-muted-foreground mt-2">Last booked on {doctor.lastBooked}</p>}
-                </div>
+                    )}
+                </ul>
             </div>
             <div className="border-t p-4 bg-muted/30">
                  <div className="grid grid-cols-2 gap-2">

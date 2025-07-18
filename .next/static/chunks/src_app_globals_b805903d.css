@@ -1527,6 +1527,11 @@ body {
   border-bottom-right-radius: var(--radius);
 }
 
+.rounded-t-md {
+  border-top-left-radius: calc(var(--radius)  - 2px);
+  border-top-right-radius: calc(var(--radius)  - 2px);
+}
+
 .rounded-bl-none {
   border-bottom-left-radius: 0;
 }
@@ -3758,6 +3763,10 @@ body {
 
   .lg\:col-span-6 {
     grid-column: span 6 / span 6;
+  }
+
+  .lg\:col-span-9 {
+    grid-column: span 9 / span 9;
   }
 
   .lg\:block {
