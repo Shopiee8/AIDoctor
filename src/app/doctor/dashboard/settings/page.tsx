@@ -94,9 +94,9 @@ export default function DoctorSettingsPage() {
       <Tabs defaultValue="basic">
         <TabsList>
           <TabsTrigger value="basic">Basic Information</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="clinic">Clinic Info</TabsTrigger>
           <TabsTrigger value="services">Services & Specialization</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="account">Account Settings</TabsTrigger>
         </TabsList>
 
