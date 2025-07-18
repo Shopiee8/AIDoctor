@@ -543,6 +543,14 @@ body {
   top: 50%;
 }
 
+.bottom-2 {
+  bottom: .5rem;
+}
+
+.bottom-3 {
+  bottom: .75rem;
+}
+
 .z-0 {
   z-index: 0;
 }
@@ -946,6 +954,10 @@ body {
 
 .h-svh {
   height: 100svh;
+}
+
+.h-56 {
+  height: 14rem;
 }
 
 .max-h-96 {
@@ -3719,6 +3731,10 @@ body {
 
   .md\:w-48 {
     width: 12rem;
+  }
+
+  .md\:w-52 {
+    width: 13rem;
   }
 
   .md\:max-w-\[420px\] {

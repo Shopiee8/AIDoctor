@@ -700,6 +700,7 @@ const doctorSeedData = [
         image: "https://placehold.co/200x200.png",
         imageHint: "doctor portrait",
         degree: "MBBS, DNB - Neurology",
+        isVerified: true,
         type: "Human"
     },
     {
@@ -829,7 +830,8 @@ const AuthProvider = ({ children })=>{
                 image: `https://placehold.co/200x200.png`,
                 imageHint: 'doctor portrait',
                 rating: 0,
-                available: false
+                available: true,
+                isVerified: false
             });
         }
         await seedDoctorsCollection();
@@ -865,12 +867,12 @@ const AuthProvider = ({ children })=>{
             children: "Loading..."
         }, void 0, false, {
             fileName: "[project]/src/context/auth-context.tsx",
-            lineNumber: 134,
+            lineNumber: 135,
             columnNumber: 18
         }, this) : children
     }, void 0, false, {
         fileName: "[project]/src/context/auth-context.tsx",
-        lineNumber: 133,
+        lineNumber: 134,
         columnNumber: 5
     }, this);
 };

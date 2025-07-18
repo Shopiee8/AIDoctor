@@ -52,7 +52,7 @@ function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
             doctor.type === 'AI' && "ai-doctor-card"
         )}>
             <div className="flex flex-col h-full">
-                <div className="card-img card-img-hover relative w-full h-52 flex-shrink-0">
+                <div className="card-img card-img-hover relative w-full h-56 flex-shrink-0">
                     <Link href="#">
                         <Image 
                             src={doctor.image} 
@@ -75,16 +75,23 @@ function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
                     >
                         <Heart className={cn("w-5 h-5", isFavorited && "fill-current")} />
                     </button>
+                    <div className="absolute bottom-3 left-3 z-10">
+                        <Badge variant={doctor.type === 'AI' ? 'default' : 'secondary'} className="shadow-md">
+                            {doctor.type === 'AI' ? <Bot className="w-3.5 h-3.5 mr-1" /> : <User className="w-3.5 h-3.5 mr-1" />}
+                            {doctor.type}
+                        </Badge>
+                    </div>
                 </div>
                 <div className="card-body p-4 flex flex-col flex-1">
                      <div className="flex items-center justify-between border-b pb-2">
                         <Link href="#" className="font-medium text-xs text-primary">
                             {doctor.specialty}
                         </Link>
-                         <Badge variant={doctor.type === 'AI' ? 'default' : 'secondary'} className="shadow-sm">
-                            {doctor.type === 'AI' ? <Bot className="w-3.5 h-3.5 mr-1" /> : <User className="w-3.5 h-3.5 mr-1" />}
-                            {doctor.type === 'AI' ? 'AI Doctor' : 'Human'}
-                        </Badge>
+                        {doctor.available ? (
+                            <Badge variant="secondary" className="bg-green-100 text-green-700"><span className="w-2 h-2 rounded-full bg-green-500 mr-1.5"></span>Available</Badge>
+                        ) : (
+                            <Badge variant="destructive" className="bg-red-100 text-red-700"><span className="w-2 h-2 rounded-full bg-red-500 mr-1.5"></span>Unavailable</Badge>
+                        )}
                     </div>
                     <div className="py-3 flex-grow">
                          <h6 className="flex items-center text-lg font-bold font-headline">
@@ -146,14 +153,14 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
             doctor.type === 'AI' && "ai-doctor-card"
         )}>
             <div className="p-4 md:flex md:items-center gap-4">
-                <div className="card-img card-img-hover relative w-full md:w-48 flex-shrink-0">
+                <div className="card-img card-img-hover relative w-full md:w-52 h-56 flex-shrink-0">
                     <Link href="#">
                         <Image 
                             src={doctor.image} 
                             alt={doctor.name} 
                             width={200}
                             height={200}
-                            className="w-full h-auto object-cover rounded-lg"
+                            className="w-full h-full object-cover rounded-lg"
                             data-ai-hint={doctor.imageHint || "doctor portrait"}
                         />
                     </Link>
@@ -169,16 +176,23 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
                     >
                         <Heart className={cn("w-5 h-5", isFavorited && "fill-current")} />
                     </button>
+                    <div className="absolute bottom-2 left-2 z-10">
+                        <Badge variant={doctor.type === 'AI' ? 'default' : 'secondary'} className="shadow-md">
+                            {doctor.type === 'AI' ? <Bot className="w-3.5 h-3.5 mr-1" /> : <User className="w-3.5 h-3.5 mr-1" />}
+                            {doctor.type}
+                        </Badge>
+                    </div>
                 </div>
                  <div className="card-body p-0 mt-4 md:mt-0 flex-1">
                     <div className="flex items-center justify-between border-b pb-3">
                         <Link href="#" className="font-medium text-sm text-primary">
                             {doctor.specialty}
                         </Link>
-                         <Badge variant={doctor.type === 'AI' ? 'default' : 'secondary'} className="shadow-sm">
-                            {doctor.type === 'AI' ? <Bot className="w-3.5 h-3.5 mr-1" /> : <User className="w-3.5 h-3.5 mr-1" />}
-                            {doctor.type === 'AI' ? 'AI Doctor' : 'Human'}
-                        </Badge>
+                         {doctor.available ? (
+                            <Badge variant="secondary" className="bg-green-100 text-green-700"><span className="w-2 h-2 rounded-full bg-green-500 mr-1.5"></span>Available</Badge>
+                        ) : (
+                            <Badge variant="destructive" className="bg-red-100 text-red-700"><span className="w-2 h-2 rounded-full bg-red-500 mr-1.5"></span>Unavailable</Badge>
+                        )}
                     </div>
                     <div className="py-3">
                          <h6 className="flex items-center text-xl font-bold font-headline">
