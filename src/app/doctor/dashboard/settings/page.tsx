@@ -3,6 +3,12 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useToast } from '@/hooks/use-toast';
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -12,8 +18,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Upload, Plus, Trash2 } from 'lucide-react';
-
+import { Upload, Plus, Trash2, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 const ServiceInformation = () => {
     const [services, setServices] = useState(['Digital Bllods', 'Surgery']);
@@ -81,9 +87,25 @@ const SpecializationInformation = () => {
     )
 }
 
+const passwordFormSchema = z.object({
+    currentPassword: z.string().min(1, { message: "Current password is required." }),
+    newPassword: z.string().min(6, { message: "New password must be at least 6 characters." }),
+    confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+});
+
+type PasswordFormValues = z.infer<typeof passwordFormSchema>;
+
 
 export default function DoctorSettingsPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // These would come from Firestore for the logged-in doctor
   const [doctorData, setDoctorData] = useState({
@@ -100,6 +122,34 @@ export default function DoctorSettingsPage() {
       specialization: ['Family Medicine', 'Pediatrics'],
   });
 
+  const passwordForm = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordFormSchema),
+    defaultValues: {
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+    }
+  });
+
+  async function onPasswordSubmit(data: PasswordFormValues) {
+    if (!user || !user.email) return;
+    setIsSubmitting(true);
+    
+    const credential = EmailAuthProvider.credential(user.email, data.currentPassword);
+
+    try {
+        await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, data.newPassword);
+        toast({ title: "Password Updated", description: "Your password has been changed successfully." });
+        passwordForm.reset();
+    } catch (error: any) {
+        console.error("Error updating password:", error);
+        toast({ title: "Error", description: "Failed to update password. Check your current password and try again.", variant: "destructive" });
+    } finally {
+        setIsSubmitting(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
        <div>
@@ -109,6 +159,7 @@ export default function DoctorSettingsPage() {
       <Tabs defaultValue="basic">
         <TabsList>
           <TabsTrigger value="basic">Basic Information</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="clinic">Clinic Info</TabsTrigger>
           <TabsTrigger value="services">Services & Specialization</TabsTrigger>
           <TabsTrigger value="account">Account Settings</TabsTrigger>
@@ -169,6 +220,79 @@ export default function DoctorSettingsPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+         <TabsContent value="security">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Security</CardTitle>
+                    <CardDescription>Change your password here.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Form {...passwordForm}>
+                        <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4 max-w-lg">
+                            <FormField
+                                control={passwordForm.control}
+                                name="currentPassword"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Current Password</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Input type={showCurrentPassword ? "text" : "password"} {...field} />
+                                                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowCurrentPassword(!showCurrentPassword)}>
+                                                    {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </Button>
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={passwordForm.control}
+                                name="newPassword"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>New Password</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Input type={showNewPassword ? "text" : "password"} {...field} />
+                                                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowNewPassword(!showNewPassword)}>
+                                                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </Button>
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={passwordForm.control}
+                                name="confirmPassword"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Confirm New Password</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Input type={showConfirmPassword ? "text" : "password"} {...field} />
+                                                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </Button>
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Save Changes
+                            </Button>
+                        </form>
+                    </Form>
+                </CardContent>
+            </Card>
         </TabsContent>
         
         <TabsContent value="clinic">
