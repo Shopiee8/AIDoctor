@@ -12,5 +12,8 @@
   "/dashboard/wallet/page": "app/dashboard/wallet/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
   "/login/page": "app/login/page.js",
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/patient-register/(steps)/step-1/page": "app/patient-register/(steps)/step-1/page.js",
+  "/patient-register/page": "app/patient-register/page.js",
+  "/register/page": "app/register/page.js"
 }

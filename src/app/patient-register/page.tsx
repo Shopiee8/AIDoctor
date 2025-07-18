@@ -27,9 +27,17 @@ export default function PatientRegisterPage() {
         e.preventDefault();
         setError(null);
         try {
-            await signUp(email, password, 'Patient');
+            await signUp(email, password, 'Patient'); // Role is still 'Patient' for now
             toast({ title: 'Account created!', description: "Let's complete your profile." });
-            router.push('/patient-register/step-1');
+
+            // **New Admin Check**
+            // If the user is the special admin user, redirect them straight to the admin dashboard.
+            if (email === 'admin@aidoctor.com') {
+                router.push('/admin/dashboard');
+            } else {
+                router.push('/patient-register/step-1');
+            }
+
         } catch (err: any) {
             setError(err.message);
             toast({ title: 'Sign up failed', description: err.message, variant: 'destructive' });
