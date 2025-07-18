@@ -100,6 +100,7 @@ export default function DoctorSettingsPage() {
           <TabsTrigger value="education">Education</TabsTrigger>
           <TabsTrigger value="experience">Experience</TabsTrigger>
           <TabsTrigger value="services">Services & Specialization</TabsTrigger>
+          <TabsTrigger value="memberships">Memberships</TabsTrigger>
           <TabsTrigger value="insurance">Insurance</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="account">Account Settings</TabsTrigger>
@@ -278,6 +279,10 @@ export default function DoctorSettingsPage() {
                 <InfoCard title="Specialization" placeholder="e.g. Urology" initialItems={['Urology', 'Orthopedic']} />
                 <InfoCard title="Awards" placeholder="e.g. Best Surgeon" initialItems={['Best Surgeon 2023']} hasExtraFields={true} />
             </div>
+        </TabsContent>
+
+        <TabsContent value="memberships">
+            <InfoCard title="Memberships" placeholder="e.g. American Medical Association" initialItems={['American Medical Association']} />
         </TabsContent>
 
         <TabsContent value="insurance">
