@@ -60,6 +60,15 @@ export default function DoctorSettingsPage() {
       specialization: ['Family Medicine', 'Pediatrics'],
   });
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setDoctorData(prev => ({...prev, [id]: value}));
+  };
+   
+  const handleSelectChange = (id: string, value: string) => {
+    setDoctorData(prev => ({...prev, [id]: value}));
+  };
+
   const passwordForm = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordFormSchema),
     defaultValues: {
@@ -131,7 +140,7 @@ export default function DoctorSettingsPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" value={doctorData.name} />
+                  <Input id="name" value={doctorData.name} onChange={handleInputChange} />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
@@ -139,15 +148,15 @@ export default function DoctorSettingsPage() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" type="tel" value={doctorData.phone} />
+                  <Input id="phone" type="tel" value={doctorData.phone} onChange={handleInputChange} />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="dob">Date of Birth</Label>
-                  <Input id="dob" type="date" value={doctorData.dob} />
+                  <Input id="dob" type="date" value={doctorData.dob} onChange={handleInputChange} />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="gender">Gender</Label>
-                  <Select value={doctorData.gender}>
+                  <Select value={doctorData.gender} onValueChange={(value) => handleSelectChange('gender', value)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Male">Male</SelectItem>
@@ -158,7 +167,7 @@ export default function DoctorSettingsPage() {
                 </div>
                  <div className="grid gap-2 md:col-span-2">
                     <Label htmlFor="bio">Biography</Label>
-                    <Textarea id="bio" value={doctorData.bio} rows={5} />
+                    <Textarea id="bio" value={doctorData.bio} onChange={handleInputChange} rows={5} />
                 </div>
               </div>
             </CardContent>
@@ -256,11 +265,11 @@ export default function DoctorSettingsPage() {
                      <div className="grid md:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="clinic-name">Clinic Name</Label>
-                            <Input id="clinic-name" value={doctorData.clinicName} />
+                            <Input id="clinic-name" value={doctorData.clinicName} onChange={handleInputChange} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="clinic-address">Clinic Address</Label>
-                            <Input id="clinic-address" value={doctorData.clinicAddress} />
+                            <Input id="clinic-address" value={doctorData.clinicAddress} onChange={handleInputChange} />
                         </div>
                      </div>
                      <div>

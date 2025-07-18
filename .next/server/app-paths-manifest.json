@@ -14,6 +14,7 @@
   "/doctor/dashboard/page": "app/doctor/dashboard/page.js",
   "/doctor/dashboard/referrals/page": "app/doctor/dashboard/referrals/page.js",
   "/doctor/dashboard/schedule/page": "app/doctor/dashboard/schedule/page.js",
+  "/doctor/dashboard/settings/page": "app/doctor/dashboard/settings/page.js",
   "/doctor/dashboard/wallet/page": "app/doctor/dashboard/wallet/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
   "/login/page": "app/login/page.js",
