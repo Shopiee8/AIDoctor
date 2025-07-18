@@ -16,10 +16,12 @@ const aiConsults = [
 ];
 
 const upcomingAppointments = [
-    { id: 1, patient: 'Richard Wilson', patientId: 'PT001', image: 'https://placehold.co/40x40.png', imageHint: 'person portrait', time: '11:30 AM', status: 'New Patient' },
-    { id: 2, patient: 'Charlene Reed', patientId: 'PT002', image: 'https://placehold.co/40x40.png', imageHint: 'person portrait', time: '12:00 PM', status: 'Old Patient' },
-    { id: 3, patient: 'Travis Trimble', patientId: 'PT003', image: 'https://placehold.co/40x40.png', imageHint: 'person portrait', time: '01:15 PM', status: 'New Patient' },
+    { id: 1, patient: 'Richard Wilson', patientId: 'PT001', image: 'https://placehold.co/40x40.png', imageHint: 'person portrait', date: '11 Nov 2023', time: '10:00 AM', purpose: 'General', type: 'New Patient', paid: 150 },
+    { id: 2, patient: 'Charlene Reed', patientId: 'PT002', image: 'https://placehold.co/40x40.png', imageHint: 'person portrait', date: '3 Nov 2023', time: '11:00 AM', purpose: 'General', type: 'Old Patient', paid: 200 },
+    { id: 3, patient: 'Travis Trimble', patientId: 'PT003', image: 'https://placehold.co/40x40.png', imageHint: 'person portrait', date: '1 Nov 2023', time: '01:00 PM', purpose: 'General', type: 'New Patient', paid: 75 },
+    { id: 4, patient: 'Carl Kelly', patientId: 'PT0004', image: 'https://placehold.co/40x40.png', imageHint: 'person portrait', date: '30 Oct 2023', time: '09:00 AM', purpose: 'General', type: 'Old Patient', paid: 100 },
 ];
+
 
 export default function DoctorDashboardPage() {
   return (
@@ -72,9 +74,11 @@ export default function DoctorDashboardPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Patient</TableHead>
-                                <TableHead>Appt. Time</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead>Patient Name</TableHead>
+                                <TableHead>Appt Date</TableHead>
+                                <TableHead>Purpose</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead className="text-center">Paid Amount</TableHead>
                                 <TableHead className="text-right">Action</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -93,12 +97,17 @@ export default function DoctorDashboardPage() {
                                             </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell>{appt.time}</TableCell>
-                                    <TableCell><Badge variant="outline">{appt.status}</Badge></TableCell>
+                                    <TableCell>
+                                        {appt.date}
+                                        <span className="block text-primary text-xs">{appt.time}</span>
+                                    </TableCell>
+                                    <TableCell>{appt.purpose}</TableCell>
+                                    <TableCell><Badge variant="outline">{appt.type}</Badge></TableCell>
+                                    <TableCell className="text-center">${appt.paid.toFixed(2)}</TableCell>
                                     <TableCell className="text-right space-x-2">
-                                        <Button variant="outline" size="icon" className="h-8 w-8"><Eye className="h-4 w-4" /></Button>
-                                        <Button variant="outline" size="icon" className="h-8 w-8 border-green-500 text-green-500 hover:bg-green-50 hover:text-green-600"><Check className="h-4 w-4" /></Button>
-                                        <Button variant="outline" size="icon" className="h-8 w-8 border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600"><X className="h-4 w-4" /></Button>
+                                        <Button variant="outline" size="sm" className="h-8"><Eye className="h-4 w-4 mr-1" /> View</Button>
+                                        <Button variant="outline" size="sm" className="h-8 border-green-500 text-green-500 hover:bg-green-50 hover:text-green-600"><Check className="h-4 w-4 mr-1" /> Accept</Button>
+                                        <Button variant="outline" size="sm" className="h-8 border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600"><X className="h-4 w-4 mr-1" /> Cancel</Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
