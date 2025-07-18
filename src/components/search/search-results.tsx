@@ -10,6 +10,18 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const doctorList: Doctor[] = [
     {
+        name: "Julia, AI Agent",
+        specialty: "AI Cardiologist",
+        location: "Virtual",
+        rating: 4.9,
+        image: "https://placehold.co/200x200.png",
+        imageHint: "robot abstract",
+        available: true,
+        type: "AI",
+        fees: "$25",
+        nextAvailable: "Available 24/7",
+    },
+    {
         name: "Dr. Michael Brown",
         specialty: "Psychologist",
         location: "Minneapolis, MN",
@@ -25,6 +37,19 @@ const doctorList: Doctor[] = [
         degree: "B.S, M.S - Psychology",
         isFavorited: true,
         isVerified: true,
+        type: "Human",
+    },
+    {
+        name: "Sam, AI Agent",
+        specialty: "AI General Practice",
+        location: "Virtual",
+        rating: 4.8,
+        image: "https://placehold.co/200x200.png",
+        imageHint: "robot friendly",
+        available: true,
+        type: "AI",
+        fees: "$15",
+        nextAvailable: "Available 24/7",
     },
     {
         name: "Dr. Nicholas Tello",
@@ -40,6 +65,7 @@ const doctorList: Doctor[] = [
         image: "https://placehold.co/200x200.png",
         imageHint: "doctor friendly",
         degree: "MBBS, MD - Pediatrics",
+        type: "Human",
     },
     {
         name: "Dr. Harold Bryant",
@@ -55,6 +81,7 @@ const doctorList: Doctor[] = [
         image: "https://placehold.co/200x200.png",
         imageHint: "doctor serious",
         degree: "MBBS, DNB - Neurology",
+        type: "Human",
     },
     {
         name: "Dr. Sandra Jones",
@@ -71,6 +98,7 @@ const doctorList: Doctor[] = [
         imageHint: "doctor smiling",
         degree: "MBBS, MD - Cardialogy",
         isVerified: true,
+        type: "Human",
     },
      {
         name: "Dr. Charles Scott",
@@ -86,6 +114,7 @@ const doctorList: Doctor[] = [
         image: "https://placehold.co/200x200.png",
         imageHint: "doctor portrait",
         degree: "MBBS, DNB - Neurology",
+        type: "Human",
     },
     {
         name: "Dr. Robert Thomas",
@@ -101,6 +130,7 @@ const doctorList: Doctor[] = [
         image: "https://placehold.co/200x200.png",
         imageHint: "doctor professional",
         degree: "MBBS, MD - Cardialogy",
+        type: "Human",
     },
     {
         name: "Dr. Margaret Koller",
@@ -116,6 +146,7 @@ const doctorList: Doctor[] = [
         image: "https://placehold.co/200x200.png",
         imageHint: "doctor kind",
         degree: "B.S, M.S - Psychology",
+        type: "Human",
     },
      {
         name: "Dr. Cath Busick",
@@ -131,6 +162,7 @@ const doctorList: Doctor[] = [
         image: "https://placehold.co/200x200.png",
         imageHint: "doctor portrait",
         degree: "MBBS, MD - Pediatrics",
+        type: "Human",
     },
 ];
 
@@ -155,7 +187,7 @@ function ResultsComponent() {
     return (
         <div className="space-y-6">
             <h3 className="text-xl font-bold">
-                Showing <span className="text-primary">{filteredDoctors.length}</span> Doctors For You
+                Showing <span className="text-primary">{filteredDoctors.length}</span> Results For You
             </h3>
 
             {filteredDoctors.length === 0 ? (

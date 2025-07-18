@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Star, MapPin, Calendar, CheckCircle, Clock, Languages, Award, ThumbsUp } from 'lucide-react';
+import { Heart, Star, MapPin, Calendar, CheckCircle, Clock, Languages, Award, ThumbsUp, Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { useBookingStore } from '@/store/booking-store';
@@ -27,6 +27,7 @@ export interface Doctor {
     votes?: string;
     fees?: string;
     available?: boolean;
+    type: 'AI' | 'Human';
 }
 
 interface DoctorCardProps {
@@ -92,7 +93,7 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
                                         <Link href="#">{doctor.name}</Link>
                                         {doctor.isVerified && <CheckCircle className="w-4 h-4 text-green-500 ms-2" />}
                                     </h6>
-                                    {doctor.degree && <p className="text-xs text-muted-foreground">{doctor.degree}</p>}
+                                    {doctor.degree ? <p className="text-xs text-muted-foreground">{doctor.degree}</p> : <div className="flex items-center gap-1 text-xs text-primary"><Bot className="w-3 h-3" /> AI Specialist</div>}
                                     <p className="flex items-center text-xs text-muted-foreground">
                                         <MapPin className="w-3 h-3 mr-1.5" />
                                         {doctor.location}
@@ -127,7 +128,7 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
                            
                             <Button size="sm" onClick={handleBookNow}>
                                 <Calendar className="w-4 h-4 mr-2" />
-                                Book Appointment
+                                {doctor.type === 'AI' ? 'Consult Now' : 'Book Appointment'}
                             </Button>
                         </div>
                     </div>
