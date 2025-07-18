@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { FilePlus2 } from 'lucide-react';
-import { AddPrescriptionDialog } from '@/components/doctor/add-prescription-dialog';
+import { Eye } from 'lucide-react';
+import Link from 'next/link';
 
 const patients = [
   { id: 'PT001', name: 'Richard Wilson', age: 38, address: 'Newyork, USA', phone: '1-202-555-0125', email: 'richard@example.com', lastVisit: '20 Oct 2023', paid: 150, image: `https://placehold.co/40x40.png`, imageHint: "person portrait" },
@@ -18,14 +18,6 @@ const patients = [
 ];
 
 export default function MyPatientsPage() {
-  const [selectedPatient, setSelectedPatient] = useState<(typeof patients[0]) | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const handleOpenDialog = (patient: typeof patients[0]) => {
-    setSelectedPatient(patient);
-    setIsDialogOpen(true);
-  };
-
   return (
     <>
       <div className="space-y-6">
@@ -69,8 +61,10 @@ export default function MyPatientsPage() {
                     </TableCell>
                     <TableCell>{patient.lastVisit}</TableCell>
                     <TableCell>
-                       <Button variant="outline" size="sm" onClick={() => handleOpenDialog(patient)}>
-                        <FilePlus2 className="mr-2 h-4 w-4" /> Add Prescription
+                       <Button asChild variant="outline" size="sm">
+                        <Link href={`/doctor/dashboard/my-patients/${patient.id}`}>
+                            <Eye className="mr-2 h-4 w-4" /> View Profile
+                        </Link>
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -80,13 +74,6 @@ export default function MyPatientsPage() {
           </CardContent>
         </Card>
       </div>
-      {selectedPatient && (
-         <AddPrescriptionDialog 
-            isOpen={isDialogOpen}
-            setIsOpen={setIsDialogOpen}
-            patient={selectedPatient}
-        />
-      )}
     </>
   );
 }

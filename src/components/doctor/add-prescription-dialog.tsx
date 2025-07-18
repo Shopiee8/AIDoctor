@@ -73,8 +73,11 @@ export function AddPrescriptionDialog({ isOpen, setIsOpen, patient }: AddPrescri
     };
     
     try {
-        const patientPrescriptionsRef = collection(db, 'users', patient.id, 'prescriptions');
-        await addDoc(patientPrescriptionsRef, prescriptionData);
+        // In a real app, this would point to the patient's specific subcollection
+        // e.g., collection(db, 'users', patient.id, 'prescriptions')
+        // For this demo, we'll log to a general collection.
+        const prescriptionsRef = collection(db, `users/${patient.id}/prescriptions`);
+        await addDoc(prescriptionsRef, prescriptionData);
         
         toast({ title: 'Prescription Saved', description: `Prescription for ${patient.name} has been successfully created.` });
         form.reset();
