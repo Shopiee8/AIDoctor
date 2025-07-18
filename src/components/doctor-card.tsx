@@ -11,6 +11,7 @@ import { useBookingStore } from '@/store/booking-store';
 import { Badge } from './ui/badge';
 
 export interface Doctor {
+    id: string;
     name: string;
     specialty: string;
     location: string;
@@ -58,7 +59,7 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
                             alt={doctor.name} 
                             width={200}
                             height={200}
-                            className="w-full h-full object-cover rounded-l-lg"
+                            className="w-full h-full object-cover rounded-t-lg md:rounded-l-lg md:rounded-r-none"
                             data-ai-hint={doctor.imageHint || "doctor portrait"}
                         />
                     </Link>
@@ -80,9 +81,9 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
                         <Link href="#" className="font-medium text-sm text-primary">
                             {doctor.specialty}
                         </Link>
-                        <Badge variant={doctor.available ? "default" : "secondary"}>
-                           <span className={cn("w-2 h-2 rounded-full mr-2", doctor.available ? "bg-green-500" : "bg-red-500")}></span>
-                           {doctor.available ? "Available" : "Unavailable"}
+                         <Badge variant={doctor.type === 'AI' ? 'default' : 'secondary'} className="shadow-sm">
+                            {doctor.type === 'AI' ? <Bot className="w-3.5 h-3.5 mr-1" /> : <User className="w-3.5 h-3.5 mr-1" />}
+                            {doctor.type}
                         </Badge>
                     </div>
                     <div className="p-4">

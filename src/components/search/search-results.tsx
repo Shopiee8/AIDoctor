@@ -1,211 +1,89 @@
 
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { collection, getDocs, query, where, orderBy, startAt, endAt } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { DoctorCard, type Doctor } from "@/components/doctor-card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-const doctorList: Doctor[] = [
-    {
-        name: "Julia, AI Agent",
-        specialty: "AI Cardiologist",
-        location: "Virtual",
-        rating: 4.9,
-        image: "https://placehold.co/200x200.png",
-        imageHint: "robot abstract",
-        available: true,
-        type: "AI",
-        fees: "$25",
-        nextAvailable: "Available 24/7",
-    },
-    {
-        name: "Dr. Michael Brown",
-        specialty: "Psychologist",
-        location: "Minneapolis, MN",
-        languages: "English, German",
-        experience: "18 Years",
-        votes: "90% (228 / 240)",
-        fees: "$400",
-        nextAvailable: "04:00 PM - 20 Nov, Wed",
-        rating: 5.0,
-        available: true,
-        image: "https://placehold.co/200x200.png",
-        imageHint: "doctor portrait",
-        degree: "B.S, M.S - Psychology",
-        isFavorited: true,
-        isVerified: true,
-        type: "Human",
-    },
-    {
-        name: "Sam, AI Agent",
-        specialty: "AI General Practice",
-        location: "Virtual",
-        rating: 4.8,
-        image: "https://placehold.co/200x200.png",
-        imageHint: "robot friendly",
-        available: true,
-        type: "AI",
-        fees: "$15",
-        nextAvailable: "Available 24/7",
-    },
-    {
-        name: "Dr. Nicholas Tello",
-        specialty: "Pediatrician",
-        location: "Ogden, IA",
-        languages: "English, Korean",
-        experience: "15 Years",
-        votes: "95% (200 / 220)",
-        fees: "$400",
-        nextAvailable: "11:00 AM - 14 Nov, Thu",
-        rating: 4.6,
-        available: true,
-        image: "https://placehold.co/200x200.png",
-        imageHint: "doctor friendly",
-        degree: "MBBS, MD - Pediatrics",
-        type: "Human",
-    },
-    {
-        name: "Dr. Harold Bryant",
-        specialty: "Neurologist",
-        location: "Winona, MS",
-        languages: "English, French",
-        experience: "20 Years",
-        votes: "98% (252 / 287)",
-        fees: "$600",
-        nextAvailable: "10:00 AM - 15 Oct, Tue",
-        rating: 4.8,
-        available: true,
-        image: "https://placehold.co/200x200.png",
-        imageHint: "doctor serious",
-        degree: "MBBS, DNB - Neurology",
-        type: "Human",
-    },
-    {
-        name: "Dr. Sandra Jones",
-        specialty: "Cardiologist",
-        location: "Beckley, WV",
-        languages: "English, Spanish",
-        experience: "30 Years",
-        votes: "92% (270 / 300)",
-        fees: "$450",
-        nextAvailable: "11.00 AM - 19 Oct, Sat",
-        rating: 4.8,
-        available: false,
-        image: "https://placehold.co/200x200.png",
-        imageHint: "doctor smiling",
-        degree: "MBBS, MD - Cardialogy",
-        isVerified: true,
-        type: "Human",
-    },
-     {
-        name: "Dr. Charles Scott",
-        specialty: "Neurologist",
-        location: "Hamshire, TX",
-        languages: "English, French",
-        experience: "20 Years",
-        votes: "98% (252 / 287)",
-        fees: "$600",
-        nextAvailable: "10:00 AM - 15 Oct, Tue",
-        rating: 4.2,
-        available: true,
-        image: "https://placehold.co/200x200.png",
-        imageHint: "doctor portrait",
-        degree: "MBBS, DNB - Neurology",
-        type: "Human",
-    },
-    {
-        name: "Dr. Robert Thomas",
-        specialty: "Cardiologist",
-        location: "Oakland, CA",
-        languages: "English, Spanish",
-        experience: "30 Years",
-        votes: "92% (270 / 300)",
-        fees: "$450",
-        nextAvailable: "11.00 AM - 19 Oct, Sat",
-        rating: 4.2,
-        available: false,
-        image: "https://placehold.co/200x200.png",
-        imageHint: "doctor professional",
-        degree: "MBBS, MD - Cardialogy",
-        type: "Human",
-    },
-    {
-        name: "Dr. Margaret Koller",
-        specialty: "Psychologist",
-        location: "Killeen, TX",
-        languages: "English, Portuguese",
-        experience: "15 Years",
-        votes: "94% (268 / 312)",
-        fees: "$700",
-        nextAvailable: "10.30 AM - 29 Oct, Tue",
-        rating: 4.7,
-        available: true,
-        image: "https://placehold.co/200x200.png",
-        imageHint: "doctor kind",
-        degree: "B.S, M.S - Psychology",
-        type: "Human",
-    },
-     {
-        name: "Dr. Cath Busick",
-        specialty: "Pediatrician",
-        location: "Schenectady, NY",
-        languages: "English, Arabic",
-        experience: "12 Years",
-        votes: "87% (237 / 250)",
-        fees: "$750",
-        nextAvailable: "02:00 PM - 04 Nov, Mon",
-        rating: 4.7,
-        available: false,
-        image: "https://placehold.co/200x200.png",
-        imageHint: "doctor portrait",
-        degree: "MBBS, MD - Pediatrics",
-        type: "Human",
-    },
-];
-
 function ResultsComponent() {
     const searchParams = useSearchParams();
-    const query = (searchParams.get('query') || '').toLowerCase();
-    const location = (searchParams.get('location') || '').toLowerCase();
+    const [doctors, setDoctors] = useState<Doctor[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const filteredDoctors = doctorList.filter((doc) => {
-        const matchQuery =
-          query === "" ||
-          doc.name.toLowerCase().includes(query) ||
-          doc.specialty.toLowerCase().includes(query) ||
-          (doc.degree && doc.degree.toLowerCase().includes(query));
-        
-        const matchLocation =
-          location === "" || doc.location.toLowerCase().includes(location);
+    useEffect(() => {
+        const fetchDoctors = async () => {
+            setIsLoading(true);
+            try {
+                const doctorsRef = collection(db, 'doctors');
+                let q = query(doctorsRef);
 
-        return matchQuery && matchLocation;
-    });
+                const searchQuery = searchParams.get('query')?.toLowerCase() || '';
+                const locationQuery = searchParams.get('location')?.toLowerCase() || '';
+
+                // Note: Firestore does not support native text search on parts of a string ('contains').
+                // A production app would use a third-party search service like Algolia or Typesense.
+                // For this demo, we will fetch all and filter client-side, which is not scalable.
+                const querySnapshot = await getDocs(q);
+                
+                const allDoctors: Doctor[] = [];
+                querySnapshot.forEach((doc) => {
+                    allDoctors.push({ id: doc.id, ...doc.data() } as Doctor);
+                });
+                
+                const filtered = allDoctors.filter(doc => {
+                    const nameMatch = doc.name.toLowerCase().includes(searchQuery);
+                    const specialtyMatch = doc.specialty.toLowerCase().includes(searchQuery);
+                    const locationMatch = doc.location.toLowerCase().includes(locationQuery);
+                    return (nameMatch || specialtyMatch) && locationMatch;
+                });
+                
+                setDoctors(filtered);
+
+            } catch (error) {
+                console.error("Error fetching doctors: ", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchDoctors();
+    }, [searchParams]);
+    
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center py-10">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+        )
+    }
 
     return (
         <div className="space-y-6">
             <h3 className="text-xl font-bold">
-                Showing <span className="text-primary">{filteredDoctors.length}</span> Results For You
+                Showing <span className="text-primary">{doctors.length}</span> Results For You
             </h3>
 
-            {filteredDoctors.length === 0 ? (
+            {doctors.length === 0 ? (
                 <Alert>
                     <AlertTitle>No Results Found</AlertTitle>
                     <AlertDescription>
-                        No doctors, clinics, or hospitals matched your search criteria.
+                        No doctors, clinics, or hospitals matched your search criteria. Please try a different search.
                     </AlertDescription>
                 </Alert>
             ) : (
                 <div className="space-y-6">
-                    {filteredDoctors.map((doctor, index) => (
-                        <DoctorCard key={index} doctor={doctor} />
+                    {doctors.map((doctor) => (
+                        <DoctorCard key={doctor.id} doctor={doctor} />
                     ))}
                 </div>
             )}
             
-            {filteredDoctors.length > 0 && (
+            {doctors.length > 5 && (
                  <div className="text-center mt-8">
                     <Button variant="outline">
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -217,10 +95,9 @@ function ResultsComponent() {
     );
 }
 
-
 export function SearchResults() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="flex justify-center items-center py-10"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
       <ResultsComponent />
     </Suspense>
   );

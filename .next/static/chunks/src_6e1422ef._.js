@@ -475,6 +475,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__ab__as__createUserWithEmailAndPassword$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/esm2017/index-8e6e89cb.js [app-client] (ecmascript) <export ab as createUserWithEmailAndPassword>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__ac__as__signInWithEmailAndPassword$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/esm2017/index-8e6e89cb.js [app-client] (ecmascript) <export ac as signInWithEmailAndPassword>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/firebase.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$firestore$2f$dist$2f$esm$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/firestore/dist/esm/index.esm.js [app-client] (ecmascript) <module evaluation>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/firestore/dist/index.esm2017.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/navigation.js [app-client] (ecmascript)");
 ;
 var _s = __turbopack_context__.k.signature();
@@ -483,7 +485,192 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
+;
 const AuthContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createContext"])(undefined);
+const doctorSeedData = [
+    {
+        id: "ai-julia",
+        name: "Julia, AI Agent",
+        specialty: "AI Cardiologist",
+        location: "Virtual",
+        rating: 4.9,
+        image: "https://placehold.co/200x200.png",
+        imageHint: "robot abstract",
+        available: true,
+        type: "AI",
+        fees: "$25",
+        nextAvailable: "Available 24/7"
+    },
+    {
+        id: "human-michael-brown",
+        name: "Dr. Michael Brown",
+        specialty: "Psychologist",
+        location: "Minneapolis, MN",
+        languages: "English, German",
+        experience: "18 Years",
+        votes: "90% (228 / 240)",
+        fees: "$400",
+        nextAvailable: "04:00 PM - 20 Nov, Wed",
+        rating: 5.0,
+        available: true,
+        image: "https://placehold.co/200x200.png",
+        imageHint: "doctor portrait",
+        degree: "B.S, M.S - Psychology",
+        isFavorited: true,
+        isVerified: true,
+        type: "Human"
+    },
+    {
+        id: "ai-sam",
+        name: "Sam, AI Agent",
+        specialty: "AI General Practice",
+        location: "Virtual",
+        rating: 4.8,
+        image: "https://placehold.co/200x200.png",
+        imageHint: "robot friendly",
+        available: true,
+        type: "AI",
+        fees: "$15",
+        nextAvailable: "Available 24/7"
+    },
+    {
+        id: "human-nicholas-tello",
+        name: "Dr. Nicholas Tello",
+        specialty: "Pediatrician",
+        location: "Ogden, IA",
+        languages: "English, Korean",
+        experience: "15 Years",
+        votes: "95% (200 / 220)",
+        fees: "$400",
+        nextAvailable: "11:00 AM - 14 Nov, Thu",
+        rating: 4.6,
+        available: true,
+        image: "https://placehold.co/200x200.png",
+        imageHint: "doctor friendly",
+        degree: "MBBS, MD - Pediatrics",
+        type: "Human"
+    },
+    {
+        id: "human-harold-bryant",
+        name: "Dr. Harold Bryant",
+        specialty: "Neurologist",
+        location: "Winona, MS",
+        languages: "English, French",
+        experience: "20 Years",
+        votes: "98% (252 / 287)",
+        fees: "$600",
+        nextAvailable: "10:00 AM - 15 Oct, Tue",
+        rating: 4.8,
+        available: true,
+        image: "https://placehold.co/200x200.png",
+        imageHint: "doctor serious",
+        degree: "MBBS, DNB - Neurology",
+        type: "Human"
+    },
+    {
+        id: "human-sandra-jones",
+        name: "Dr. Sandra Jones",
+        specialty: "Cardiologist",
+        location: "Beckley, WV",
+        languages: "English, Spanish",
+        experience: "30 Years",
+        votes: "92% (270 / 300)",
+        fees: "$450",
+        nextAvailable: "11.00 AM - 19 Oct, Sat",
+        rating: 4.8,
+        available: false,
+        image: "https://placehold.co/200x200.png",
+        imageHint: "doctor smiling",
+        degree: "MBBS, MD - Cardialogy",
+        isVerified: true,
+        type: "Human"
+    },
+    {
+        id: "human-charles-scott",
+        name: "Dr. Charles Scott",
+        specialty: "Neurologist",
+        location: "Hamshire, TX",
+        languages: "English, French",
+        experience: "20 Years",
+        votes: "98% (252 / 287)",
+        fees: "$600",
+        nextAvailable: "10:00 AM - 15 Oct, Tue",
+        rating: 4.2,
+        available: true,
+        image: "https://placehold.co/200x200.png",
+        imageHint: "doctor portrait",
+        degree: "MBBS, DNB - Neurology",
+        type: "Human"
+    },
+    {
+        id: "human-robert-thomas",
+        name: "Dr. Robert Thomas",
+        specialty: "Cardiologist",
+        location: "Oakland, CA",
+        languages: "English, Spanish",
+        experience: "30 Years",
+        votes: "92% (270 / 300)",
+        fees: "$450",
+        nextAvailable: "11.00 AM - 19 Oct, Sat",
+        rating: 4.2,
+        available: false,
+        image: "https://placehold.co/200x200.png",
+        imageHint: "doctor professional",
+        degree: "MBBS, MD - Cardialogy",
+        type: "Human"
+    },
+    {
+        id: "human-margaret-koller",
+        name: "Dr. Margaret Koller",
+        specialty: "Psychologist",
+        location: "Killeen, TX",
+        languages: "English, Portuguese",
+        experience: "15 Years",
+        votes: "94% (268 / 312)",
+        fees: "$700",
+        nextAvailable: "10.30 AM - 29 Oct, Tue",
+        rating: 4.7,
+        available: true,
+        image: "https://placehold.co/200x200.png",
+        imageHint: "doctor kind",
+        degree: "B.S, M.S - Psychology",
+        type: "Human"
+    },
+    {
+        id: "human-cath-busick",
+        name: "Dr. Cath Busick",
+        specialty: "Pediatrician",
+        location: "Schenectady, NY",
+        languages: "English, Arabic",
+        experience: "12 Years",
+        votes: "87% (237 / 250)",
+        fees: "$750",
+        nextAvailable: "02:00 PM - 04 Nov, Mon",
+        rating: 4.7,
+        available: false,
+        image: "https://placehold.co/200x200.png",
+        imageHint: "doctor portrait",
+        degree: "MBBS, MD - Pediatrics",
+        type: "Human"
+    }
+];
+async function seedDoctorsCollection() {
+    const doctorsCollectionRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'doctors', '--seed-check--');
+    const docSnap = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDoc"])(doctorsCollectionRef);
+    if (!docSnap.exists()) {
+        console.log("Seeding doctors collection...");
+        const batch = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["writeBatch"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"]);
+        doctorSeedData.forEach((doctor)=>{
+            const docRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], "doctors", doctor.id);
+            batch.set(docRef, doctor);
+        });
+        batch.set(doctorsCollectionRef, {
+            seeded: true
+        });
+        await batch.commit();
+        console.log("Doctors collection seeded successfully.");
+    }
+}
 const AuthProvider = ({ children })=>{
     _s();
     const [user, setUser] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
@@ -533,6 +720,7 @@ const AuthProvider = ({ children })=>{
     };
     const signUp = async (email, pass, role)=>{
         await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__ab__as__createUserWithEmailAndPassword$3e$__["createUserWithEmailAndPassword"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["auth"], email, pass);
+        await seedDoctorsCollection();
         // In a real app, you'd save the role to Firestore here.
         // For now, we use localStorage as a temporary solution.
         localStorage.setItem('userRole', role);
@@ -540,6 +728,7 @@ const AuthProvider = ({ children })=>{
     const googleSignIn = async ()=>{
         const provider = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__Y__as__GoogleAuthProvider$3e$__["GoogleAuthProvider"]();
         await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__d__as__signInWithPopup$3e$__["signInWithPopup"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["auth"], provider);
+        await seedDoctorsCollection();
         // Role would need to be determined/set here as well.
         localStorage.setItem('userRole', 'Patient'); // Default role for Google sign-in
     };
@@ -566,12 +755,12 @@ const AuthProvider = ({ children })=>{
             children: "Loading..."
         }, void 0, false, {
             fileName: "[project]/src/context/auth-context.tsx",
-            lineNumber: 79,
+            lineNumber: 114,
             columnNumber: 18
         }, this) : children
     }, void 0, false, {
         fileName: "[project]/src/context/auth-context.tsx",
-        lineNumber: 78,
+        lineNumber: 113,
         columnNumber: 5
     }, this);
 };

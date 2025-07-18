@@ -22,8 +22,12 @@ export function HomeBanner() {
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const dateStr = date ? format(date, 'yyyy-MM-dd') : '';
-    router.push(`/search?query=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(dateStr)}`);
+    const params = new URLSearchParams();
+    if (query) params.set('query', query);
+    if (location) params.set('location', location);
+    if (date) params.set('date', format(date, 'yyyy-MM-dd'));
+    
+    router.push(`/search?${params.toString()}`);
   };
 
   return (
@@ -73,7 +77,7 @@ export function HomeBanner() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Search human specialists, clinics..."
+                    placeholder="Search specialists, clinics..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     className="pl-9 h-10 text-sm"
@@ -112,7 +116,7 @@ export function HomeBanner() {
               </form>
                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
                  <Button className="w-full h-10 text-sm" asChild>
-                    <Link href="/consultation"><MessageSquarePlus className="mr-2 h-4 w-4" /> Start AI Consultation</Link>
+                    <Link href="/dashboard/consultation"><MessageSquarePlus className="mr-2 h-4 w-4" /> Start AI Consultation</Link>
                  </Button>
                  <Button type="submit" className="w-full h-10 text-sm" form="search-form" variant="secondary">
                   <Search className="mr-2 h-4 w-4" /> Search Human Doctor
@@ -154,5 +158,3 @@ export function HomeBanner() {
     </section>
   );
 }
-
-export default HomeBanner;

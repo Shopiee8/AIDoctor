@@ -1553,6 +1553,11 @@ body {
   border-bottom-left-radius: var(--radius);
 }
 
+.rounded-t-lg {
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+}
+
 .rounded-bl-none {
   border-bottom-left-radius: 0;
 }
@@ -3724,6 +3729,16 @@ body {
 
   .md\:justify-between {
     justify-content: space-between;
+  }
+
+  .md\:rounded-l-lg {
+    border-top-left-radius: var(--radius);
+    border-bottom-left-radius: var(--radius);
+  }
+
+  .md\:rounded-r-none {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
   }
 
   .md\:p-10 {
