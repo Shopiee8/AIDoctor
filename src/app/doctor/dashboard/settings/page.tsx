@@ -94,12 +94,13 @@ export default function DoctorSettingsPage() {
             <p className="text-muted-foreground">Manage your public profile and account details.</p>
         </div>
       <Tabs defaultValue="basic">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto justify-start">
           <TabsTrigger value="basic">Basic Information</TabsTrigger>
           <TabsTrigger value="clinic">Clinic Info</TabsTrigger>
           <TabsTrigger value="education">Education</TabsTrigger>
           <TabsTrigger value="experience">Experience</TabsTrigger>
           <TabsTrigger value="services">Services & Specialization</TabsTrigger>
+          <TabsTrigger value="insurance">Insurance</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="account">Account Settings</TabsTrigger>
         </TabsList>
@@ -277,6 +278,10 @@ export default function DoctorSettingsPage() {
                 <InfoCard title="Specialization" placeholder="e.g. Urology" initialItems={['Urology', 'Orthopedic']} />
                 <InfoCard title="Awards" placeholder="e.g. Best Surgeon" initialItems={['Best Surgeon 2023']} hasExtraFields={true} />
             </div>
+        </TabsContent>
+
+        <TabsContent value="insurance">
+            <InfoCard title="Accepted Insurance" placeholder="e.g. Blue Cross" initialItems={['Star Health', 'United Healthcare']} />
         </TabsContent>
         
         <TabsContent value="account">
