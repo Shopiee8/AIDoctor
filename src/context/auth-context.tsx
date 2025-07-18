@@ -13,6 +13,7 @@ interface AuthContextType {
   signUp: (email: string, pass: string, role: string) => Promise<void>;
   googleSignIn: () => Promise<void>;
   signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -64,8 +65,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.push('/login');
   };
 
+  const refreshUser = async () => {
+    if (auth.currentUser) {
+      await auth.currentUser.reload();
+      setUser(auth.currentUser);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, googleSignIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, googleSignIn, signOut, refreshUser }}>
       {loading ? <div>Loading...</div> : children}
     </AuthContext.Provider>
   );

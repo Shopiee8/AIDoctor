@@ -9,7 +9,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyAoIqQ3uX7FtcyJWiin4Ui-zVcxdIdCk08",
   authDomain: "vizion-ai-f9834.firebaseapp.com",
   projectId: "vizion-ai-f9834",
-  storageBucket: "vizion-ai-f9834.appspot.com",
+  storageBucket: "vizion-ai-f9834.firebasestorage.app",
   messagingSenderId: "434583939793",
   appId: "1:434583939793:web:bd0f5623e0d07d4b27b3f0",
   measurementId: "G-N16CQ6JHE1"

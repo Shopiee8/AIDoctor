@@ -56,7 +56,7 @@ type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 
 export default function SettingsPage() {
-    const { user, loading, signOut } = useAuth();
+    const { user, refreshUser, loading, signOut } = useAuth();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -65,6 +65,7 @@ export default function SettingsPage() {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [avatarUrl, setAvatarUrl] = useState(user?.photoURL || '');
 
     const profileForm = useForm<ProfileFormValues>({
         resolver: zodResolver(profileFormSchema),
@@ -134,8 +135,9 @@ export default function SettingsPage() {
             await uploadBytes(storageRef, file);
             const photoURL = await getDownloadURL(storageRef);
             await updateProfile(user, { photoURL });
+            await refreshUser(); // Refresh user in context
+            setAvatarUrl(photoURL); // Update avatar in UI
             toast({ title: "Avatar Updated", description: "Your profile picture has been changed." });
-            window.location.reload(); 
         } catch (error) {
             console.error("Error uploading file:", error);
             toast({ title: "Upload Error", description: "Failed to upload new avatar.", variant: "destructive" });
@@ -179,7 +181,7 @@ export default function SettingsPage() {
                                     <div className="flex items-center gap-4">
                                         <div className="relative">
                                             <Avatar className="w-24 h-24 cursor-pointer" onClick={handleAvatarClick}>
-                                                <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
+                                                <AvatarImage src={avatarUrl} alt={user?.displayName || 'User'} />
                                                 <AvatarFallback className="text-3xl">{user?.displayName?.[0] || user?.email?.[0]}</AvatarFallback>
                                             </Avatar>
                                             <div className="absolute bottom-0 right-0 bg-primary rounded-full p-1.5 border-2 border-background">
