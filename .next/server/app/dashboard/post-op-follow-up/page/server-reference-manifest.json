@@ -1,0 +1,16 @@
+{
+  "node": {
+    "408511aacfe6bdd5514a0cd3bd20fe9c62f0d92685": {
+      "workers": {
+        "app/dashboard/post-op-follow-up/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/post-op-follow-up/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/post-op-follow-up.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/dashboard/post-op-follow-up/page": "action-browser"
+      }
+    }
+  },
+  "edge": {}
+}
