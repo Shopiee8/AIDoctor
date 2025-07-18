@@ -1,3 +1,4 @@
+
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +26,7 @@ export default function DoctorRegisterPage() {
         e.preventDefault();
         setError(null);
         try {
-            await signUp(email, password, 'Doctor');
+            await signUp(email, password, 'Doctor', { displayName: name });
             toast({ title: 'Account created!', description: "Let's complete your profile." });
             router.push('/doctor-register/step-1');
         } catch (err: any) {

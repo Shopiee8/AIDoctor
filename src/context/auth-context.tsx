@@ -3,16 +3,16 @@
 'use client';
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, getDoc, writeBatch } from "firebase/firestore";
+import { doc, getDoc, setDoc, writeBatch } from "firebase/firestore";
 import { useRouter, usePathname } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, pass: string) => Promise<User | null>;
-  signUp: (email: string, pass: string, role: string) => Promise<void>;
+  signUp: (email: string, pass: string, role: string, additionalData?: { displayName?: string }) => Promise<void>;
   googleSignIn: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -82,11 +82,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return userCredential.user;
   };
   
-  const signUp = async (email: string, pass: string, role: string) => {
-    await createUserWithEmailAndPassword(auth, email, pass);
+  const signUp = async (email: string, pass: string, role: string, additionalData?: { displayName?: string }) => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+    const newUser = userCredential.user;
+
+    if (additionalData?.displayName) {
+        await updateProfile(newUser, { displayName: additionalData.displayName });
+    }
+
+    if (role === 'Doctor' && additionalData?.displayName) {
+        const doctorDocRef = doc(db, 'doctors', newUser.uid);
+        await setDoc(doctorDocRef, {
+            id: newUser.uid,
+            name: additionalData.displayName,
+            email: newUser.email,
+            type: 'Human',
+            specialty: 'Not Specified',
+            location: 'Not Specified',
+            image: `https://placehold.co/200x200.png`,
+            imageHint: 'doctor portrait',
+            rating: 0,
+            available: false,
+        });
+    }
+    
     await seedDoctorsCollection();
-    // In a real app, you'd save the role to Firestore here.
-    // For now, we use localStorage as a temporary solution.
     localStorage.setItem('userRole', role);
   };
 
