@@ -1,7 +1,5 @@
 {
-  "app": {
-    "[project]/src/app/doctor/dashboard/messages/page": []
-  },
+  "app": {},
   "appUsingSizeAdjust": false,
   "pages": {},
   "pagesUsingSizeAdjust": false

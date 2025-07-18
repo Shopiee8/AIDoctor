@@ -1,24 +1,6 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/dashboard/consultation/page": "app/dashboard/consultation/page.js",
-  "/doctor-register/(steps)/step-1/page": "app/doctor-register/(steps)/step-1/page.js",
-  "/doctor-register/(steps)/step-2/page": "app/doctor-register/(steps)/step-2/page.js",
-  "/doctor-register/(steps)/step-3/page": "app/doctor-register/(steps)/step-3/page.js",
-  "/doctor-register/page": "app/doctor-register/page.js",
-  "/doctor/dashboard/appointments/page": "app/doctor/dashboard/appointments/page.js",
-  "/doctor/dashboard/invoices/page": "app/doctor/dashboard/invoices/page.js",
-  "/doctor/dashboard/meetings/page": "app/doctor/dashboard/meetings/page.js",
-  "/doctor/dashboard/messages/page": "app/doctor/dashboard/messages/page.js",
-  "/doctor/dashboard/my-patients/[id]/page": "app/doctor/dashboard/my-patients/[id]/page.js",
-  "/doctor/dashboard/my-patients/page": "app/doctor/dashboard/my-patients/page.js",
-  "/doctor/dashboard/page": "app/doctor/dashboard/page.js",
-  "/doctor/dashboard/referrals/page": "app/doctor/dashboard/referrals/page.js",
-  "/doctor/dashboard/schedule/page": "app/doctor/dashboard/schedule/page.js",
+  "/doctor/dashboard/ai-scribe/page": "app/doctor/dashboard/ai-scribe/page.js",
   "/doctor/dashboard/settings/page": "app/doctor/dashboard/settings/page.js",
-  "/doctor/dashboard/wallet/page": "app/doctor/dashboard/wallet/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/login/page": "app/login/page.js",
-  "/page": "app/page.js",
-  "/register/page": "app/register/page.js",
-  "/search/page": "app/search/page.js"
+  "/page": "app/page.js"
 }

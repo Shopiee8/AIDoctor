@@ -1,14 +1,14 @@
 {
   "node": {
-    "7f45c5fb287b9224ad61f0470223b244f5596d1690": {
+    "401d1509656c759d8da3d4d680805006e3b986bd43": {
       "workers": {
-        "app/dashboard/consultation/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/consultation/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/consultation-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+        "app/doctor/dashboard/ai-scribe/page": {
+          "moduleId": "[project]/.next-internal/server/app/doctor/dashboard/ai-scribe/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/scribe-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false
         }
       },
       "layer": {
-        "app/dashboard/consultation/page": "action-browser"
+        "app/doctor/dashboard/ai-scribe/page": "action-browser"
       }
     }
   },
