@@ -22,6 +22,7 @@ import { Upload, Plus, Trash2, Loader2, Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { InfoCard } from '@/components/doctor/info-card';
 import { EducationCard } from '@/components/doctor/education-card';
+import { ExperienceCard } from '@/components/doctor/experience-card';
 
 const passwordFormSchema = z.object({
     currentPassword: z.string().min(1, { message: "Current password is required." }),
@@ -97,6 +98,7 @@ export default function DoctorSettingsPage() {
           <TabsTrigger value="basic">Basic Information</TabsTrigger>
           <TabsTrigger value="clinic">Clinic Info</TabsTrigger>
           <TabsTrigger value="education">Education</TabsTrigger>
+          <TabsTrigger value="experience">Experience</TabsTrigger>
           <TabsTrigger value="services">Services & Specialization</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="account">Account Settings</TabsTrigger>
@@ -161,6 +163,10 @@ export default function DoctorSettingsPage() {
         
         <TabsContent value="education">
             <EducationCard />
+        </TabsContent>
+
+        <TabsContent value="experience">
+            <ExperienceCard />
         </TabsContent>
 
          <TabsContent value="security">
