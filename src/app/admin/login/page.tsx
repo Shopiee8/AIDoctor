@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Stethoscope } from "lucide-react";
+import { Stethoscope, Shield } from "lucide-react";
 
-export default function LoginPage() {
-  const { signIn, googleSignIn, user } = useAuth();
+export default function AdminLoginPage() {
+  const { signIn } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
@@ -23,24 +23,19 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // For this dedicated login, we can hardcode the check or use a more robust role system later
+    if (email !== 'admin@aidoctor.com') {
+        setError("This login is for administrators only.");
+        toast({ title: 'Access Denied', description: "Please use the main login for patient or doctor accounts.", variant: 'destructive' });
+        return;
+    }
+
     try {
       const user = await signIn(email, password);
        if (user) {
-        toast({ title: 'Login Successful!', description: `Welcome back!` });
-
-        // Existing role-based redirection
-        const userRole = localStorage.getItem('userRole') || 'Patient';
-        switch (userRole) {
-            case 'Doctor':
-                router.push('/doctor/dashboard');
-                break;
-            case 'AI Provider':
-                router.push('/ai-provider/dashboard');
-                break;
-            default:
-                router.push('/dashboard');
-                break;
-        }
+        toast({ title: 'Admin Login Successful!', description: `Welcome back!` });
+        router.push('/admin/dashboard');
       }
     } catch (err: any) {
       setError(err.message);
@@ -48,37 +43,16 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setError(null);
-    try {
-      await googleSignIn();
-      // After Google sign-in, the AuthProvider's onAuthStateChanged will trigger
-      // the redirect. You might need to handle role-based redirection there or here.
-      toast({ title: 'Login Successful!', description: 'Welcome!' });
-      // A simple default redirect, role logic would be more complex.
-      router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message);
-      toast({ title: 'Google Sign-In Failed', description: err.message, variant: 'destructive' });
-    }
-  };
-
-  if (user) {
-    // Optional: Redirect if user is already logged in
-    // router.push('/dashboard'); 
-    // return null;
-  }
-
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50/50">
+    <div className="flex items-center justify-center min-h-screen bg-muted/50">
       <Card className="mx-auto max-w-sm w-full">
         <CardHeader className="text-center">
           <Link href="/" className="inline-block mb-4">
-            <Stethoscope className="h-8 w-8 text-primary mx-auto" />
+            <Shield className="h-8 w-8 text-primary mx-auto" />
           </Link>
-          <CardTitle className="text-2xl font-headline">Login</CardTitle>
+          <CardTitle className="text-2xl font-headline">Admin Access</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Enter your administrator credentials below.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -89,22 +63,14 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="admin@example.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="#"
-                    className="ml-auto inline-block text-sm underline"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
+                <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -119,13 +85,10 @@ export default function LoginPage() {
               </Button>
             </div>
           </form>
-           <Button variant="outline" className="w-full mt-4" onClick={handleGoogleSignIn}>
-            Login with Google
-          </Button>
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="underline">
-              Sign up
+            Not an admin? Go to{" "}
+            <Link href="/login" className="underline">
+              main login
             </Link>
           </div>
         </CardContent>

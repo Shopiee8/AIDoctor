@@ -28,11 +28,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(currentUser);
       setLoading(false);
       
-      const publicRoutes = ['/login', '/register', '/', '/privacy', '/doctor-register', '/ai-provider-register', '/patient-register'];
+      const publicRoutes = ['/login', '/register', '/', '/privacy', '/doctor-register', '/ai-provider-register', '/patient-register', '/admin/login'];
       const isPublic = publicRoutes.some(route => pathname.startsWith(route));
 
       if (!currentUser && !isPublic) {
-        router.push('/login');
+        // If on a protected admin route, redirect to admin login
+        if (pathname.startsWith('/admin')) {
+            router.push('/admin/login');
+        } else {
+            router.push('/login');
+        }
       }
     });
 
@@ -59,9 +64,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    const wasAdmin = pathname.startsWith('/admin');
     await firebaseSignOut(auth);
     localStorage.removeItem('userRole');
-    router.push('/login');
+    if (wasAdmin) {
+        router.push('/admin/login');
+    } else {
+        router.push('/login');
+    }
   };
 
   return (

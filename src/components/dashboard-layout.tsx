@@ -24,7 +24,7 @@ import {
 import { 
     Stethoscope, LayoutDashboard, HeartPulse, ClipboardPlus, Calendar, FileText, 
     Bot, FileClock, Bell, MessageSquare, Send, Users, Settings, Cpu, Star, 
-    UserSquare, Wallet, LogOut, Activity
+    UserSquare, Wallet, LogOut, Activity, Shield
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard-header';
 import Image from 'next/image';
@@ -151,9 +151,14 @@ function PatientSidebar() {
 function DefaultSidebar({ userRole }: { userRole: 'Doctor' | 'Admin' | 'AI Provider' }) {
     const pathname = usePathname();
     const navItems = navItemsMap[userRole] || [];
-    const Icon = userRole === 'AI Provider' ? Bot : Stethoscope;
+    const Icon = userRole === 'AI Provider' ? Bot : userRole === 'Admin' ? Shield : Stethoscope;
 
-    const isActive = (href: string) => pathname === href || (href !== '/doctor/dashboard' && href !== '/admin/dashboard' && pathname.startsWith(href));
+    const isActive = (href: string) => {
+        if (href === '/admin/dashboard' || href === '/doctor/dashboard') {
+            return pathname === href;
+        }
+        return pathname.startsWith(href);
+    };
 
     return (
         <>

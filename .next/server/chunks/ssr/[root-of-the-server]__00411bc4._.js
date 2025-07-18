@@ -599,11 +599,17 @@ const AuthProvider = ({ children })=>{
                 '/privacy',
                 '/doctor-register',
                 '/ai-provider-register',
-                '/patient-register'
+                '/patient-register',
+                '/admin/login'
             ];
             const isPublic = publicRoutes.some((route)=>pathname.startsWith(route));
             if (!currentUser && !isPublic) {
-                router.push('/login');
+                // If on a protected admin route, redirect to admin login
+                if (pathname.startsWith('/admin')) {
+                    router.push('/admin/login');
+                } else {
+                    router.push('/login');
+                }
             }
         });
         return ()=>unsubscribe();
@@ -628,9 +634,14 @@ const AuthProvider = ({ children })=>{
         localStorage.setItem('userRole', 'Patient'); // Default role for Google sign-in
     };
     const signOut = async ()=>{
+        const wasAdmin = pathname.startsWith('/admin');
         await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$node$2d$esm$2f$totp$2d$18137433$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__D__as__signOut$3e$__["signOut"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["auth"]);
         localStorage.removeItem('userRole');
-        router.push('/login');
+        if (wasAdmin) {
+            router.push('/admin/login');
+        } else {
+            router.push('/login');
+        }
     };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(AuthContext.Provider, {
         value: {
@@ -645,12 +656,12 @@ const AuthProvider = ({ children })=>{
             children: "Loading..."
         }, void 0, false, {
             fileName: "[project]/src/context/auth-context.tsx",
-            lineNumber: 69,
+            lineNumber: 79,
             columnNumber: 18
         }, this) : children
     }, void 0, false, {
         fileName: "[project]/src/context/auth-context.tsx",
-        lineNumber: 68,
+        lineNumber: 78,
         columnNumber: 5
     }, this);
 };
