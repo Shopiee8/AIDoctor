@@ -157,4 +157,3 @@ export function AddPrescriptionDialog({ isOpen, setIsOpen, patient }: AddPrescri
     </Dialog>
   );
 }
-
