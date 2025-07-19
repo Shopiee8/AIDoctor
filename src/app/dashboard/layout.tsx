@@ -1,4 +1,5 @@
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { RoleGuard } from "@/components/role-guard";
 
 export default function PatientDashboardLayout({
   children,
@@ -6,8 +7,10 @@ export default function PatientDashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <DashboardLayout userRole="Patient">
-      {children}
-    </DashboardLayout>
+    <RoleGuard allowedRoles={['Patient']}>
+      <DashboardLayout userRole="Patient">
+        {children}
+      </DashboardLayout>
+    </RoleGuard>
   );
 }

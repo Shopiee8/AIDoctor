@@ -12,20 +12,63 @@ import {
 } from "@/components/ui/carousel";
 import { Stethoscope, Baby, Brain, Bone, Heart, Smile, FlaskConical, GitMerge, Eye, Users, Shield, Bot } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from '@/lib/firebase';
 
-const specialities: { name: string; doctors: number; icon: LucideIcon; type: 'AI' | 'Human' }[] = [
-    { name: "AI Diagnostics", doctors: 15, icon: Bot, type: 'AI'},
-    { name: "Cardiology", doctors: 25, icon: Heart, type: 'Human' },
-    { name: "Orthopedics", doctors: 18, icon: Bone, type: 'Human' },
-    { name: "AI Mental Health", doctors: 12, icon: Bot, type: 'AI' },
-    { name: "Neurology", doctors: 22, icon: Brain, type: 'Human' },
-    { name: "Pediatrics", doctors: 30, icon: Baby, type: 'Human' },
-    { name: "Dentistry", doctors: 45, icon: Smile, type: 'Human' },
-    { name: "General Medicine", doctors: 50, icon: Stethoscope, type: 'Human' },
-];
-
+const SPECIALTY_ICON_MAP: Record<string, { icon: LucideIcon, type: 'AI' | 'Human', image?: string }> = {
+    "AI Diagnostics": { icon: Bot, type: 'AI' },
+    "Cardiology": { icon: Heart, type: 'Human', image: "/assets/img/cardio.jpg" },
+    "Orthopedics": { icon: Bone, type: 'Human' },
+    "AI Mental Health": { icon: Bot, type: 'AI' },
+    "Neurology": { icon: Brain, type: 'Human' },
+    "Pediatrics": { icon: Baby, type: 'Human' },
+    "Dentistry": { icon: Smile, type: 'Human' },
+    "General Medicine": { icon: Stethoscope, type: 'Human' },
+};
 
 export function SectionSpeciality() {
+    const [specialties, setSpecialties] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchSpecialties = async () => {
+            setLoading(true);
+            try {
+                const doctorsRef = collection(db, 'doctors');
+                const querySnapshot = await getDocs(doctorsRef);
+                const specialtyCount: Record<string, { count: number, type: 'AI' | 'Human', icon: LucideIcon, image?: string }> = {};
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    let specs = data.specialization || data.specialty || [];
+                    if (typeof specs === 'string') specs = [specs];
+                    specs.forEach((spec: string) => {
+                        if (!spec) return;
+                        const iconData = SPECIALTY_ICON_MAP[spec] || { icon: Stethoscope, type: 'Human' };
+                        if (!specialtyCount[spec]) {
+                            specialtyCount[spec] = { count: 1, ...iconData };
+                        } else {
+                            specialtyCount[spec].count += 1;
+                        }
+                    });
+                });
+                // Sort by count desc, then name
+                const sorted = Object.entries(specialtyCount)
+                    .sort((a, b) => b[1].count - a[1].count || a[0].localeCompare(b[0]))
+                    .map(([name, data]) => ({ name, ...data }));
+                setSpecialties(sorted);
+            } catch (error) {
+                console.error("Error fetching specialties:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchSpecialties();
+        // Optionally, add a listener for live updates
+        // window.addEventListener('doctor-profile-updated', fetchSpecialties);
+        // return () => window.removeEventListener('doctor-profile-updated', fetchSpecialties);
+    }, []);
+
     return (
         <section className="py-16 md:py-20 bg-background">
             <div className="container mx-auto px-6 md:px-8">
@@ -33,6 +76,9 @@ export function SectionSpeciality() {
                     <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold font-headline mb-2">Top Specialties</span>
                     <h2 className="text-2xl md:text-3xl font-bold font-headline">Care Across AI & Human Expertise</h2>
                 </div>
+                {loading ? (
+                    <div className="text-center py-10">Loading...</div>
+                ) : (
                 <Carousel
                     opts={{
                         align: "start",
@@ -41,13 +87,13 @@ export function SectionSpeciality() {
                     className="w-full"
                 >
                     <CarouselContent className="-ml-2">
-                        {specialities.map((spec, index) => (
+                        {specialties.map((spec, index) => (
                             <CarouselItem key={index} className="md:basis-1/3 lg:basis-1/4 xl:basis-1/6 pl-2">
                                 <div className="p-1">
                                     <Link href="#" className="block group">
                                         <div className="relative aspect-[4/5] overflow-hidden rounded-lg">
                                             <Image
-                                                src={`https://placehold.co/250x312.png`}
+                                                src={spec.name === "Cardiology" ? "/assets/img/cardio.jpg" : spec.image || "https://placehold.co/250x312.png"}
                                                 alt={spec.name}
                                                 width={250}
                                                 height={312}
@@ -60,7 +106,7 @@ export function SectionSpeciality() {
                                                     <spec.icon className="w-7 h-7 text-white" />
                                                 </div>
                                                 <h6 className="font-semibold text-base font-headline">{spec.name}</h6>
-                                                <p className="text-xs text-white/80">{spec.type === 'AI' ? 'AI-Powered' : `${spec.doctors} Doctors`}</p>
+                                                <p className="text-xs text-white/80">{spec.type === 'AI' ? 'AI-Powered' : `${spec.count} Doctors`}</p>
                                             </div>
                                         </div>
                                     </Link>
@@ -71,6 +117,7 @@ export function SectionSpeciality() {
                     <CarouselPrevious className="absolute left-[-16px] top-1/2 -translate-y-1/2" />
                     <CarouselNext className="absolute right-[-16px] top-1/2 -translate-y-1/2" />
                 </Carousel>
+                )}
             </div>
         </section>
     );

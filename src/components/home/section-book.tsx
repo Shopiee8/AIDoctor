@@ -36,7 +36,7 @@ export function SectionBook() {
         <section id="features" className="bookus-section bg-background py-16 md:py-20">
             <div className="container mx-auto px-6 md:px-8">
                 <div className="grid lg:grid-cols-2 gap-10 items-center">
-                    <div className="bookus-img">
+                    <div className="bookus-img" style={{ maxWidth: 500, maxHeight: 500, width: '100%' }}>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="col-span-2">
                                 <Image

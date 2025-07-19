@@ -1,17 +1,18 @@
 
 'use client';
 
-import { useState, KeyboardEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { Badge } from '../ui/badge';
 import { X as XIcon } from 'lucide-react';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 
 interface InfoItem {
-    id: number;
+    id: string;
     value: string;
     year?: string;
     description?: string;
@@ -20,47 +21,84 @@ interface InfoItem {
 interface InfoCardProps {
     title: string;
     placeholder: string;
-    initialItems?: string[];
+    field: string; // e.g. 'services', 'specialization', etc.
+    userId: string;
     hasExtraFields?: boolean;
 }
 
-export function InfoCard({ title, placeholder, initialItems = [], hasExtraFields = false }: InfoCardProps) {
-    const [items, setItems] = useState<InfoItem[]>(initialItems.map((item, index) => ({ 
-        id: Math.random(), 
-        value: item, 
-        year: hasExtraFields ? '2023' : undefined,
-        description: hasExtraFields ? 'Lorem ipsum...' : undefined
-    })));
+// Helper to recursively remove undefined values from an object or array
+function removeUndefined(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(removeUndefined);
+  } else if (obj && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([_, v]) => v !== undefined)
+        .map(([k, v]) => [k, removeUndefined(v)])
+    );
+  }
+  return obj;
+}
+
+export function InfoCard({ title, placeholder, field, userId, hasExtraFields = false }: InfoCardProps) {
+    const [items, setItems] = useState<InfoItem[]>([]);
     const [inputValue, setInputValue] = useState('');
 
-    const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === 'Enter' && inputValue.trim()) {
-            event.preventDefault();
-            addItem();
-        }
+    // Fetch from Firestore on mount and listen for changes
+    useEffect(() => {
+        if (!userId) return;
+        const docRef = doc(db, 'doctors', userId);
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const arr = docSnap.data()[field] || [];
+                setItems(arr.map((item: any, idx: number) => ({
+                    id: item.id || `${field}-${idx}-${Math.random()}`,
+                    value: item.value || item,
+                    year: item.year,
+                    description: item.description,
+                })));
+            }
+        });
+        return () => unsubscribe();
+    }, [userId, field]);
+
+    // Update Firestore
+    const updateFirestore = async (newItems: InfoItem[]) => {
+        if (!userId) return;
+        const docRef = doc(db, 'doctors', userId);
+        // Clean newItems before saving
+        const cleanedItems = removeUndefined(newItems);
+        await setDoc(docRef, { [field]: cleanedItems }, { merge: true });
+        window.dispatchEvent(new Event('doctor-profile-updated'));
     };
 
     const addItem = () => {
         if (inputValue.trim()) {
             const newItem: InfoItem = {
-                id: Math.random(),
+                id: `${field}-${Date.now()}-${Math.random()}`,
                 value: inputValue.trim(),
             };
-             if (hasExtraFields) {
+            if (hasExtraFields) {
                 newItem.year = new Date().getFullYear().toString();
                 newItem.description = '';
             }
-            setItems([...items, newItem]);
+            const newItems = [...items, newItem];
+            setItems(newItems);
             setInputValue('');
+            updateFirestore(newItems);
         }
-    }
+    };
 
-    const removeItem = (idToRemove: number) => {
-        setItems(items.filter(item => item.id !== idToRemove));
-    }
-    
-    const handleItemChange = (id: number, field: keyof InfoItem, value: any) => {
-        setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
+    const removeItem = (idToRemove: string) => {
+        const newItems = items.filter(item => item.id !== idToRemove);
+        setItems(newItems);
+        updateFirestore(newItems);
+    };
+
+    const handleItemChange = (id: string, fieldKey: keyof InfoItem, value: any) => {
+        const newItems = items.map(item => item.id === id ? { ...item, [fieldKey]: value } : item);
+        setItems(newItems);
+        updateFirestore(newItems);
     };
 
     return (
@@ -103,7 +141,7 @@ export function InfoCard({ title, placeholder, initialItems = [], hasExtraFields
                         placeholder={placeholder} 
                         value={inputValue} 
                         onChange={(e) => setInputValue(e.target.value)}
-                        onKeyDown={handleKeyDown}
+                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addItem(); } }}
                     />
                     <Button onClick={addItem}>Add</Button>
                 </div>
