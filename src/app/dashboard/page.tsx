@@ -11,8 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import Image from "next/image";
 import {
-    Activity, ArrowRight, Share2, CheckCircle, Clock, MessageSquare, Bot, Mic, Video, Link as LinkIcon
+    Activity, ArrowRight, Share2, CheckCircle, Clock, MessageSquare, Bot, Mic, Video, Link as LinkIcon, Send, Sparkles
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 
 const timeOfRelaxationData = [
@@ -169,22 +170,23 @@ export default function PatientDashboardPage() {
 
             {/* AI Assistant Sidebar */}
             <div className="col-span-12 lg:col-span-4">
-                <Card className="bg-card/80 backdrop-blur-sm border-border sticky top-24 flex flex-col">
-                     <CardHeader className="flex flex-row items-start justify-between">
-                        <div>
-                            <CardTitle className="text-lg">AI Doctor</CardTitle>
-                            <p className="text-xs text-muted-foreground">Your Supportive AI Companion</p>
-                        </div>
-                        <Button size="sm" variant="outline">Video</Button>
+                <Card className="bg-card/80 backdrop-blur-sm border-border sticky top-24 flex flex-col h-full min-h-[calc(100vh-7rem)]">
+                     <CardHeader className="flex-shrink-0">
+                        <CardTitle className="text-lg">AI Doctor</CardTitle>
+                        <p className="text-xs text-muted-foreground">Your Supportive AI Companion</p>
                     </CardHeader>
-                    <CardContent className="text-center flex-grow flex flex-col justify-between">
-                        <div className="flex-grow">
-                            <Avatar className="w-40 h-40 mx-auto border-4 border-primary/20 shadow-lg">
-                                <AvatarImage src="https://placehold.co/160x160.png" data-ai-hint="woman portrait friendly" />
-                                <AvatarFallback>GIA</AvatarFallback>
-                            </Avatar>
+                    <CardContent className="flex-grow flex flex-col justify-between">
+                       <div className="flex flex-col items-center text-center">
+                            <Image
+                                src="https://placehold.co/200x300.png"
+                                alt="AI Doctor Gia"
+                                width={200}
+                                height={300}
+                                className="rounded-xl object-cover shadow-lg"
+                                data-ai-hint="woman portrait friendly"
+                            />
                             <h3 className="text-xl font-bold mt-4">Meet Gia</h3>
-                            <div className="mt-6 text-left">
+                            <div className="mt-6 text-left w-full">
                                 <h4 className="font-semibold text-sm mb-3">Suggestions</h4>
                                  <div className="flex flex-wrap gap-2">
                                     <Button variant="secondary" size="sm" className="text-xs">Request a team meeting</Button>
@@ -195,11 +197,19 @@ export default function PatientDashboardPage() {
                                 </div>
                             </div>
                         </div>
-
-                         <div className="mt-8 p-2 bg-accent rounded-full flex items-center justify-around">
-                            <Button variant="ghost" size="icon"><LinkIcon className="h-4 w-4"/></Button>
-                            <Button variant="ghost" size="icon"><Mic className="h-4 w-4"/></Button>
-                            <Button variant="ghost" size="icon"><Video className="h-4 w-4"/></Button>
+                         <div className="mt-auto pt-6 space-y-4">
+                            <div className="p-2 bg-accent rounded-full flex items-center justify-around">
+                                <Button variant="ghost" size="icon"><LinkIcon className="h-4 w-4"/></Button>
+                                <Button variant="ghost" size="icon"><Mic className="h-4 w-4"/></Button>
+                                <Button variant="ghost" size="icon"><Video className="h-4 w-4"/></Button>
+                            </div>
+                            <div className="relative">
+                                <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                                <Input placeholder="Ask Gia anything..." className="pl-9 pr-16 h-11" />
+                                <Button size="icon" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8">
+                                    <Send className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
