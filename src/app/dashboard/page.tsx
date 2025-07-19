@@ -173,7 +173,7 @@ export default function PatientDashboardPage() {
                 <Card className="bg-card/80 backdrop-blur-sm border-border sticky top-24 flex flex-col h-full min-h-[calc(100vh-7rem)]">
                      <CardHeader className="flex-shrink-0 flex flex-row items-center justify-between">
                         <div>
-                           <CardTitle className="text-lg">AI Assistant</CardTitle>
+                           <CardTitle className="text-lg">AI GP Doctor</CardTitle>
                         </div>
                         <div className="flex items-center gap-1 bg-accent p-1 rounded-lg">
                            <Button size="sm" variant="secondary" className="h-7 px-3">Chat</Button>
@@ -184,7 +184,7 @@ export default function PatientDashboardPage() {
                        <div className="flex-grow flex flex-col items-center text-center">
                              <div className="mb-4">
                                 <Sparkles className="h-8 w-8 text-primary mx-auto" />
-                                <h3 className="text-xl font-bold mt-2">Dr. Dana</h3>
+                                <h3 className="text-xl font-bold mt-2">Meet Dr. Dana</h3>
                                 <p className="text-sm text-muted-foreground">Our AI GP Doctor</p>
                             </div>
                             <div className="relative w-[200px] h-[300px]">
