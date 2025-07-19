@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import Image from "next/image";
 import {
-    Activity, ArrowRight, Share2, CheckCircle, Clock, MessageSquare, Bot, Mic, Video, Link as LinkIcon, Send, Sparkles
+    Activity, ArrowRight, Share2, CheckCircle, Clock, MessageSquare, Bot, Mic, Video, Link as LinkIcon, Send, Sparkles, AlignLeft
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -171,12 +171,22 @@ export default function PatientDashboardPage() {
             {/* AI Assistant Sidebar */}
             <div className="col-span-12 lg:col-span-4">
                 <Card className="bg-card/80 backdrop-blur-sm border-border sticky top-24 flex flex-col h-full min-h-[calc(100vh-7rem)]">
-                     <CardHeader className="flex-shrink-0">
-                        <CardTitle className="text-lg">AI Doctor</CardTitle>
-                        <p className="text-xs text-muted-foreground">Your Supportive AI Companion</p>
+                     <CardHeader className="flex-shrink-0 flex flex-row items-center justify-between">
+                        <div>
+                           <CardTitle className="text-lg">AI Assistant</CardTitle>
+                        </div>
+                        <div className="flex items-center gap-1 bg-accent p-1 rounded-lg">
+                           <Button size="sm" variant="secondary" className="h-7 px-3">Chat</Button>
+                           <Button size="sm" variant="ghost" className="h-7 px-3">Video</Button>
+                        </div>
                     </CardHeader>
                     <CardContent className="flex-grow flex flex-col justify-between">
                        <div className="flex flex-col items-center text-center">
+                             <div className="mb-4">
+                                <Sparkles className="h-8 w-8 text-primary mx-auto" />
+                                <h3 className="text-xl font-bold mt-2">Meet Gia</h3>
+                                <p className="text-sm text-muted-foreground">Your Supportive AI Companion</p>
+                            </div>
                             <Image
                                 src="https://placehold.co/200x300.png"
                                 alt="AI Doctor Gia"
@@ -185,7 +195,6 @@ export default function PatientDashboardPage() {
                                 className="rounded-xl object-cover shadow-lg"
                                 data-ai-hint="woman portrait friendly"
                             />
-                            <h3 className="text-xl font-bold mt-4">Meet Gia</h3>
                             <div className="mt-6 text-left w-full">
                                 <h4 className="font-semibold text-sm mb-3">Suggestions</h4>
                                  <div className="flex flex-wrap gap-2">
@@ -197,18 +206,11 @@ export default function PatientDashboardPage() {
                                 </div>
                             </div>
                         </div>
-                         <div className="mt-auto pt-6 space-y-4">
+                         <div className="mt-auto pt-6">
                             <div className="p-2 bg-accent rounded-full flex items-center justify-around">
-                                <Button variant="ghost" size="icon"><LinkIcon className="h-4 w-4"/></Button>
+                                <Button variant="ghost" size="icon"><AlignLeft className="h-4 w-4"/></Button>
                                 <Button variant="ghost" size="icon"><Mic className="h-4 w-4"/></Button>
                                 <Button variant="ghost" size="icon"><Video className="h-4 w-4"/></Button>
-                            </div>
-                            <div className="relative">
-                                <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                                <Input placeholder="Ask Gia anything..." className="pl-9 pr-16 h-11" />
-                                <Button size="icon" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8">
-                                    <Send className="h-4 w-4" />
-                                </Button>
                             </div>
                         </div>
                     </CardContent>
