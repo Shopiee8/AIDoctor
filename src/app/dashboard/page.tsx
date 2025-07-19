@@ -4,67 +4,20 @@
 import {
   LineChart, AreaChart, Area, Line, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, Radar, PieChart, Pie, Cell, Tooltip, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import Image from "next/image";
 import {
-    Activity, ArrowRight, Share2, CheckCircle, Clock, MessageSquare, Bot, Mic, Video, Link as LinkIcon, Send, Sparkles, AlignLeft, Loader2
+    Activity, ArrowRight, Share2, CheckCircle, Clock, MessageSquare, Bot, Mic, Video, Link as LinkIcon, Send, Sparkles, AlignLeft, Loader2, Heart, Thermometer, Brain, Droplets, Scale, Wind, FileText
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { gpDoctorFlow, GpTurn } from "@/ai/flows/gp-doctor-flow";
 import { cn } from "@/lib/utils";
-
-
-const timeOfRelaxationData = [
-    { name: '1', relaxation: 20 },
-    { name: '2', relaxation: 40 },
-    { name: '3', relaxation: 30 },
-    { name: '4', relaxation: 60 },
-    { name: '5', relaxation: 50 },
-    { name: '6', relaxation: 70 },
-    { name: '7', relaxation: 40 },
-    { name: '8', relaxation: 80 },
-    { name: '9', relaxation: 60 },
-    { name: '10', relaxation: 90 },
-    { name: '11', relaxation: 50 },
-    { name: '12', relaxation: 75 },
-    { name: '13', relaxation: 65 },
-    { name: '14', relaxation: 85 },
-];
-const relaxationVsMoodData = [
-  { name: 'Mon', mood: 40, relaxation: 24 },
-  { name: 'Tue', mood: 30, relaxation: 13 },
-  { name: 'Wed', mood: 60, relaxation: 58 },
-  { name: 'Thu', mood: 47, relaxation: 39 },
-  { name: 'Fri', mood: 58, relaxation: 48 },
-  { name: 'Sat', mood: 43, relaxation: 38 },
-  { name: 'Sun', mood: 60, relaxation: 43 },
-];
-
-const relaxationDistributionData = [
-  { subject: 'Reading', A: 80, fullMark: 100 },
-  { subject: 'Napping', A: 50, fullMark: 100 },
-  { subject: 'Meditation', A: 90, fullMark: 100 },
-  { subject: 'Watch TV', A: 40, fullMark: 100 },
-  { subject: 'Walking Outdoors', A: 60, fullMark: 100 },
-  { subject: 'Music', A: 70, fullMark: 100 },
-];
-
-const bestTimeData = [
-  { name: 'Morning', value: 29, color: '#8884d8' },
-  { name: 'Afternoon', value: 42, color: '#82ca9d' },
-  { name: 'Evening', value: 58, color: '#ffc658' },
-];
-
-const audioTherapyData = [
-    { name: "Delta (0.5-4Hz)", duration: 54 },
-    { name: "Alpha (8-12 Hz)", duration: 43 },
-    { name: "Beta (12-30 Hz)", duration: 8 },
-]
+import { usePatientDataStore } from "@/store/patient-data-store";
 
 
 export default function PatientDashboardPage() {
@@ -72,6 +25,7 @@ export default function PatientDashboardPage() {
     const [userInput, setUserInput] = useState('');
     const [conversation, setConversation] = useState<GpTurn[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const { healthRecords, healthReport, isLoading: isDataLoading } = usePatientDataStore();
 
     const handleSend = async () => {
         if (!userInput.trim()) return;
@@ -86,10 +40,8 @@ export default function PatientDashboardPage() {
             const response = await gpDoctorFlow(newConversation);
             const aiTurn = response[response.length - 1];
 
-            // Add an empty message for the AI first
             setConversation(prev => [...prev, { role: 'model', content: '' }]);
 
-            // Then "stream" the content in
             const streamContent = aiTurn.content;
             let currentContent = '';
             const interval = setInterval(() => {
@@ -103,7 +55,7 @@ export default function PatientDashboardPage() {
                     clearInterval(interval);
                     setIsLoading(false);
                 }
-            }, 20); // Adjust typing speed here (in ms)
+            }, 20); 
 
 
         } catch (error) {
@@ -123,12 +75,79 @@ export default function PatientDashboardPage() {
             <div className="col-span-12 lg:col-span-8 space-y-6">
                 <Card className="bg-card/80 backdrop-blur-sm border-border">
                     <CardHeader>
+                        <CardTitle>Health Records</CardTitle>
+                        <CardDescription>Report generated on last visit: 25 Mar 2025</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                           {healthRecords.map((record) => {
+                            const Icon = record.icon;
+                            return (
+                                <div key={record.title} className="p-4 border rounded-lg shadow-sm bg-muted/30">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h4 className="text-sm font-semibold">{record.title}</h4>
+                                        <Icon className={`w-6 h-6 ${record.color}`} />
+                                    </div>
+                                    <p className="text-xl font-bold">{record.value}</p>
+                                    {record.trend && <p className="text-xs text-green-500">{record.trend}</p>}
+                                </div>
+                            )
+                           })}
+                       </div>
+                    </CardContent>
+                </Card>
+
+                 <Card className="bg-card/80 backdrop-blur-sm border-border">
+                    <CardContent className="p-4">
+                        <div className="flex flex-col md:flex-row justify-between items-center">
+                            <div className="flex items-center gap-4">
+                                 <div className="w-24 h-24 relative">
+                                    <svg className="w-full h-full" viewBox="0 0 36 36">
+                                        <path
+                                            d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                                            fill="none"
+                                            stroke="hsl(var(--primary) / 0.1)"
+                                            strokeWidth="3"
+                                        />
+                                        <path
+                                            className="transition-all duration-1000"
+                                            d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                                            fill="none"
+                                            stroke="hsl(var(--primary))"
+                                            strokeWidth="3"
+                                            strokeDasharray={`${healthReport.percentage}, 100`}
+                                        />
+                                    </svg>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <span className="text-2xl font-bold">{healthReport.percentage}%</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-lg">{healthReport.title}</h3>
+                                    <p className="text-sm text-muted-foreground">{healthReport.details}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">Last Visit 25 Mar 2025</p>
+                                </div>
+                            </div>
+                            <Button variant="outline" className="mt-4 md:mt-0">
+                                <FileText className="w-4 h-4 mr-2" />
+                                View Full Report
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="bg-card/80 backdrop-blur-sm border-border">
+                    <CardHeader>
                         <CardTitle>Time of Relaxation</CardTitle>
                         <p className="text-sm text-muted-foreground">Your average relaxation percentage</p>
                     </CardHeader>
                     <CardContent>
                         <ResponsiveContainer width="100%" height={250}>
-                             <BarChart data={timeOfRelaxationData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                             <BarChart data={[]} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
                                 <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
                                 <YAxis unit="%" stroke="hsl(var(--muted-foreground))" />
@@ -143,80 +162,6 @@ export default function PatientDashboardPage() {
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
-
-                <div className="grid md:grid-cols-2 gap-6">
-                    <Card className="bg-card/80 backdrop-blur-sm border-border">
-                        <CardHeader>
-                            <CardTitle>Relaxation vs Mood</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                             <ResponsiveContainer width="100%" height={200}>
-                                <AreaChart data={relaxationVsMoodData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2}/>
-                                    <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                                    <YAxis stroke="hsl(var(--muted-foreground))" />
-                                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))' }} />
-                                    <Legend />
-                                    <Area type="monotone" dataKey="mood" stackId="1" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} />
-                                    <Area type="monotone" dataKey="relaxation" stackId="1" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.3} />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-card/80 backdrop-blur-sm border-border">
-                        <CardHeader>
-                            <CardTitle>Relaxation Distribution</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <ResponsiveContainer width="100%" height={200}>
-                                <RadarChart outerRadius={90} data={relaxationDistributionData}>
-                                    <PolarGrid strokeOpacity={0.3} />
-                                    <PolarAngleAxis dataKey="subject" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                                    <Radar name="Mike" dataKey="A" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} />
-                                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))' }} />
-                                </RadarChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-                </div>
-                 <div className="grid md:grid-cols-2 gap-6">
-                    <Card className="bg-card/80 backdrop-blur-sm border-border">
-                        <CardHeader>
-                            <CardTitle>Best Time of Day for Relaxation</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                           <ResponsiveContainer width="100%" height={200}>
-                                <PieChart>
-                                    <Pie data={bestTimeData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} fill="#8884d8" label>
-                                        {bestTimeData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-                                    </Pie>
-                                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))' }} />
-                                    <Legend />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-card/80 backdrop-blur-sm border-border">
-                        <CardHeader>
-                            <CardTitle>Audio Therapy</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                           <div className="space-y-4">
-                                {audioTherapyData.map((item, index) => (
-                                    <div key={index}>
-                                        <div className="flex justify-between items-center text-sm mb-1">
-                                            <span className="text-muted-foreground">{item.name}</span>
-                                            <span className="font-semibold">{item.duration}m</span>
-                                        </div>
-                                        <div className="w-full bg-muted rounded-full h-2.5">
-                                            <div className="bg-primary h-2.5 rounded-full" style={{ width: `${(item.duration / 60) * 100}%` }}></div>
-                                        </div>
-                                    </div>
-                                ))}
-                           </div>
-                        </CardContent>
-                    </Card>
-                </div>
             </div>
 
             {/* AI Assistant Sidebar */}
