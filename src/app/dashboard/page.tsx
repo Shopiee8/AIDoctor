@@ -2,7 +2,7 @@
 'use client';
 
 import {
-  LineChart, AreaChart, Area, Line, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, Radar, PieChart, Pie, Cell, Tooltip, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer, PolarRadiusAxis, Donut
+  LineChart, AreaChart, Area, Line, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, Radar, PieChart, Pie, Cell, Tooltip, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer, PolarRadiusAxis
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import Image from "next/image";
 import {
-    Activity, ArrowRight, Share2, CheckCircle, Clock, MessageSquare, Bot, Mic, Video, Link as LinkIcon, Send, Sparkles, AlignLeft, Loader2, Heart, Thermometer, Brain, Droplets, Scale, Wind, FileText, Settings, VideoIcon
+    Activity, ArrowRight, Share2, CheckCircle, Clock, MessageSquare, Bot, Mic, Video, Link as LinkIcon, Send, Sparkles, AlignLeft, Loader2, Heart, Thermometer, Brain, Droplets, Scale, Wind, FileText, Settings, VideoIcon, PhoneCall, Handshake
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -27,7 +27,7 @@ export default function PatientDashboardPage() {
     const [userInput, setUserInput] = useState('');
     const [conversation, setConversation] = useState<GpTurn[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const { relaxationData, isLoading: isDataLoading } = usePatientDataStore();
+    const { healthRecords, healthReport, relaxationData, isLoading: isDataLoading } = usePatientDataStore();
 
     const {
         timeOfRelaxation,
@@ -98,7 +98,36 @@ export default function PatientDashboardPage() {
         <div className="grid grid-cols-12 gap-6 items-start">
             {/* Main Content */}
             <div className="col-span-12 lg:col-span-8 space-y-6">
-                <Card className="bg-card/80 backdrop-blur-sm border-border">
+                
+                {/* Health Records */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Health Records</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {healthRecords.map((record, index) => (
+                            <div key={index} className="p-4 border rounded-lg shadow-sm">
+                                <div className="flex items-center justify-between mb-1">
+                                    <h4 className="text-sm font-semibold text-muted-foreground">{record.title}</h4>
+                                    <record.icon className={cn("w-5 h-5", record.color)} />
+                                </div>
+                                <p className="text-xl font-bold">{record.value}</p>
+                                {record.trend && <p className="text-xs text-green-500">{record.trend} from last month</p>}
+                            </div>
+                        ))}
+                         <div className="p-4 border rounded-lg shadow-sm bg-muted/40">
+                            <div className="flex items-center justify-between mb-1">
+                                <h4 className="text-sm font-semibold text-muted-foreground">Overall Report</h4>
+                                <FileText className="w-5 h-5 text-muted-foreground" />
+                            </div>
+                            <p className="text-xl font-bold">{healthReport.title}</p>
+                             <p className="text-xs text-muted-foreground">Last Visit: {new Date().toLocaleDateString()}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Relaxation charts */}
+                <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
                             <CardTitle>Relaxation</CardTitle>
@@ -198,12 +227,12 @@ export default function PatientDashboardPage() {
 
             {/* AI Assistant Sidebar */}
             <div className="col-span-12 lg:col-span-4 h-full">
-                <Card className="bg-card/80 backdrop-blur-sm border-border sticky top-24 flex flex-col h-full min-h-[calc(100vh-7rem)]">
+                <Card className="sticky top-6 flex flex-col h-[calc(100vh-3rem)] max-h-[calc(100vh-3rem)]">
                      <CardHeader className="flex-shrink-0 flex flex-row items-center justify-between">
                         <div>
-                           <CardTitle className="text-lg">AI Assistant</CardTitle>
+                           <CardTitle className="text-lg">AI GP Doctor</CardTitle>
                         </div>
-                        <div className="flex items-center gap-1 bg-accent p-1 rounded-lg">
+                        <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
                            <Button size="sm" variant={view === 'chat' ? 'secondary' : 'ghost'} className="h-7 px-3" onClick={() => setView('chat')}>Chat</Button>
                            <Button size="sm" variant={view === 'video' ? 'secondary' : 'ghost'} className="h-7 px-3" onClick={() => setView('video')}>Video</Button>
                         </div>
@@ -212,18 +241,18 @@ export default function PatientDashboardPage() {
                         <div className="flex-grow space-y-4">
                             {conversation.length === 0 && (
                                 <div className="flex-grow flex flex-col items-center text-center justify-center h-full">
-                                    <div className="mb-4">
-                                        <h3 className="text-xl font-bold mt-2">Meet Gia</h3>
+                                    <div className="mb-4 text-center">
+                                        <h3 className="text-xl font-bold mt-2">Meet Dr. Dana</h3>
                                         <p className="text-sm text-muted-foreground">Your Supportive AI Companion</p>
                                     </div>
                                     <div className="relative w-full max-w-[250px] h-auto">
                                         <Image
-                                            src="https://placehold.co/300x400.png"
-                                            alt="AI Doctor Gia"
-                                            width={300}
-                                            height={400}
-                                            className="rounded-xl object-contain shadow-lg"
-                                            data-ai-hint="doctor friendly transparent"
+                                            src="https://placehold.co/400x600.png"
+                                            alt="AI Doctor Dana"
+                                            width={400}
+                                            height={600}
+                                            className="rounded-xl object-contain"
+                                            data-ai-hint="doctor friendly transparent background"
                                         />
                                     </div>
                                 </div>
@@ -253,25 +282,38 @@ export default function PatientDashboardPage() {
                                 </div>
                             )}
                         </div>
-
-                        <div className="mt-auto pt-6 flex-shrink-0">
-                            <div className="text-left w-full mb-4">
-                                <h4 className="font-semibold text-sm mb-3">Suggestions</h4>
-                                 <div className="flex flex-wrap gap-2">
-                                    <Button variant="secondary" size="sm" className="text-xs">Request a team meeting</Button>
-                                    <Button variant="secondary" size="sm" className="text-xs">Find groups</Button>
-                                    <Button variant="secondary" size="sm" className="text-xs">Find Game</Button>
-                                    <Button variant="secondary" size="sm" className="text-xs">Emergency</Button>
-                                    <Button variant="secondary" size="sm" className="text-xs">More</Button>
-                                </div>
+                    </CardContent>
+                     <div className="mt-auto p-4 border-t flex-shrink-0 bg-background">
+                        <div className="text-left w-full mb-4">
+                            <h4 className="font-semibold text-sm mb-3">Suggestions</h4>
+                                <div className="flex flex-wrap gap-2">
+                                <Button variant="secondary" size="sm" className="text-xs">Request a team meeting</Button>
+                                <Button variant="secondary" size="sm" className="text-xs">Find groups</Button>
+                                <Button variant="secondary" size="sm" className="text-xs">Find Game</Button>
+                                <Button variant="secondary" size="sm" className="text-xs">Emergency</Button>
+                                <Button variant="secondary" size="sm" className="text-xs">More</Button>
                             </div>
-                             <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon"><Settings className="w-5 h-5"/></Button>
+                        </div>
+                         <div className="relative">
+                            <Input
+                                placeholder="Type a message..."
+                                className="pr-28 pl-4 h-12"
+                                value={userInput}
+                                onChange={(e) => setUserInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSend();
+                                    }
+                                }}
+                            />
+                            <div className="absolute top-1/2 right-2 -translate-y-1/2 flex items-center gap-1">
                                 <Button variant="ghost" size="icon"><Mic className="w-5 h-5"/></Button>
                                 <Button variant="ghost" size="icon"><VideoIcon className="w-5 h-5"/></Button>
-                             </div>
+                                <Button size="sm" onClick={handleSend} disabled={isLoading || !userInput.trim()}>Send</Button>
+                            </div>
                         </div>
-                    </CardContent>
+                    </div>
                 </Card>
             </div>
         </div>
