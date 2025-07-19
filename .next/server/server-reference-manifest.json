@@ -1,5 +1,17 @@
 {
-  "node": {},
+  "node": {
+    "7f431897e40de3790295752349edde0f03011ba104": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/gp-doctor-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "action-browser"
+      }
+    }
+  },
   "edge": {},
   "encryptionKey": "VZ8jgaRolVHiDU6HTA75NMkUlbRsweAGud99Vn56YxE="
 }

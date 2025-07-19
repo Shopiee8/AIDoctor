@@ -14,7 +14,7 @@ import {
     Activity, ArrowRight, Share2, CheckCircle, Clock, MessageSquare, Bot, Mic, Video, Link as LinkIcon, Send, Sparkles, AlignLeft, Loader2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { gpDoctorFlow, GpTurn } from "@/ai/flows/gp-doctor-flow";
 import { cn } from "@/lib/utils";
 
@@ -84,7 +84,28 @@ export default function PatientDashboardPage() {
 
         try {
             const response = await gpDoctorFlow(newConversation);
-            setConversation(response);
+            const aiTurn = response[response.length - 1];
+
+            // Add an empty message for the AI first
+            setConversation(prev => [...prev, { role: 'model', content: '' }]);
+
+            // Then "stream" the content in
+            const streamContent = aiTurn.content;
+            let currentContent = '';
+            const interval = setInterval(() => {
+                currentContent += streamContent.charAt(currentContent.length);
+                setConversation(prev => {
+                    const updatedConversation = [...prev];
+                    updatedConversation[updatedConversation.length - 1].content = currentContent;
+                    return updatedConversation;
+                });
+                if (currentContent.length === streamContent.length) {
+                    clearInterval(interval);
+                    setIsLoading(false);
+                }
+            }, 20); // Adjust typing speed here (in ms)
+
+
         } catch (error) {
             console.error("Error with AI flow:", error);
             const errorTurn: GpTurn = {
@@ -92,7 +113,6 @@ export default function PatientDashboardPage() {
                 content: "I'm sorry, I encountered an error. Please try again.",
             };
             setConversation([...newConversation, errorTurn]);
-        } finally {
             setIsLoading(false);
         }
     };
@@ -216,7 +236,6 @@ export default function PatientDashboardPage() {
                             {conversation.length === 0 && (
                                 <div className="flex-grow flex flex-col items-center text-center justify-center h-full">
                                     <div className="mb-4">
-                                        <Sparkles className="h-8 w-8 text-primary mx-auto" />
                                         <h3 className="text-xl font-bold mt-2">Meet Dr. Dana</h3>
                                         <p className="text-sm text-muted-foreground">Our AI GP Doctor</p>
                                     </div>
@@ -245,7 +264,7 @@ export default function PatientDashboardPage() {
                                     </div>
                                 </div>
                             ))}
-                            {isLoading && (
+                            {isLoading && conversation.length > 0 && (
                                 <div className="flex items-start gap-3 justify-start">
                                      <Avatar className="w-8 h-8 flex-shrink-0">
                                         <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="robot friendly"/>
@@ -297,3 +316,4 @@ export default function PatientDashboardPage() {
         </div>
     );
 }
+
