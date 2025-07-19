@@ -24,7 +24,7 @@ import {
 import { 
     Stethoscope, LayoutDashboard, HeartPulse, ClipboardPlus, Calendar, FileText, 
     Bot, FileClock, Bell, MessageSquare, Send, Users, Settings, Cpu, Star, 
-    UserSquare, Wallet, LogOut, Activity, Shield, ListCollapse, UserPlus, Clock, UserCog, Mic, Key, Share2, Award
+    UserSquare, Wallet, LogOut, Activity, Shield, ListCollapse, UserPlus, Clock, UserCog, Mic, Key, Share2, Award, Pill, PhoneCall, Handshake
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard-header';
 import Image from 'next/image';
@@ -34,16 +34,11 @@ import { Label } from './ui/label';
 
 const patientNavItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { title: "AI Consultation", href: "/dashboard/consultation", icon: Bot },
-  { title: "My Appointments", href: "/dashboard/appointments", icon: Calendar },
-  { title: "Favourites", href: "/dashboard/favourites", icon: Star },
-  { title: "Dependants", href: "/dashboard/dependents", icon: Users },
-  { title: "Medical Records", href: "/dashboard/medical-records", icon: FileText },
-  { title: "Wallet", href: "/dashboard/wallet", icon: Wallet },
-  { title: "Invoices", href: "/dashboard/invoices", icon: FileText },
-  { title: "Messages", href: "/dashboard/messages", icon: MessageSquare, badge: "7" },
-  { title: "Vitals", href: "/dashboard/vitals", icon: HeartPulse },
-  { title: "Settings", href: "/dashboard/settings", icon: Settings },
+  { title: "Care Plan", href: "/dashboard/care-plan", icon: FileText },
+  { title: "Pharmacy", href: "/dashboard/pharmacy", icon: Pill },
+  { title: "Community", href: "/dashboard/community", icon: Users },
+  { title: "Clinical Trials", href: "/dashboard/clinical-trials", icon: ClipboardPlus },
+  { title: "Subscriptions", href: "/dashboard/subscriptions", icon: Star },
 ];
 
 const doctorNavItems: NavItem[] = [
@@ -92,67 +87,62 @@ function PatientSidebar() {
     const { user, signOut } = useAuth();
     const { personalDetails } = usePatientDataStore();
 
-    // A simple check to see if the current path is active
     const isActive = (href: string) => pathname === href;
-    const fallbackInitial = user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'P';
+    const fallbackInitial = user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'W';
 
     return (
         <>
             <SidebarHeader className="p-4">
-                <div className="flex flex-col items-center text-center">
-                    <Link href="/dashboard/settings">
-                       <Avatar className="w-20 h-20 border-4 border-primary/20">
-                           <AvatarImage src={user?.photoURL || null} alt={user?.displayName || 'User'} data-ai-hint="person portrait" />
-                           <AvatarFallback className="text-2xl">{fallbackInitial}</AvatarFallback>
-                       </Avatar>
-                    </Link>
-                    <div className="mt-3">
-                        <h3 className="font-bold text-lg">
-                            <Link href="/dashboard/settings">{user?.displayName || user?.email || 'User'}</Link>
-                        </h3>
-                        <div className="text-xs text-muted-foreground mt-1">
-                            <p>Patient ID : PT254654</p>
-                            {personalDetails.age && personalDetails.gender && (
-                                <span className="mt-1 inline-flex items-center gap-1.5 capitalize">
-                                    {personalDetails.gender} <span className="w-1 h-1 bg-muted-foreground/50 rounded-full" /> {personalDetails.age} years
-                                </span>
-                            )}
-                        </div>
-                    </div>
+                <div className="flex items-center gap-2">
+                    <Stethoscope className="w-8 h-8 text-primary" />
+                    <span className="text-2xl font-bold font-headline">SerenIQ</span>
                 </div>
             </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent className="p-2">
+                <div className="text-xs font-semibold text-muted-foreground uppercase px-2 py-1">Main Menu</div>
                 <SidebarMenu>
-                    {patientNavItems.map((item) => (
+                    {patientNavItems.slice(0, 4).map((item) => (
                         <SidebarMenuItem key={item.href}>
                             <SidebarMenuButton
                                 asChild
                                 isActive={isActive(item.href)}
-                                className={cn(isActive(item.href) && "bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary")}
+                                className={cn(isActive(item.href) && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground")}
                             >
-                                <Link href={item.href} className="relative">
+                                <Link href={item.href}>
                                     <item.icon className="w-5 h-5" />
                                     <span>{item.title}</span>
-                                    {item.badge && (
-                                        <small className="absolute right-3 top-1/2 -translate-y-1/2 bg-destructive text-destructive-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                                            {item.badge}
-                                        </small>
-                                    )}
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+                 <div className="text-xs font-semibold text-muted-foreground uppercase px-2 py-1 mt-4">Additional</div>
+                <SidebarMenu>
+                    {patientNavItems.slice(4).map((item) => (
+                        <SidebarMenuItem key={item.href}>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={isActive(item.href)}
+                                className={cn(isActive(item.href) && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground")}
+                            >
+                                <Link href={item.href}>
+                                    <item.icon className="w-5 h-5" />
+                                    <span>{item.title}</span>
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     ))}
                 </SidebarMenu>
             </SidebarContent>
-            <SidebarFooter>
-                 <SidebarMenu>
-                     <SidebarMenuItem>
-                        <SidebarMenuButton onClick={signOut}>
-                            <LogOut className="w-5 h-5" />
-                            <span>Logout</span>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                 </SidebarMenu>
+            <SidebarFooter className="p-4 space-y-4">
+                 <div className="text-xs font-semibold text-muted-foreground uppercase">Emergency Contacts</div>
+                 <div className="space-y-2">
+                    <Button variant="outline" className="w-full justify-between"><PhoneCall className="w-4 h-4"/> 911 <span className="text-primary">Call</span></Button>
+                    <Button variant="outline" className="w-full justify-between"><Avatar className="w-5 h-5"><AvatarImage src="https://placehold.co/20x20.png" /></Avatar> Sarah <span className="text-primary">Call</span></Button>
+                    <Button variant="outline" className="w-full justify-between"><Avatar className="w-5 h-5"><AvatarImage src="https://placehold.co/20x20.png" /></Avatar> Dr. Johnes <span className="text-primary">Call</span></Button>
+                 </div>
+                 <div className="text-xs font-semibold text-muted-foreground uppercase pt-2 border-t">Devices</div>
+                 <Button variant="secondary" className="w-full"><Handshake className="w-4 h-4 mr-2"/> Connect your Watch</Button>
             </SidebarFooter>
         </>
     );
@@ -333,7 +323,7 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
       <Sidebar>
         {renderSidebar()}
       </Sidebar>
-      <SidebarInset>
+      <SidebarInset className="bg-transparent p-0 md:p-0">
         <DashboardHeader />
         <main className="p-4 md:p-6 lg:p-8">
           {children}

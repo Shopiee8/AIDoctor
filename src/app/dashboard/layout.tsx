@@ -6,8 +6,10 @@ export default function PatientDashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <DashboardLayout userRole="Patient">
-      {children}
-    </DashboardLayout>
+    <div className="bg-[#0b1727] min-h-screen">
+        <DashboardLayout userRole="Patient">
+            {children}
+        </DashboardLayout>
+    </div>
   );
 }
