@@ -169,37 +169,37 @@ export default function PatientDashboardPage() {
 
             {/* AI Assistant Sidebar */}
             <div className="col-span-12 lg:col-span-4">
-                <Card className="bg-card/80 backdrop-blur-sm border-border sticky top-24">
-                     <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>AI Assistant</CardTitle>
-                        <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm">Chat</Button>
-                            <Button size="sm">Video</Button>
+                <Card className="bg-card/80 backdrop-blur-sm border-border sticky top-24 flex flex-col">
+                     <CardHeader className="flex flex-row items-start justify-between">
+                        <div>
+                            <CardTitle className="text-lg">AI Doctor</CardTitle>
+                            <p className="text-xs text-muted-foreground">Your Supportive AI Companion</p>
                         </div>
+                        <Button size="sm" variant="outline">Video</Button>
                     </CardHeader>
-                    <CardContent className="text-center">
-                        <Avatar className="w-28 h-28 mx-auto border-4 border-primary/20">
-                            <AvatarImage src="https://placehold.co/150x150.png" data-ai-hint="woman portrait friendly" />
-                            <AvatarFallback>GIA</AvatarFallback>
-                        </Avatar>
-                        <h3 className="text-xl font-bold mt-4">Meet Gia</h3>
-                        <p className="text-muted-foreground">Your Supportive AI Companion</p>
-
-                        <div className="mt-6 text-left">
-                            <h4 className="font-semibold mb-3">Suggestions</h4>
-                             <div className="flex flex-wrap gap-2">
-                                <Button variant="secondary" size="sm">Request a team meeting</Button>
-                                <Button variant="secondary" size="sm">Find groups</Button>
-                                <Button variant="secondary" size="sm">Find Game</Button>
-                                <Button variant="secondary" size="sm">Emergency</Button>
-                                <Button variant="secondary" size="sm">More</Button>
+                    <CardContent className="text-center flex-grow flex flex-col justify-between">
+                        <div className="flex-grow">
+                            <Avatar className="w-40 h-40 mx-auto border-4 border-primary/20 shadow-lg">
+                                <AvatarImage src="https://placehold.co/160x160.png" data-ai-hint="woman portrait friendly" />
+                                <AvatarFallback>GIA</AvatarFallback>
+                            </Avatar>
+                            <h3 className="text-xl font-bold mt-4">Meet Gia</h3>
+                            <div className="mt-6 text-left">
+                                <h4 className="font-semibold text-sm mb-3">Suggestions</h4>
+                                 <div className="flex flex-wrap gap-2">
+                                    <Button variant="secondary" size="sm" className="text-xs">Request a team meeting</Button>
+                                    <Button variant="secondary" size="sm" className="text-xs">Find groups</Button>
+                                    <Button variant="secondary" size="sm" className="text-xs">Find Game</Button>
+                                    <Button variant="secondary" size="sm" className="text-xs">Emergency</Button>
+                                    <Button variant="secondary" size="sm" className="text-xs">More</Button>
+                                </div>
                             </div>
                         </div>
 
-                         <div className="mt-6 p-2 bg-accent rounded-full flex items-center justify-around">
-                            <Button variant="ghost" size="icon"><LinkIcon className="h-5 w-5"/></Button>
-                            <Button variant="ghost" size="icon"><Mic className="h-5 w-5"/></Button>
-                            <Button variant="ghost" size="icon"><Video className="h-5 w-5"/></Button>
+                         <div className="mt-8 p-2 bg-accent rounded-full flex items-center justify-around">
+                            <Button variant="ghost" size="icon"><LinkIcon className="h-4 w-4"/></Button>
+                            <Button variant="ghost" size="icon"><Mic className="h-4 w-4"/></Button>
+                            <Button variant="ghost" size="icon"><Video className="h-4 w-4"/></Button>
                         </div>
                     </CardContent>
                 </Card>

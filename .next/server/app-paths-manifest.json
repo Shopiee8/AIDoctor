@@ -1,4 +1,5 @@
 {
+  "/dashboard/care-plan/page": "app/dashboard/care-plan/page.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/doctor/dashboard/page": "app/doctor/dashboard/page.js",
   "/doctor/dashboard/settings/page": "app/doctor/dashboard/settings/page.js",
