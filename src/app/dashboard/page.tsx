@@ -191,7 +191,7 @@ export default function PatientDashboardPage() {
                                             width={200}
                                             height={300}
                                             className="rounded-xl object-contain shadow-lg"
-                                            data-ai-hint="doctor friendly transparent background"
+                                            data-ai-hint="doctor friendly transparent"
                                         />
                                     </div>
                                 </div>
@@ -261,7 +261,3 @@ export default function PatientDashboardPage() {
         </div>
     );
 }
-
-
-
-    
