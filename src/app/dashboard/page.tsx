@@ -180,23 +180,26 @@ export default function PatientDashboardPage() {
                            <Button size="sm" variant="ghost" className="h-7 px-3">Video</Button>
                         </div>
                     </CardHeader>
-                    <CardContent className="flex-grow flex flex-col justify-between overflow-auto">
+                    <CardContent className="flex-grow flex flex-col justify-between overflow-auto p-4">
                        <div className="flex-grow flex flex-col items-center text-center">
                              <div className="mb-4">
                                 <Sparkles className="h-8 w-8 text-primary mx-auto" />
-                                <h3 className="text-xl font-bold mt-2">Meet Gia</h3>
-                                <p className="text-sm text-muted-foreground">Your Supportive AI Companion</p>
+                                <h3 className="text-xl font-bold mt-2">Dr. Dana</h3>
+                                <p className="text-sm text-muted-foreground">Our AI GP Doctor</p>
                             </div>
                             <div className="relative w-[200px] h-[300px]">
                                 <Image
-                                    src="https://firebasestorage.googleapis.com/v0/b/vizion-ai-f9834.appspot.com/o/images%2Fdoctor-transparent.png?alt=media&token=8d67a184-26f5-452f-9149-655f0426162a"
-                                    alt="AI Doctor Gia"
+                                    src="https://placehold.co/200x300.png"
+                                    alt="Dr. Dana, AI GP Doctor"
                                     width={200}
                                     height={300}
                                     className="rounded-xl object-contain shadow-lg"
+                                    data-ai-hint="doctor friendly transparent"
                                 />
                             </div>
-                            <div className="mt-6 text-left w-full">
+                        </div>
+                         <div className="mt-auto pt-6 flex-shrink-0">
+                            <div className="text-left w-full mb-4">
                                 <h4 className="font-semibold text-sm mb-3">Suggestions</h4>
                                  <div className="flex flex-wrap gap-2">
                                     <Button variant="secondary" size="sm" className="text-xs">Request a team meeting</Button>
@@ -206,8 +209,6 @@ export default function PatientDashboardPage() {
                                     <Button variant="secondary" size="sm" className="text-xs">More</Button>
                                 </div>
                             </div>
-                        </div>
-                         <div className="mt-auto pt-6 flex-shrink-0">
                             <div className="relative">
                                <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                                     <Button variant="ghost" size="icon" className="h-7 w-7"><Mic className="h-4 w-4" /></Button>
@@ -225,4 +226,3 @@ export default function PatientDashboardPage() {
         </div>
     );
 }
-
