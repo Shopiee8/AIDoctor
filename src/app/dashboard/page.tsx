@@ -11,9 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import Image from "next/image";
 import {
-    Activity, ArrowRight, Share2, CheckCircle, Clock, MessageSquare, Bot, Mic, Video, Link as LinkIcon, Send, Sparkles, AlignLeft
+    Activity, ArrowRight, Share2, CheckCircle, Clock, MessageSquare, Bot, Mic, Video, Link as LinkIcon, Send, Sparkles, AlignLeft, Loader2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { gpDoctorFlow, GpTurn } from "@/ai/flows/gp-doctor-flow";
+import { cn } from "@/lib/utils";
 
 
 const timeOfRelaxationData = [
@@ -65,6 +68,34 @@ const audioTherapyData = [
 
 
 export default function PatientDashboardPage() {
+    const [view, setView] = useState<'chat' | 'video'>('chat');
+    const [userInput, setUserInput] = useState('');
+    const [conversation, setConversation] = useState<GpTurn[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSend = async () => {
+        if (!userInput.trim()) return;
+
+        const userTurn: GpTurn = { role: 'user', content: userInput };
+        const newConversation = [...conversation, userTurn];
+        setConversation(newConversation);
+        setUserInput('');
+        setIsLoading(true);
+
+        try {
+            const response = await gpDoctorFlow(newConversation);
+            setConversation(response);
+        } catch (error) {
+            console.error("Error with AI flow:", error);
+            const errorTurn: GpTurn = {
+                role: 'model',
+                content: "I'm sorry, I encountered an error. Please try again.",
+            };
+            setConversation([...newConversation, errorTurn]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div className="grid grid-cols-12 gap-6 items-start">
@@ -176,28 +207,57 @@ export default function PatientDashboardPage() {
                            <CardTitle className="text-lg">AI GP Doctor</CardTitle>
                         </div>
                         <div className="flex items-center gap-1 bg-accent p-1 rounded-lg">
-                           <Button size="sm" variant="secondary" className="h-7 px-3">Chat</Button>
-                           <Button size="sm" variant="ghost" className="h-7 px-3">Video</Button>
+                           <Button size="sm" variant={view === 'chat' ? 'secondary' : 'ghost'} className="h-7 px-3" onClick={() => setView('chat')}>Chat</Button>
+                           <Button size="sm" variant={view === 'video' ? 'secondary' : 'ghost'} className="h-7 px-3" onClick={() => setView('video')}>Video</Button>
                         </div>
                     </CardHeader>
-                    <CardContent className="flex-grow flex flex-col justify-between overflow-auto p-4">
-                       <div className="flex-grow flex flex-col items-center text-center">
-                             <div className="mb-4">
-                                <Sparkles className="h-8 w-8 text-primary mx-auto" />
-                                <h3 className="text-xl font-bold mt-2">Meet Dr. Dana</h3>
-                                <p className="text-sm text-muted-foreground">Our AI GP Doctor</p>
-                            </div>
-                            <div className="relative w-[200px] h-[300px]">
-                                <Image
-                                    src="https://placehold.co/200x300.png"
-                                    alt="Dr. Dana, AI GP Doctor"
-                                    width={200}
-                                    height={300}
-                                    className="rounded-xl object-contain shadow-lg"
-                                    data-ai-hint="doctor friendly transparent background"
-                                />
-                            </div>
+                    <CardContent className="flex-grow flex flex-col overflow-auto p-4">
+                        <div className="flex-grow space-y-4">
+                            {conversation.length === 0 && (
+                                <div className="flex-grow flex flex-col items-center text-center justify-center h-full">
+                                    <div className="mb-4">
+                                        <Sparkles className="h-8 w-8 text-primary mx-auto" />
+                                        <h3 className="text-xl font-bold mt-2">Meet Dr. Dana</h3>
+                                        <p className="text-sm text-muted-foreground">Our AI GP Doctor</p>
+                                    </div>
+                                    <div className="relative w-[200px] h-[300px]">
+                                        <Image
+                                            src="https://placehold.co/200x300.png"
+                                            alt="Dr. Dana, AI GP Doctor"
+                                            width={200}
+                                            height={300}
+                                            className="rounded-xl object-contain shadow-lg"
+                                            data-ai-hint="doctor friendly transparent background"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                            {conversation.map((turn, index) => (
+                                <div key={index} className={cn("flex items-start gap-3", turn.role === 'user' ? "justify-end" : "justify-start")}>
+                                    {turn.role === 'model' && (
+                                        <Avatar className="w-8 h-8 flex-shrink-0">
+                                            <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="robot friendly"/>
+                                            <AvatarFallback>AI</AvatarFallback>
+                                        </Avatar>
+                                    )}
+                                    <div className={cn("max-w-xs md:max-w-sm p-3 rounded-lg text-sm", turn.role === 'user' ? "bg-primary text-primary-foreground" : "bg-muted")}>
+                                        <p>{turn.content}</p>
+                                    </div>
+                                </div>
+                            ))}
+                            {isLoading && (
+                                <div className="flex items-start gap-3 justify-start">
+                                     <Avatar className="w-8 h-8 flex-shrink-0">
+                                        <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="robot friendly"/>
+                                        <AvatarFallback>AI</AvatarFallback>
+                                    </Avatar>
+                                   <div className="max-w-xs md:max-w-sm p-3 rounded-lg bg-muted flex items-center">
+                                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                                   </div>
+                                </div>
+                            )}
                         </div>
+
                          <div className="mt-auto pt-6 flex-shrink-0">
                             <div className="text-left w-full mb-4">
                                 <h4 className="font-semibold text-sm mb-3">Suggestions</h4>
@@ -214,8 +274,19 @@ export default function PatientDashboardPage() {
                                     <Button variant="ghost" size="icon" className="h-7 w-7"><Mic className="h-4 w-4" /></Button>
                                     <Button variant="ghost" size="icon" className="h-7 w-7"><Video className="h-4 w-4" /></Button>
                                </div>
-                               <Input placeholder="Type your message..." className="w-full rounded-full h-12 pl-20 pr-14" />
-                               <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full">
+                               <Input 
+                                 placeholder="Type your message..." 
+                                 className="w-full rounded-full h-12 pl-20 pr-14" 
+                                 value={userInput}
+                                 onChange={(e) => setUserInput(e.target.value)}
+                                 onKeyDown={(e) => {
+                                     if (e.key === 'Enter' && !e.shiftKey) {
+                                         e.preventDefault();
+                                         handleSend();
+                                     }
+                                 }}
+                               />
+                               <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full" onClick={handleSend} disabled={isLoading}>
                                    <Send className="w-4 h-4" />
                                </Button>
                             </div>
