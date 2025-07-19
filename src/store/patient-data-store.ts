@@ -74,9 +74,18 @@ interface Dependent {
     image: string;
 }
 
+interface RelaxationData {
+    timeOfRelaxation: { date: string; relaxation: number }[];
+    relaxationVsMood: { day: string; Relaxation: number; Mood: number }[];
+    relaxationDistribution: { activity: string; value: number }[];
+    bestTimeOfDay: { name: string; minutes: number; color: string }[];
+    audioTherapy: { name: string; duration: string; progress: number }[];
+}
+
 interface PatientDataState {
     healthRecords: HealthRecord[];
     healthReport: HealthReport;
+    relaxationData: RelaxationData;
     analytics: AnalyticsData;
     favorites: Doctor[];
     appointmentDates: AppointmentDate[];
@@ -91,11 +100,43 @@ interface PatientDataState {
 const initialPatientDataState: Omit<PatientDataState, 'fetchPatientData' | 'clearPatientData'> = {
     healthRecords: [],
     healthReport: { percentage: 0, title: 'No report available', details: ''},
+    relaxationData: {
+        timeOfRelaxation: [
+            { date: '21', relaxation: 20 }, { date: '22', relaxation: 40 }, { date: '23', relaxation: 35 },
+            { date: '24', relaxation: 60 }, { date: '25', relaxation: 50 }, { date: '26', relaxation: 90 },
+            { date: '27', relaxation: 45 }, { date: '28', relaxation: 55 }, { date: '29', relaxation: 70 },
+            { date: '30', relaxation: 65 },
+        ],
+        relaxationVsMood: [
+            { day: 'Mon', Relaxation: 45, Mood: 30 }, { day: 'Tue', Relaxation: 50, Mood: 40 },
+            { day: 'Wed', Relaxation: 65, Mood: 45 }, { day: 'Thu', Relaxation: 55, Mood: 35 },
+            { day: 'Fri', Relaxation: 70, Mood: 50 }, { day: 'Sat', Relaxation: 80, Mood: 60 },
+            { day: 'Sun', Relaxation: 75, Mood: 55 },
+        ],
+        relaxationDistribution: [
+            { activity: 'Napping', value: 80 }, { activity: 'Meditation', value: 90 },
+            { activity: 'Watch TV', value: 40 }, { activity: 'Walking Outdoors', value: 70 },
+            { activity: 'Music', value: 60 }, { activity: 'Reading', value: 75 },
+        ],
+        bestTimeOfDay: [
+            { name: 'Morning', minutes: 58, color: 'var(--color-chart-1)' },
+            { name: 'Afternoon', minutes: 42, color: 'var(--color-chart-2)' },
+            { name: 'Evening', minutes: 29, color: 'var(--color-chart-4)' },
+        ],
+        audioTherapy: [
+            { name: 'Delta (0.5-4Hz)', duration: '54m', progress: 90 },
+            { name: 'Alpha (8-12 Hz)', duration: '43m', progress: 70 },
+            { name: 'Beta (12-30 Hz)', duration: '8m', progress: 15 },
+        ],
+    },
     analytics: { heartRate: [], bloodPressure: [] },
     favorites: [],
     appointmentDates: [],
     upcomingAppointments: [],
-    notifications: [],
+    notifications: [
+        { id: '1', icon: Bell, color: 'bg-blue-100 text-blue-600', message: "Your appointment with Dr. Smith is confirmed for tomorrow.", time: "2 hours ago" },
+        { id: '2', icon: FileText, color: 'bg-green-100 text-green-600', message: "New care plan available from your AI Doctor.", time: "1 day ago" },
+    ],
     dependents: [],
     isLoading: true,
 };
@@ -148,6 +189,8 @@ export const usePatientDataStore = create<PatientDataState>((set, get) => ({
                     upcomingAppointments: data.dashboard?.upcomingAppointments || initialPatientDataState.upcomingAppointments,
                     notifications: data.dashboard?.notifications || initialPatientDataState.notifications,
                     dependents: data.dashboard?.dependents || initialPatientDataState.dependents,
+                    // Relaxation data can also be made dynamic later
+                    relaxationData: data.dashboard?.relaxationData || initialPatientDataState.relaxationData,
                     isLoading: false,
                 });
             } else {
