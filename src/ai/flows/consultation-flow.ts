@@ -124,7 +124,7 @@ export const consultationFlow = ai.defineFlow(
     if (history.length === 0) {
       const initialTurn: ConsultationTurn = {
           role: 'model',
-          content: "Hello, I'm your AI Doctor. How can I help you today? Please describe your symptoms.",
+          content: "Hello, I'm your AI Doctor. To provide the best possible guidance, could you please tell me your age and biological sex?",
         };
       return [initialTurn];
     }

@@ -23,6 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { HumanDoctorPromoModal } from '@/components/human-doctor-promo-modal';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
+import { Waveform } from '@/components/waveform';
 
 export default function ConsultationPage() {
   const [conversation, setConversation] = useState<ConsultationTurn[]>([]);
@@ -35,6 +37,9 @@ export default function ConsultationPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -44,7 +49,34 @@ export default function ConsultationPage() {
   
   useEffect(() => {
     setCurrentTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-  }, []);
+    
+    // Setup Speech Recognition
+    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
+      const recognition = new (window as any).webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setUserInput(transcript);
+        setIsListening(false);
+      };
+      
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        toast({ title: 'Voice Error', description: `Could not recognize speech: ${event.error}`, variant: 'destructive' });
+        setIsListening(false);
+      };
+      
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+
+  }, [toast]);
 
   const startConsultation = async () => {
     setIsLoading(true);
@@ -96,6 +128,22 @@ export default function ConsultationPage() {
       setIsLoading(false);
     }
   };
+  
+  const handleMicClick = () => {
+    if (!recognitionRef.current) {
+        toast({ title: 'Voice Not Supported', description: "Your browser doesn't support speech recognition.", variant: 'destructive' });
+        return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
+
 
   const downloadSoapNote = () => {
       if (summaryData?.soapNote) {
@@ -161,8 +209,7 @@ ${plan}
                     I agree to the Doctronic Terms of Service and will discuss all Doctronic output with a doctor.
                 </Label>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-                <Input placeholder="Age (18+)" type="number" />
+            <div className="grid grid-cols-1 gap-4">
                 <Button onClick={startConsultation} disabled={!agreedToTerms || isLoading}>
                     {isLoading ? <Loader2 className="animate-spin mr-2"/> : null}
                     Start Consultation
@@ -329,7 +376,7 @@ ${plan}
                           <Bot className="h-6 w-6" />
                         </div>
                        <div className="max-w-md p-4 rounded-xl bg-primary/10 flex items-center">
-                          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                          {isListening ? <Waveform /> : <Loader2 className="h-5 w-5 animate-spin text-primary" />}
                        </div>
                     </div>
                   )}
@@ -356,8 +403,8 @@ ${plan}
                       disabled={isLoading || conversation.length === 0}
                     />
                     <div className="absolute top-1/2 right-3 -translate-y-1/2 flex gap-2">
-                       <Button variant="ghost" size="icon" disabled={isLoading}>
-                            <Mic className="h-5 w-5" />
+                       <Button variant="ghost" size="icon" onClick={handleMicClick} disabled={isLoading}>
+                            {isListening ? <Waveform /> : <Mic className="h-5 w-5" />}
                        </Button>
                       <Button onClick={handleSend} disabled={isLoading || !userInput.trim()}>
                         <Send className="h-4 w-4" />
@@ -371,4 +418,3 @@ ${plan}
     </div>
   );
 }
-
