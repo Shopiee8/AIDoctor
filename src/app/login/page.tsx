@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
@@ -13,37 +13,24 @@ import { Label } from "@/components/ui/label";
 import { Stethoscope } from "lucide-react";
 
 export default function LoginPage() {
-  const { signIn, googleSignIn, user } = useAuth();
+  const { signIn, googleSignIn, user, loading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  // Debug logging
+  console.log('LoginPage render:', { user, loading, error });
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
       const user = await signIn(email, password);
-       if (user) {
+      if (user) {
         toast({ title: 'Login Successful!', description: `Welcome back!` });
-
-        // Role-based redirection
-        if (email === 'admin@aidoctor.com') {
-          localStorage.setItem('userRole', 'Admin');
-          router.push('/admin/dashboard');
-        } else if (email.endsWith('@aiprovider.com')) { // Example logic for AI provider
-          localStorage.setItem('userRole', 'AI Provider');
-          router.push('/ai-provider/dashboard');
-        } else {
-            // Check if the user is in the 'doctors' collection, otherwise default to Patient
-            const role = localStorage.getItem('userRole') || 'Patient';
-            if (role === 'Doctor') {
-                router.push('/doctor/dashboard');
-            } else {
-                router.push('/dashboard');
-            }
-        }
+        // Role-based redirection is now handled automatically by AuthContext
       }
     } catch (err: any) {
       setError(err.message);
@@ -55,22 +42,41 @@ export default function LoginPage() {
     setError(null);
     try {
       await googleSignIn();
-      // After Google sign-in, the AuthProvider's onAuthStateChanged will trigger
-      // the redirect. You might need to handle role-based redirection there or here.
       toast({ title: 'Login Successful!', description: 'Welcome!' });
-      // A simple default redirect, role logic would be more complex.
-      router.push('/dashboard');
+      // Role-based redirection is now handled automatically by AuthContext
     } catch (err: any) {
       setError(err.message);
       toast({ title: 'Google Sign-In Failed', description: err.message, variant: 'destructive' });
     }
   };
 
-  if (user) {
-    // Optional: Redirect if user is already logged in
-    // router.push('/dashboard'); 
-    // return null;
+  // Show loading while auth context is initializing
+  if (loading) {
+    console.log('LoginPage: Showing loading state');
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50/50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
   }
+
+  if (user) {
+    console.log('LoginPage: User is logged in, showing redirect state');
+    // User is already logged in, AuthContext will handle redirection
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50/50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('LoginPage: Showing login form');
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50/50">
