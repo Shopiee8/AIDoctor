@@ -54,20 +54,17 @@ export default function PatientDashboardPage() {
 
             const streamContent = aiTurn.content;
             let currentContent = '';
-            const interval = setInterval(() => {
-                currentContent += streamContent.charAt(currentContent.length);
+            
+            for (let i = 0; i < streamContent.length; i++) {
+                await new Promise(resolve => setTimeout(resolve, 20));
+                currentContent += streamContent[i];
                 setConversation(prev => {
                     const updatedConversation = [...prev];
                     updatedConversation[updatedConversation.length - 1].content = currentContent;
                     return updatedConversation;
                 });
-                if (currentContent.length === streamContent.length) {
-                    clearInterval(interval);
-                    setIsLoading(false);
-                }
-            }, 20); 
-
-
+            }
+            
         } catch (error) {
             console.error("Error with AI flow:", error);
             const errorTurn: GpTurn = {
@@ -75,6 +72,7 @@ export default function PatientDashboardPage() {
                 content: "I'm sorry, I encountered an error. Please try again.",
             };
             setConversation([...newConversation, errorTurn]);
+        } finally {
             setIsLoading(false);
         }
     };
@@ -270,7 +268,7 @@ export default function PatientDashboardPage() {
                                     </div>
                                 </div>
                             ))}
-                            {isLoading && conversation.length > 0 && (
+                            {isLoading && (
                                 <div className="flex items-start gap-3 justify-start">
                                      <Avatar className="w-8 h-8 flex-shrink-0">
                                         <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="robot friendly"/>
