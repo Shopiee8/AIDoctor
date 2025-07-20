@@ -8,6 +8,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { medicalTerms } from './medical-terms';
+import {retriever} from '@genkit-ai/googleai/rag';
 
 // Define the structure for a single turn in the conversation
 const ConsultationTurnSchema = z.object({
@@ -19,11 +20,10 @@ const ConsultationTurnSchema = z.object({
 });
 export type ConsultationTurn = z.infer<typeof ConsultationTurnSchema>;
 
-// The input for the flow will be the conversation history
+// The input for the flow will be the conversation history and latest user message
 const ConsultationInputSchema = z.object({
     history: z.array(ConsultationTurnSchema),
-    terms: z.array(z.any()),
-    retrievedKnowledge: z.string().optional().describe("Relevant information retrieved from the medical encyclopedia."),
+    latestUserMessage: z.string(),
 });
 export type ConsultationInput = z.infer<typeof ConsultationInputSchema>;
 
@@ -31,55 +31,52 @@ export type ConsultationInput = z.infer<typeof ConsultationInputSchema>;
 const ConsultationOutputSchema = ConsultationTurnSchema;
 export type ConsultationOutput = z.infer<typeof ConsultationOutputSchema>;
 
+
+// Define a retriever that points to the RAG extension you would create in Firebase.
+// The name 'aidoctor-medical-retriever' should match the name you give the index in the console.
+const medicalBookRetriever = retriever({
+  name: 'googleai/aidoctor-medical-retriever'
+});
+
 // Define the AI prompt
 const consultationPrompt = ai.definePrompt({
   name: 'consultationPrompt',
   input: { schema: ConsultationInputSchema },
   output: { schema: ConsultationOutputSchema },
+
+  // Add the retriever to the prompt configuration.
+  // The `{{retrieve}}` helper in the prompt will automatically use this.
+  retrievers: [medicalBookRetriever],
+  
   prompt: `You are an empathetic and professional AI Doctor. Your goal is to assess a patient's symptoms and provide basic medical advice. You must communicate in the same language as the user (English or Arabic).
 
-  {{#if retrievedKnowledge}}
   **IMPORTANT**: Use the following information from the Gale Encyclopedia of Medicine as your primary reference for this response.
   <Knowledge>
-  {{{retrievedKnowledge}}}
+  {{{retrieve "dialog"}}}
   </Knowledge>
-  {{/if}}
-
+  
   Conversation History:
   {{#each history}}
   - {{role}}: {{content}}
   {{/each}}
   
   Medical Terminology Reference (both English and Arabic):
-  {{#each terms}}
-  - {{english}}: {{arabic}} ({{category}})
-  {{/each}}
+  - Chest Pain: ألم في الصدر (High-Risk)
+  - Shortness of Breath: ضيق في التنفس (High-Risk)
+  - Headache: صداع (General)
+  - Fever: حمى (General)
 
   Your tasks:
   1.  Analyze the user's latest message for medical symptoms using the provided terminology list.
   2.  Ask clarifying questions to understand the symptom's severity, duration, and nature. (e.g., "I understand you have a headache. Is it severe or mild? When did it start?").
-  3.  **Referral Rule:** If the user mentions any "High-Risk" symptom (like 'chest pain', 'shortness of breath', 'severe headache', 'loss of consciousness'), you MUST immediately refer them to a human doctor. Your response must be ONLY a new model turn with the 'isReferral' flag set to true, and a 'referralReason'. The content should be something like: "Based on the symptoms you've described, it's important to speak with a human doctor immediately. I am connecting you now."
-  4.  Provide simple, safe, evidence-based advice for non-high-risk symptoms, referencing the provided knowledge if available.
+  3.  **Referral Rule:** If the user mentions any "High-Risk" symptom (like 'chest pain', 'shortness of breath'), you MUST immediately refer them to a human doctor. Your response must be ONLY a new model turn with the 'isReferral' flag set to true, and a 'referralReason'. The content should be something like: "Based on the symptoms you've described, it's important to speak with a human doctor immediately. I am connecting you now."
+  4.  Provide simple, safe, evidence-based advice for non-high-risk symptoms, referencing the retrieved knowledge.
   5.  Maintain a caring and professional tone.
   6.  Keep your responses concise.
   7.  If you used the retrieved knowledge, set the 'retrievalSource' field in your response to 'Gale Encyclopedia of Medicine'.
   8.  Return ONLY your single new response as a model turn. Do not return the whole history.
   `,
 });
-
-// Simulated function to search the encyclopedia.
-// In a real implementation, this would involve vector search on your documents.
-async function retrieveFromEncyclopedia(query: string): Promise<string | null> {
-    console.log(`Searching encyclopedia for: ${query}`);
-    // This is a simulation. If the user mentions "cancer", we return a mock article.
-    if (query.toLowerCase().includes('cancer')) {
-        return "Gale Encyclopedia of Medicine, on Cancer: Cancer is a group of diseases involving abnormal cell growth with the potential to invade or spread to other parts of the body. Treatment options often include chemotherapy, radiation therapy, and surgery. Early detection is key.";
-    }
-    if (query.toLowerCase().includes('alzheimer')) {
-        return "Gale Encyclopedia of Medicine, on Alzheimer's: Alzheimer's is a progressive disease that destroys memory and other important mental functions. It is the most common cause of dementia. There is no cure, but medications and management strategies may temporarily improve symptoms.";
-    }
-    return null; // No relevant information found
-}
 
 
 // Define the main flow
@@ -116,15 +113,10 @@ export const consultationFlow = ai.defineFlow(
         }
     }
 
-    // *** RAG Step ***
-    // 1. Retrieve knowledge from the encyclopedia based on the user's message.
-    const retrievedKnowledge = await retrieveFromEncyclopedia(latestUserMessage);
-
-    // 2. Augment the prompt with the retrieved knowledge.
+    // Call the prompt. The retriever will automatically be invoked.
     const { output } = await consultationPrompt({
         history,
-        terms: medicalTerms,
-        retrievedKnowledge: retrievedKnowledge || undefined, // Pass knowledge to the prompt
+        latestUserMessage,
     });
 
     if (output) {
