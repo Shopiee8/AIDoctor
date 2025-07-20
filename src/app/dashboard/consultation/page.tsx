@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { HumanDoctorPromoModal } from '@/components/human-doctor-promo-modal';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function ConsultationPage() {
   const [conversation, setConversation] = useState<ConsultationTurn[]>([]);
