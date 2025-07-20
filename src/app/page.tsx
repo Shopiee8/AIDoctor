@@ -8,6 +8,7 @@ import { SectionDoctor } from "@/components/home/section-doctor";
 import { SectionService } from "@/components/home/section-service";
 import { SectionReason } from "@/components/home/section-reason";
 import { SectionBook } from "@/components/home/section-book";
+import { SectionPricing } from "@/components/home/section-pricing";
 import { SectionTestimonial } from "@/components/home/section-testimonial";
 import { SectionFaq } from "@/components/home/section-faq";
 import { SectionApp } from "@/components/home/section-app";
@@ -27,6 +28,7 @@ export default function Home() {
         <SectionSpeciality />
         <SectionDoctor />
         <SectionBook />
+        <SectionPricing />
         <div className="bg-primary/5 py-16 text-center">
             <div className="container">
                 <h2 className="text-3xl font-bold font-headline mb-4">Ready to Talk to our AI Doctor?</h2>
