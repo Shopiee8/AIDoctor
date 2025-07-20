@@ -42,7 +42,10 @@ const riskData = [
     { name: 'Heart Disease', value: 34.21, fill: 'var(--color-chart-5)' },
 ];
 
-const CustomLabel = ({ x, y, value, payload }: any) => {
+const CustomLabel = (props: any) => {
+    const { x, y, value, payload } = props;
+    if (!payload) return null;
+    
     return (
         <Text x={x} y={y} dy={5} fill="hsl(var(--foreground))" fontSize={12} textAnchor="start">
             {payload.name} {value}%
@@ -119,7 +122,7 @@ export default function PatientDashboardPage() {
                             >
                                 <RadialBar
                                     minAngle={15}
-                                    label={{ content: <CustomLabel /> }}
+                                    label={{ content: CustomLabel }}
                                     background
                                     dataKey="value"
                                 />
