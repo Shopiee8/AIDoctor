@@ -92,7 +92,7 @@ const consultationPrompt = ai.definePrompt({
   {{/each}}
   
   Medical Terminology Reference:
-  - High-Risk Symptoms: 'Chest Pain' (ألم في الصدر), 'Shortness of Breath' (ضيق في التنفس), 'Severe Headache', 'Loss of Consciousness', 'Severe Abdominal Pain'.
+  - High-Risk Symptoms: 'Chest Pain', 'Shortness of Breath', 'Severe Headache', 'Loss of Consciousness', 'Severe Abdominal Pain'.
   
   Your tasks:
   1.  **Engage in Conversation:** Ask clarifying questions to fully understand the patient's symptoms, their severity, duration, and nature. (e.g., "I understand you have a headache. Is it severe or mild? When did it start?"). Do not jump to conclusions.
@@ -153,4 +153,3 @@ export const consultationFlow = ai.defineFlow(
     return history;
   }
 );
-

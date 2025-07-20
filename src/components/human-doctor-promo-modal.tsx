@@ -16,16 +16,19 @@ export function HumanDoctorPromoModal({ isOpen, onOpenChange }: HumanDoctorPromo
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg p-0">
-            <div className="relative">
-                <Image
-                    src="https://placehold.co/600x400.png"
-                    width={600}
-                    height={400}
-                    alt="Doctor on video call"
-                    className="w-full h-auto rounded-t-lg"
-                    data-ai-hint="doctor video call"
-                />
-            </div>
+            <DialogHeader className="p-0">
+                <DialogTitle className="sr-only">Book a Human Doctor</DialogTitle>
+                <div className="relative">
+                    <Image
+                        src="https://placehold.co/600x400.png"
+                        width={600}
+                        height={400}
+                        alt="Doctor on video call"
+                        className="w-full h-auto rounded-t-lg"
+                        data-ai-hint="doctor video call"
+                    />
+                </div>
+            </DialogHeader>
             <div className="p-6 text-center">
                 <h2 className="text-2xl font-bold font-headline mb-4">
                     Video Call with a <br /> <span className="bg-primary text-primary-foreground px-2">Human Doctor</span>
