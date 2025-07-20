@@ -99,7 +99,7 @@ interface PatientDataState {
 
 const initialPatientDataState: Omit<PatientDataState, 'fetchPatientData' | 'clearPatientData'> = {
     healthRecords: [],
-    healthReport: { percentage: 0, title: 'No report available', details: ''},
+    healthReport: { percentage: 95, title: 'Your Health is Normal', details: 'Keep up the good work to maintain your excellent health status. Your biological age is well-managed.'},
     relaxationData: {
         timeOfRelaxation: [
             { date: '21', relaxation: 20 }, { date: '22', relaxation: 40 }, { date: '23', relaxation: 35 },

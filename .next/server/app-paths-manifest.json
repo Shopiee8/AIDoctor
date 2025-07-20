@@ -1,8 +1,6 @@
 {
-  "/dashboard/appointments/page": "app/dashboard/appointments/page.js",
+  "/dashboard/consultation/page": "app/dashboard/consultation/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/vitals/page": "app/dashboard/vitals/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/login/page": "app/login/page.js",
   "/page": "app/page.js"
 }
