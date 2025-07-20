@@ -110,7 +110,7 @@ export default function PatientDashboardPage() {
                             >
                                 <RadialBar
                                     minAngle={15}
-                                    label={{ fill: 'hsl(var(--foreground))', position: 'insideStart', fontSize: '12px', formatter: (value, entry) => `${entry.payload.name} ${value}%` }}
+                                    label={{ fill: 'hsl(var(--foreground))', position: 'insideStart', fontSize: '12px', formatter: (value, entry) => `${entry.name} ${value}%` }}
                                     background
                                     dataKey="value"
                                 />
