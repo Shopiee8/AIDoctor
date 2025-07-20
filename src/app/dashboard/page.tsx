@@ -164,8 +164,8 @@ export default function PatientDashboardPage() {
                                         <YAxis tick={{fontSize: 12}} stroke="hsl(var(--muted-foreground))" />
                                         <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))' }}/>
                                         <Legend iconType="circle" iconSize={8} />
-                                        <Line type="monotone" dataKey="Relaxation" stroke="var(--color-chart-1)" strokeWidth={2} dot={false} />
-                                        <Line type="monotone" dataKey="Mood" stroke="var(--color-chart-2)" strokeWidth={2} dot={false} />
+                                        <Line type="monotone" dataKey="Relaxation" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                                        <Line type="monotone" dataKey="Mood" stroke="hsl(var(--secondary-foreground))" strokeWidth={2} dot={false} />
                                     </LineChart>
                                 </ResponsiveContainer>
                            </Card>
@@ -178,7 +178,7 @@ export default function PatientDashboardPage() {
                                               <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
                                         </Pie>
-                                        <Tooltip />
+                                        <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))' }} />
                                         <Legend iconType="circle" iconSize={8} />
                                     </PieChart>
                                 </ResponsiveContainer>
