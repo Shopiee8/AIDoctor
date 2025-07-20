@@ -9,6 +9,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { medicalTerms } from './medical-terms';
 import { googleAI } from '@genkit-ai/googleai';
+import { inMemoryRetriever } from 'genkit/dev';
 
 // Define the structure for a single turn in the conversation
 const ConsultationTurnSchema = z.object({
@@ -32,11 +33,19 @@ const ConsultationOutputSchema = ConsultationTurnSchema;
 export type ConsultationOutput = z.infer<typeof ConsultationOutputSchema>;
 
 
-// Define a retriever that points to the RAG extension you would create in Firebase.
-// The name 'aidoctor-medical-retriever' should match the name you give the index in the console.
-const medicalBookRetriever = googleAI.retriever({
-  name: 'aidoctor-medical-retriever'
-});
+// In a real app, you would use a proper retriever like one for Firestore or a vector database.
+// For this example, we'll simulate it with an in-memory retriever.
+const medicalBookRetriever = inMemoryRetriever([
+  {
+    content: "Cancer is a group of diseases involving abnormal cell growth with the potential to invade or spread to other parts of the body. These contrast with benign tumors, which do not spread. Treatment options may include chemotherapy, radiation therapy, and surgery.",
+    metadata: { source: 'Gale Encyclopedia of Medicine', page: 42 }
+  },
+  {
+    content: "Alzheimer's disease is a chronic neurodegenerative disease that usually starts slowly and gradually worsens over time. It is the cause of 60–70% of cases of dementia. The most common early symptom is difficulty in remembering recent events.",
+    metadata: { source: 'Gale Encyclopedia of Medicine', page: 88 }
+  },
+]);
+
 
 // Define the AI prompt
 const consultationPrompt = ai.definePrompt({
