@@ -1,15 +1,15 @@
 
 
 import { create } from 'zustand';
-import { doc, onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { LucideIcon } from 'lucide-react';
-import { Heart, Thermometer, Brain, Droplets, LineChart, User, Calendar, Bell, Wallet, Hospital, Video, Scale, Wind, FileText, Plus } from "lucide-react";
+import { Heart, Thermometer, Brain, Droplets, LineChart, User, Calendar, Bell, Wallet, Hospital, Video, Scale, Wind, FileText } from "lucide-react";
 import type { Appointment } from '@/types';
 
 
 // Types
-interface HealthRecord {
+export interface HealthRecord {
   title: string;
   value: string;
   icon: LucideIcon;
@@ -43,10 +43,6 @@ export interface Doctor {
     location: string;
     rating: number;
     image: string;
-    isVerified?: boolean;
-    nextAvailable?: string;
-    lastBooked?: string;
-    isFavorited?: boolean;
 }
 
 interface AppointmentDate {
@@ -78,67 +74,70 @@ interface Dependent {
     image: string;
 }
 
-interface MedicalRecordItem {
-    id: string;
-    name: string;
-    date: string;
-    comments: string;
-}
-
-interface PrescriptionItem {
-    id: string;
-    date: string;
-    doctor: string;
-    image: string;
-}
-
-interface InvoiceItem {
-    id: string;
-    doctor: string;
-    image: string;
-    date: string;
-    amount: number;
-}
-
-interface Reports {
-    appointments: Appointment[];
-    medicalRecords: MedicalRecordItem[];
-    prescriptions: PrescriptionItem[];
-    invoices: InvoiceItem[];
-}
-
-interface PersonalDetails {
-    age?: number;
-    gender?: 'male' | 'female';
+interface RelaxationData {
+    timeOfRelaxation: { date: string; relaxation: number }[];
+    relaxationVsMood: { day: string; Relaxation: number; Mood: number }[];
+    relaxationDistribution: { activity: string; value: number }[];
+    bestTimeOfDay: { name: string; minutes: number; color: string }[];
+    audioTherapy: { name: string; duration: string; progress: number }[];
 }
 
 interface PatientDataState {
-    personalDetails: PersonalDetails;
     healthRecords: HealthRecord[];
     healthReport: HealthReport;
+    relaxationData: RelaxationData;
     analytics: AnalyticsData;
     favorites: Doctor[];
     appointmentDates: AppointmentDate[];
     upcomingAppointments: UpcomingAppointment[];
     notifications: Notification[];
     dependents: Dependent[];
-    reports: Reports;
     isLoading: boolean;
     fetchPatientData: (userId: string) => () => void;
     clearPatientData: () => void;
 }
 
 const initialPatientDataState: Omit<PatientDataState, 'fetchPatientData' | 'clearPatientData'> = {
-    personalDetails: {},
     healthRecords: [],
-    healthReport: { percentage: 0, title: 'No report available', details: ''},
+    healthReport: { percentage: 95, title: 'Your Health is Normal', details: 'Keep up the good work to maintain your excellent health status. Your biological age is well-managed.'},
+    relaxationData: {
+        timeOfRelaxation: [
+            { date: '21', relaxation: 20 }, { date: '22', relaxation: 40 }, { date: '23', relaxation: 35 },
+            { date: '24', relaxation: 60 }, { date: '25', relaxation: 50 }, { date: '26', relaxation: 90 },
+            { date: '27', relaxation: 45 }, { date: '28', relaxation: 55 }, { date: '29', relaxation: 70 },
+            { date: '30', relaxation: 65 },
+        ],
+        relaxationVsMood: [
+            { day: 'Mon', Relaxation: 45, Mood: 30 }, { day: 'Tue', Relaxation: 50, Mood: 40 },
+            { day: 'Wed', Relaxation: 65, Mood: 45 }, { day: 'Thu', Relaxation: 55, Mood: 35 },
+            { day: 'Fri', Relaxation: 70, Mood: 50 }, { day: 'Sat', Relaxation: 80, Mood: 60 },
+            { day: 'Sun', Relaxation: 75, Mood: 55 },
+        ],
+        relaxationDistribution: [
+            { activity: 'Napping', value: 80 }, { activity: 'Meditation', value: 90 },
+            { activity: 'Watch TV', value: 40 }, { activity: 'Walking Outdoors', value: 70 },
+            { activity: 'Music', value: 60 }, { activity: 'Reading', value: 75 },
+        ],
+        bestTimeOfDay: [
+            { name: 'Morning', minutes: 58, color: 'var(--color-chart-1)' },
+            { name: 'Afternoon', minutes: 42, color: 'var(--color-chart-2)' },
+            { name: 'Evening', minutes: 29, color: 'var(--color-chart-4)' },
+        ],
+        audioTherapy: [
+            { name: 'Delta (0.5-4Hz)', duration: '54m', progress: 90 },
+            { name: 'Alpha (8-12 Hz)', duration: '43m', progress: 70 },
+            { name: 'Beta (12-30 Hz)', duration: '8m', progress: 15 },
+        ],
+    },
     analytics: { heartRate: [], bloodPressure: [] },
     favorites: [],
     appointmentDates: [],
     upcomingAppointments: [],
-    notifications: [],
+    notifications: [
+        { id: '1', icon: Bell, color: 'bg-blue-100 text-blue-600', message: "Your appointment with Dr. Smith is confirmed for tomorrow.", time: "2 hours ago" },
+        { id: '2', icon: FileText, color: 'bg-green-100 text-green-600', message: "New care plan available from your AI Doctor.", time: "1 day ago" },
+    ],
     dependents: [],
-    reports: { appointments: [], medicalRecords: [], prescriptions: [], invoices: [] },
     isLoading: true,
 };
 
@@ -177,16 +176,11 @@ export const usePatientDataStore = create<PatientDataState>((set, get) => ({
         set({ isLoading: true });
         
         const userDocRef = doc(db, 'users', userId);
-        const recordsQuery = query(collection(db, 'users', userId, 'medical-records'), orderBy('date', 'desc'), limit(5));
-        const prescriptionsQuery = query(collection(db, 'users', userId, 'prescriptions'), orderBy('date', 'desc'), limit(5));
-        const appointmentsQuery = query(collection(db, 'users', userId, 'appointments'), orderBy('dateTime', 'desc'), limit(5));
-        
-        const unsubUser = onSnapshot(userDocRef, (snapshot) => {
+        const unsubscribe = onSnapshot(userDocRef, (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.data();
                 
                 set({
-                    personalDetails: data.personalDetails || initialPatientDataState.personalDetails,
                     healthRecords: transformVitalsToHealthRecords(data.dashboard?.vitalsSummary),
                     healthReport: data.dashboard?.healthReport || initialPatientDataState.healthReport,
                     analytics: data.dashboard?.analytics || initialPatientDataState.analytics,
@@ -195,6 +189,8 @@ export const usePatientDataStore = create<PatientDataState>((set, get) => ({
                     upcomingAppointments: data.dashboard?.upcomingAppointments || initialPatientDataState.upcomingAppointments,
                     notifications: data.dashboard?.notifications || initialPatientDataState.notifications,
                     dependents: data.dashboard?.dependents || initialPatientDataState.dependents,
+                    // Relaxation data can also be made dynamic later
+                    relaxationData: data.dashboard?.relaxationData || initialPatientDataState.relaxationData,
                     isLoading: false,
                 });
             } else {
@@ -206,33 +202,7 @@ export const usePatientDataStore = create<PatientDataState>((set, get) => ({
             set({ ...initialPatientDataState, isLoading: false });
         });
 
-        const unsubRecords = onSnapshot(recordsQuery, (snapshot) => {
-            const medicalRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MedicalRecordItem));
-            set(state => ({
-                reports: { ...state.reports, medicalRecords }
-            }));
-        });
-        
-        const unsubPrescriptions = onSnapshot(prescriptionsQuery, (snapshot) => {
-            const prescriptions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PrescriptionItem));
-            set(state => ({
-                reports: { ...state.reports, prescriptions }
-            }));
-        });
-
-        const unsubAppointments = onSnapshot(appointmentsQuery, (snapshot) => {
-            const appointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), dateTime: doc.data().dateTime.toDate() } as Appointment));
-            set(state => ({
-                reports: { ...state.reports, appointments }
-            }));
-        });
-
-        return () => {
-            unsubUser();
-            unsubRecords();
-            unsubPrescriptions();
-            unsubAppointments();
-        };
+        return unsubscribe;
     },
     clearPatientData: () => set({...initialPatientDataState, isLoading: false}),
 }));

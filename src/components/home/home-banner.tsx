@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, MapPin, Search, Star, Bot, User, MessageSquarePlus } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Search, Star, Bot, User, MessageSquarePlus, Sparkles } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import Link from 'next/link';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function HomeBanner() {
   const [date, setDate] = useState<Date | undefined>();
@@ -72,56 +73,46 @@ export function HomeBanner() {
             </p>
             
              <div className="rounded-lg bg-card/80 backdrop-blur-sm p-4 shadow-lg border mt-4">
-              <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-center" id="search-form">
-                <div className="relative col-span-1 md:col-span-2">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center" id="search-form">
+                <div className="relative md:col-span-6">
+                  <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" />
                   <Input
                     type="text"
-                    placeholder="Search specialists, clinics..."
+                    placeholder="Symptom, condition, or doctor name..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    className="pl-9 h-10 text-sm"
+                    className="pl-10 h-12 text-base"
                   />
                 </div>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                 <div className="relative md:col-span-3">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Location"
+                    placeholder="Location (optional)"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="pl-9 h-10 text-sm"
+                    className="pl-10 h-12 text-base"
                   />
                 </div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={'outline'}
-                      className={cn(
-                        'w-full justify-start text-left font-normal h-10 text-sm',
-                        !date && 'text-muted-foreground'
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, 'PPP') : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
-                  </PopoverContent>
-                </Popover>
-                 <Button type="submit" className="md:hidden h-10 text-sm">
-                  <Search className="mr-2 h-4 w-4" /> Search
-                </Button>
+                
+                <TooltipProvider>
+                  <div className="md:col-span-3">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button type="submit" className="w-full h-12 text-base" form="search-form">
+                          <Search className="mr-2 h-5 w-5" /> AI Search
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs text-center text-xs">
+                          AI-powered to find the best doctor based on expertise, experience, patient reviews, and more.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </TooltipProvider>
+
               </form>
-               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
-                 <Button className="w-full h-10 text-sm" asChild>
-                    <Link href="/dashboard/consultation"><MessageSquarePlus className="mr-2 h-4 w-4" /> Start AI Consultation</Link>
-                 </Button>
-                 <Button type="submit" className="w-full h-10 text-sm" form="search-form" variant="secondary">
-                  <Search className="mr-2 h-4 w-4" /> Search Human Doctor
-                 </Button>
-               </div>
             </div>
           </div>
           <div className="relative hidden lg:block">

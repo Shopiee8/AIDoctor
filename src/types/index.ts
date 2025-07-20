@@ -25,4 +25,5 @@ export type Appointment = {
   status: 'Upcoming' | 'Completed' | 'Cancelled';
   clinicName?: string;
   clinicLocation?: string;
+  amount?: number;
 };

@@ -13,21 +13,21 @@ import {
 
 const listItems = [
     {
-        href: "/booking",
+        href: "/search",
         icon: CalendarPlus,
         text: "Book Appointment",
         bgColor: "bg-blue-100",
         iconColor: "text-blue-600"
     },
     {
-        href: "#",
+        href: "/search",
         icon: Bot,
         text: "AI Consulation",
         bgColor: "bg-purple-100",
         iconColor: "text-purple-600"
     },
     {
-        href: "#",
+        href: "/search",
         icon: User,
         text: "Human Doctor",
         bgColor: "bg-teal-100",

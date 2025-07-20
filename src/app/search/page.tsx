@@ -38,8 +38,8 @@ function SearchBar() {
   return (
     <div className="bg-primary/5 rounded-lg">
         <form onSubmit={handleSearch}>
-            <div className="grid md:grid-cols-4 items-center gap-1 p-2">
-                <div className="relative">
+            <div className="grid md:grid-cols-12 items-center gap-1 p-2">
+                <div className="relative md:col-span-5">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         type="text"
@@ -49,7 +49,7 @@ function SearchBar() {
                         onChange={(e) => setQuery(e.target.value)}
                     />
                 </div>
-                <div className="relative">
+                <div className="relative md:col-span-4">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         type="text"
@@ -59,27 +59,8 @@ function SearchBar() {
                         onChange={(e) => setLocation(e.target.value)}
                     />
                 </div>
-                <div className="relative">
-                     <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={'outline'}
-                          className={cn(
-                            'w-full justify-start text-left font-normal h-12 bg-background border-none',
-                            !date && 'text-muted-foreground'
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date ? format(date, 'PPP') : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
-                      </PopoverContent>
-                    </Popover>
-                </div>
-                <div className="form-search-btn">
-                    <Button
+                <div className="relative md:col-span-3">
+                     <Button
                         className="w-full h-12 d-inline-flex align-items-center"
                         type="submit"
                     >

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,7 +9,7 @@ import PatientSidebar from '@/components/patient-sidebar';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  userRole: string;
+  userRole: 'Patient' | 'Doctor' | 'Admin' | 'AI Provider' | string;
 }
 
 export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {

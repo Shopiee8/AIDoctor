@@ -1,9 +1,6 @@
 
-
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Calendar, Check, X, Eye, Video, Bell, Star, CalendarDays } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -66,11 +63,12 @@ export default function DoctorDashboardPage() {
                         <CardTitle>Appointments</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableBody>
+                        <div className="table-responsive">
+                        <table className="table w-full">
+                            <tbody>
                                 {upcomingAppointments.map((appt) => (
-                                    <TableRow key={appt.id}>
-                                        <TableCell>
+                                    <tr key={appt.id}>
+                                        <td className="p-2">
                                             <div className="flex items-center gap-3">
                                                 <Avatar className="h-10 w-10">
                                                     <AvatarImage src={appt.image} data-ai-hint={appt.imageHint} />
@@ -81,22 +79,23 @@ export default function DoctorDashboardPage() {
                                                     <p className="font-medium">{appt.patient}</p>
                                                 </div>
                                             </div>
-                                        </TableCell>
-                                        <TableCell>
+                                        </td>
+                                        <td className="p-2">
                                             <p className="font-medium">{appt.date}</p>
                                             <p className="text-xs text-muted-foreground">{appt.time}</p>
-                                        </TableCell>
-                                        <TableCell>
-                                             <Badge variant="outline">{appt.purpose}</Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right space-x-2">
+                                        </td>
+                                        <td className="p-2">
+                                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">{appt.purpose}</div>
+                                        </td>
+                                        <td className="text-right p-2 space-x-2">
                                             <Button variant="outline" size="icon" className="h-8 w-8 border-green-500 text-green-500 hover:bg-green-50 hover:text-green-600"><Check className="h-4 w-4" /></Button>
                                             <Button variant="outline" size="icon" className="h-8 w-8 border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600"><X className="h-4 w-4" /></Button>
-                                        </TableCell>
-                                    </TableRow>
+                                        </td>
+                                    </tr>
                                 ))}
-                            </TableBody>
-                        </Table>
+                            </tbody>
+                        </table>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -137,14 +136,15 @@ export default function DoctorDashboardPage() {
                 <Card>
                     <CardHeader className="flex flex-row justify-between items-center">
                         <CardTitle>Recent Invoices</CardTitle>
-                        <Button variant="link" asChild><Link href="/doctor/invoices">View All</Link></Button>
+                        <Button variant="link" asChild><Link href="/doctor/dashboard/invoices">View All</Link></Button>
                     </CardHeader>
                      <CardContent>
-                        <Table>
-                             <TableBody>
+                        <div className="table-responsive">
+                        <table className="table w-full">
+                             <tbody>
                                 {recentInvoices.map((invoice) => (
-                                    <TableRow key={invoice.id}>
-                                        <TableCell>
+                                    <tr key={invoice.id}>
+                                        <td className="p-2">
                                             <div className="flex items-center gap-3">
                                                 <Avatar className="h-10 w-10">
                                                     <AvatarImage src={invoice.image} data-ai-hint={invoice.imageHint} />
@@ -155,22 +155,23 @@ export default function DoctorDashboardPage() {
                                                     <p className="text-xs text-muted-foreground">#{invoice.patientId}</p>
                                                 </div>
                                             </div>
-                                        </TableCell>
-                                        <TableCell>
+                                        </td>
+                                        <td className="p-2">
                                             <p className="text-xs text-muted-foreground">Amount</p>
                                             <p className="font-medium">${invoice.amount.toFixed(2)}</p>
-                                        </TableCell>
-                                        <TableCell>
+                                        </td>
+                                        <td className="p-2">
                                             <p className="text-xs text-muted-foreground">Paid On</p>
                                             <p className="font-medium">{invoice.date}</p>
-                                        </TableCell>
-                                         <TableCell className="text-right">
+                                        </td>
+                                         <td className="text-right p-2">
                                             <Button variant="outline" size="icon" className="h-8 w-8"><Eye className="h-4 w-4" /></Button>
-                                        </TableCell>
-                                    </TableRow>
+                                        </td>
+                                    </tr>
                                 ))}
-                            </TableBody>
-                        </Table>
+                            </tbody>
+                        </table>
+                        </div>
                     </CardContent>
                 </Card>
                  <Card>

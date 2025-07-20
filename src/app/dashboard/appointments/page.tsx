@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -87,46 +88,35 @@ export default function AppointmentsPage() {
                 <p className="text-muted-foreground">View and manage your upcoming and past appointments.</p>
             </div>
             
-            <Tabs defaultValue="upcoming">
-                <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="upcoming">Upcoming ({upcomingAppointments.length})</TabsTrigger>
-                    <TabsTrigger value="completed">Completed ({completedAppointments.length})</TabsTrigger>
-                    <TabsTrigger value="cancelled">Cancelled ({cancelledAppointments.length})</TabsTrigger>
-                </TabsList>
-                <TabsContent value="upcoming">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Upcoming Appointments</CardTitle>
+            <Card>
+                <CardHeader>
+                    <Tabs defaultValue="upcoming" className="w-full">
+                        <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="upcoming">Upcoming ({upcomingAppointments.length})</TabsTrigger>
+                            <TabsTrigger value="completed">Completed ({completedAppointments.length})</TabsTrigger>
+                            <TabsTrigger value="cancelled">Cancelled ({cancelledAppointments.length})</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="upcoming" className="mt-4">
                             <CardDescription>Here are your scheduled appointments. You can attend, reschedule or cancel.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {renderAppointmentList(upcomingAppointments, 'You have no upcoming appointments.')}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                <TabsContent value="completed">
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Completed Appointments</CardTitle>
-                             <CardDescription>A record of your past consultations.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {renderAppointmentList(completedAppointments, 'You have no completed appointments.')}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                 <TabsContent value="cancelled">
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Cancelled Appointments</CardTitle>
-                             <CardDescription>A history of your cancelled appointments.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {renderAppointmentList(cancelledAppointments, 'You have no cancelled appointments.')}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
+                            <CardContent className="p-0 pt-4">
+                                {renderAppointmentList(upcomingAppointments, 'You have no upcoming appointments.')}
+                            </CardContent>
+                        </TabsContent>
+                        <TabsContent value="completed" className="mt-4">
+                            <CardDescription>A record of your past consultations.</CardDescription>
+                            <CardContent className="p-0 pt-4">
+                                {renderAppointmentList(completedAppointments, 'You have no completed appointments.')}
+                            </CardContent>
+                        </TabsContent>
+                        <TabsContent value="cancelled" className="mt-4">
+                            <CardDescription>A history of your cancelled appointments.</CardDescription>
+                            <CardContent className="p-0 pt-4">
+                                {renderAppointmentList(cancelledAppointments, 'You have no cancelled appointments.')}
+                            </CardContent>
+                        </TabsContent>
+                    </Tabs>
+                </CardHeader>
+            </Card>
         </div>
     );
 }
