@@ -142,19 +142,11 @@ export const consultationFlow = ai.defineFlow(
     }
     
     const latestUserMessage = history[history.length - 1]?.content || '';
-
-    // Check for high-risk terms in the latest user message to trigger referral flow
-    const highRiskTerms = medicalTerms.filter(t => t.category === 'High-Risk');
-    const userMessageLower = latestUserMessage.toLowerCase();
-    const foundHighRiskTerm = highRiskTerms.find(term => 
-        userMessageLower.includes(term.english.toLowerCase()) || 
-        (term.arabic && userMessageLower.includes(term.arabic))
-    );
     
     // Simulate knowledge retrieval
     const retrievedKnowledge = retrieveFromEncyclopedia(latestUserMessage);
 
-    // Call the prompt.
+    // Call the prompt. The prompt itself is responsible for checking for high-risk terms and deciding to refer.
     const { output } = await consultationPrompt({
         history,
         latestUserMessage,
