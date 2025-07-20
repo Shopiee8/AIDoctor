@@ -10,6 +10,29 @@ import { z } from 'zod';
 import { medicalTerms } from './medical-terms';
 import { googleAI } from '@genkit-ai/googleai';
 
+// Define the structured Assessment and Plan
+const DifferentialDiagnosisSchema = z.object({
+  diagnosis: z.string().describe("The name of the possible condition."),
+  likelihood: z.string().describe("The percentage likelihood of this diagnosis (e.g., '60% Likelihood')."),
+  rationale: z.string().describe("A brief rationale for why this diagnosis is being considered."),
+});
+
+const PlanOfActionSchema = z.object({
+    laboratoryTests: z.string().describe("Recommended lab tests."),
+    imagingStudies: z.string().describe("Recommended imaging studies."),
+    medications: z.string().describe("Recommended medications and supportive care."),
+    operationsOrProcedures: z.string().describe("Recommended operations or procedures, if any."),
+    followUp: z.string().describe("Follow-up instructions for the patient."),
+});
+
+const AssessmentAndPlanSchema = z.object({
+    overview: z.string().describe("A clinical overview of possible causes considered."),
+    differentialDiagnosis: z.array(DifferentialDiagnosisSchema).describe("A list of possible diagnoses, ranked by likelihood."),
+    planOfAction: PlanOfActionSchema,
+    conclusion: z.string().describe("A concluding paragraph summarizing the workup plan."),
+});
+
+
 // Define the structure for a single turn in the conversation
 const ConsultationTurnSchema = z.object({
   role: z.enum(['user', 'model']),
@@ -17,7 +40,13 @@ const ConsultationTurnSchema = z.object({
   isReferral: z.boolean().optional().describe('Set to true if this is a referral message.'),
   referralReason: z.string().optional().describe('A short, clinical reason for the referral.'),
   consultationSummary: z.string().optional().describe("A detailed summary for the patient explaining the situation and recommendation."),
-  soapNote: z.string().optional().describe("A detailed SOAP note (Subjective, Objective, Assessment, Plan) for a physician to review."),
+  soapNote: z.object({
+      subjective: z.string(),
+      objective: z.string(),
+      assessment: z.string(),
+      plan: z.string(),
+  }).optional().describe("A detailed SOAP note (Subjective, Objective, Assessment, Plan) for a physician to review."),
+  assessmentAndPlan: AssessmentAndPlanSchema.optional().describe("A detailed assessment and plan for the patient view."),
   retrievalSource: z.string().optional().describe('The source of the retrieved knowledge, if any.'),
 });
 export type ConsultationTurn = z.infer<typeof ConsultationTurnSchema>;
@@ -82,8 +111,10 @@ const consultationPrompt = ai.definePrompt({
       - Your response MUST be a new model turn with 'isReferral' set to true.
       - The 'content' field should be a simple message like: "Based on the symptoms you've described, it's important to speak with a human doctor."
       - The 'referralReason' should be a short clinical reason (e.g., "Patient reported high-risk symptom: Chest Pain").
-      - The 'consultationSummary' field must contain a detailed, patient-friendly summary of the situation and why seeing a doctor is important. (e.g., "You presented with... which most likely indicates... The action plan includes...")
-      - The 'soapNote' field must contain a clinical SOAP note (Subjective, Objective, Assessment, Plan) for another physician to review.
+      - The 'consultationSummary' field must contain a detailed, patient-friendly summary of the situation and why seeing a doctor is important.
+      - **Crucially, you MUST generate both a detailed SOAP Note and a detailed Assessment & Plan.**
+        - The `soapNote` field must contain a clinical SOAP note (Subjective, Objective, Assessment, Plan) for another physician to review.
+        - The `assessmentAndPlan` field must be fully populated with a differential diagnosis, a plan of action, and a conclusion.
   4.  Provide simple, safe, evidence-based advice for non-high-risk symptoms, referencing the retrieved knowledge if available.
   5.  Maintain a caring and professional tone.
   6.  Keep your standard (non-referral) responses concise.

@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Bot, User, Send, Loader2, Mic, AlertTriangle, BookCheck, Stethoscope, FileText, Download, Sparkles, Video } from 'lucide-react';
+import { Bot, User, Send, Loader2, Mic, AlertTriangle, BookCheck, Stethoscope, FileText, Download, Sparkles, Video, File, ListChecks, Activity, BrainCircuit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { consultationFlow, ConsultationTurn } from '@/ai/flows/consultation-flow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,6 +19,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 export default function ConsultationPage() {
   const [conversation, setConversation] = useState<ConsultationTurn[]>([]);
@@ -95,7 +97,24 @@ export default function ConsultationPage() {
 
   const downloadSoapNote = () => {
       if (summaryData?.soapNote) {
-          const blob = new Blob([summaryData.soapNote], { type: 'text/plain' });
+          const { subjective, objective, assessment, plan } = summaryData.soapNote;
+          const noteContent = `
+SOAP Note
+-----------
+
+Subjective:
+${subjective}
+
+Objective:
+${objective}
+
+Assessment:
+${assessment}
+
+Plan:
+${plan}
+          `;
+          const blob = new Blob([noteContent.trim()], { type: 'text/plain' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
@@ -157,16 +176,16 @@ export default function ConsultationPage() {
   );
 
   const renderSummaryScreen = () => (
-    <div className="flex flex-col items-center justify-center p-6 text-center">
+    <div className="flex flex-col items-center justify-center p-4 sm:p-6 text-center">
         <Sparkles className="h-12 w-12 text-primary mb-2" />
         <h2 className="text-2xl font-bold font-headline">AI Consult Summary</h2>
-        <p className="text-sm text-muted-foreground">Today, {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+        <p className="text-sm text-muted-foreground">Today, {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}, {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
 
-        <p className="mt-4 max-w-2xl text-muted-foreground">
+        <p className="mt-4 max-w-3xl text-muted-foreground text-sm">
             {summaryData?.consultationSummary || "No summary available."}
         </p>
 
-        <Card className="mt-6 w-full max-w-md bg-primary/10 border-primary">
+        <Card className="mt-6 w-full max-w-lg bg-primary/10 border-primary">
             <CardHeader>
                 <CardTitle className="text-primary">We Recommend You See a Doctor Now</CardTitle>
             </CardHeader>
@@ -183,23 +202,74 @@ export default function ConsultationPage() {
             </CardFooter>
         </Card>
 
-        <Accordion type="single" collapsible className="w-full max-w-md mt-6 text-left">
+        <Accordion type="single" collapsible className="w-full max-w-3xl mt-6 text-left">
             <AccordionItem value="assessment">
-                <AccordionTrigger>Assessment & Plan</AccordionTrigger>
-                <AccordionContent>
-                    A clinical overview of possible causes considered. This section will be expanded with more details in a future update.
+                <AccordionTrigger className="text-base">Assessment & Plan</AccordionTrigger>
+                <AccordionContent className="space-y-6">
+                    <p className="text-sm text-muted-foreground">{summaryData?.assessmentAndPlan?.overview}</p>
+                    
+                    <div>
+                        <h4 className="font-semibold mb-3 flex items-center"><BrainCircuit className="w-5 h-5 mr-2 text-primary"/>Differential Diagnosis</h4>
+                        <div className="space-y-4">
+                            {summaryData?.assessmentAndPlan?.differentialDiagnosis?.map((item, index) => (
+                                <div key={index} className="p-4 border rounded-lg">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <p className="font-semibold">{item.diagnosis}</p>
+                                        <Badge variant="secondary">{item.likelihood}</Badge>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">{item.rationale}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 className="font-semibold mb-3 flex items-center"><ListChecks className="w-5 h-5 mr-2 text-primary"/>Plan of Action</h4>
+                        <div className="prose prose-sm max-w-none text-muted-foreground space-y-2">
+                            <p><strong>Laboratory Tests:</strong> {summaryData?.assessmentAndPlan?.planOfAction.laboratoryTests}</p>
+                            <p><strong>Imaging Studies:</strong> {summaryData?.assessmentAndPlan?.planOfAction.imagingStudies}</p>
+                            <p><strong>Medications:</strong> {summaryData?.assessmentAndPlan?.planOfAction.medications}</p>
+                            <p><strong>Operations or Procedures:</strong> {summaryData?.assessmentAndPlan?.planOfAction.operationsOrProcedures}</p>
+                            <p><strong>Follow-up:</strong> {summaryData?.assessmentAndPlan?.planOfAction.followUp}</p>
+                        </div>
+                    </div>
+                    
+                    <Separator />
+                    <p className="text-xs text-muted-foreground italic">{summaryData?.assessmentAndPlan?.conclusion}</p>
+
                 </AccordionContent>
             </AccordionItem>
             <AccordionItem value="soap">
-                <AccordionTrigger>SOAP Note (for Physicians)</AccordionTrigger>
+                <AccordionTrigger className="text-base">SOAP Note (for Physicians)</AccordionTrigger>
                 <AccordionContent className="space-y-4">
-                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">{summaryData?.soapNote || "No SOAP note generated."}</p>
+                     <div className="prose prose-sm max-w-none text-muted-foreground">
+                        <h4>Subjective</h4>
+                        <p>{summaryData?.soapNote?.subjective}</p>
+                        <h4>Objective</h4>
+                        <p>{summaryData?.soapNote?.objective}</p>
+                        <h4>Assessment</h4>
+                        <p>{summaryData?.soapNote?.assessment}</p>
+                        <h4>Plan</h4>
+                        <p>{summaryData?.soapNote?.plan}</p>
+                    </div>
                     <Button variant="outline" size="sm" onClick={downloadSoapNote}>
                         <Download className="mr-2 h-4 w-4" /> Download SOAP Note (TXT)
                     </Button>
                 </AccordionContent>
             </AccordionItem>
         </Accordion>
+        
+        <Card className="mt-8 w-full max-w-lg">
+             <CardHeader>
+                <CardTitle>Next Step</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">Book a follow up video appointment with over 7000 licensed doctors in every state. Appointments available at your earliest convenience. No insurance required.</p>
+                <Button className="w-full" asChild>
+                    <Link href="/search">Schedule an Appointment for $39</Link>
+                </Button>
+            </CardContent>
+        </Card>
     </div>
   );
 
