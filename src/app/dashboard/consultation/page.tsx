@@ -5,9 +5,10 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Bot, User, Send, Loader2, Mic, AlertTriangle, BookCheck, Stethoscope, FileText, Download, Sparkles, Video, File, ListChecks, Activity, BrainCircuit } from 'lucide-react';
+import { Bot, User, Send, Loader2, Mic, AlertTriangle, BookCheck, Stethoscope, FileText, Download, Sparkles, Video, File, ListChecks, Activity, BrainCircuit, Play, Pause } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { consultationFlow, ConsultationTurn } from '@/ai/flows/consultation-flow';
+import { ttsFlow } from '@/ai/flows/tts-flow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -39,6 +40,8 @@ export default function ConsultationPage() {
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -50,17 +53,17 @@ export default function ConsultationPage() {
   useEffect(() => {
     setCurrentTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     
-    // Setup Speech Recognition
     if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
       const recognition = new (window as any).webkitSpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
       recognition.lang = 'en-US';
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = async (event: any) => {
         const transcript = event.results[0][0].transcript;
         setUserInput(transcript);
         setIsListening(false);
+        await handleSend(transcript);
       };
       
       recognition.onerror = (event: any) => {
@@ -77,6 +80,29 @@ export default function ConsultationPage() {
     }
 
   }, [toast]);
+  
+  const handleTTS = async (text: string) => {
+    try {
+        const audioData = await ttsFlow(text);
+        if (audioData?.media && audioRef.current) {
+            audioRef.current.src = audioData.media;
+            audioRef.current.play();
+            setIsPlaying(true);
+        }
+    } catch (error) {
+        console.error("Error generating speech:", error);
+        toast({ title: "TTS Error", description: "Could not generate speech.", variant: "destructive" });
+    }
+  };
+  
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      const onEnded = () => setIsPlaying(false);
+      audio.addEventListener('ended', onEnded);
+      return () => audio.removeEventListener('ended', onEnded);
+    }
+  }, []);
 
   const startConsultation = async () => {
     setIsLoading(true);
@@ -85,6 +111,10 @@ export default function ConsultationPage() {
     try {
       const initialResponse = await consultationFlow([]);
       setConversation(initialResponse);
+      const firstMessage = initialResponse[0]?.content;
+      if (firstMessage) {
+          await handleTTS(firstMessage);
+      }
     } catch (error)
       {
       console.error("Error starting consultation:", error);
@@ -98,10 +128,11 @@ export default function ConsultationPage() {
     }
   };
 
-  const handleSend = async () => {
-    if (!userInput.trim()) return;
+  const handleSend = async (text?: string) => {
+    const message = text || userInput;
+    if (!message.trim()) return;
 
-    const userTurn: ConsultationTurn = { role: 'user', content: userInput };
+    const userTurn: ConsultationTurn = { role: 'user', content: message };
     const newConversation = [...conversation, userTurn];
     setConversation(newConversation);
     setUserInput('');
@@ -109,12 +140,19 @@ export default function ConsultationPage() {
 
     try {
       const response = await consultationFlow(newConversation);
-      setConversation(response);
       const latestTurn = response[response.length - 1];
+      setConversation(response);
+
+      if (latestTurn.content) {
+        await handleTTS(latestTurn.content);
+      }
       
       if (latestTurn.isReferral) {
         setSummaryData(latestTurn);
         setIsConsultationFinished(true);
+        if (latestTurn.consultationSummary) {
+          await handleTTS(latestTurn.consultationSummary);
+        }
       }
 
     } catch (error) {
@@ -124,6 +162,7 @@ export default function ConsultationPage() {
         content: "I'm sorry, I encountered an error. Please rephrase your statement or try again.",
       };
       setConversation([...newConversation, errorTurn]);
+      await handleTTS(errorTurn.content);
     } finally {
       setIsLoading(false);
     }
@@ -139,10 +178,26 @@ export default function ConsultationPage() {
       recognitionRef.current.stop();
       setIsListening(false);
     } else {
+      if (isPlaying && audioRef.current) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
       recognitionRef.current.start();
       setIsListening(true);
     }
   };
+
+  const handlePlayPause = () => {
+      if (audioRef.current) {
+        if(isPlaying) {
+            audioRef.current.pause();
+            setIsPlaying(false);
+        } else {
+            audioRef.current.play();
+            setIsPlaying(true);
+        }
+      }
+  }
 
 
   const downloadSoapNote = () => {
@@ -325,6 +380,7 @@ ${plan}
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] bg-muted/20">
+      <audio ref={audioRef} className="hidden" />
       <Card className="w-full max-w-3xl min-h-[80vh] flex flex-col shadow-xl">
         {!consultationStarted ? (
             renderPreConsultation()
@@ -335,7 +391,12 @@ ${plan}
         ) : (
             <>
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="font-headline">AI Doctor Consultation</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="font-headline">AI Doctor Consultation</CardTitle>
+                    <Button variant="ghost" size="icon" onClick={handlePlayPause}>
+                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                    </Button>
+                  </div>
                   <Button variant="destructive" size="sm">
                     <AlertTriangle className="mr-2 h-4 w-4" />
                     Emergency
@@ -406,7 +467,7 @@ ${plan}
                        <Button variant="ghost" size="icon" onClick={handleMicClick} disabled={isLoading}>
                             {isListening ? <Waveform /> : <Mic className="h-5 w-5" />}
                        </Button>
-                      <Button onClick={handleSend} disabled={isLoading || !userInput.trim()}>
+                      <Button onClick={() => handleSend()} disabled={isLoading || !userInput.trim()}>
                         <Send className="h-4 w-4" />
                       </Button>
                     </div>
