@@ -2,7 +2,7 @@
 'use client';
 
 import {
-  LineChart, AreaChart, Area, Line, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, Radar, PieChart, Pie, Cell, Tooltip, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer, PolarRadiusAxis, RadialBarChart, RadialBar
+  LineChart, AreaChart, Area, Line, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, Radar, PieChart, Pie, Cell, Tooltip, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer, PolarRadiusAxis, RadialBarChart, RadialBar, Text
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -41,6 +41,15 @@ const riskData = [
     { name: 'Type 2 Diabetes', value: 17.32, fill: 'var(--color-chart-4)' },
     { name: 'Heart Disease', value: 34.21, fill: 'var(--color-chart-5)' },
 ];
+
+const CustomLabel = ({ x, y, value, payload }: any) => {
+    return (
+        <Text x={x} y={y} dy={5} fill="hsl(var(--foreground))" fontSize={12} textAnchor="start">
+            {payload.name} {value}%
+        </Text>
+    );
+};
+
 
 export default function PatientDashboardPage() {
     const { healthReport, isLoading } = usePatientDataStore();
@@ -110,7 +119,7 @@ export default function PatientDashboardPage() {
                             >
                                 <RadialBar
                                     minAngle={15}
-                                    label={{ fill: 'hsl(var(--foreground))', position: 'insideStart', fontSize: '12px', formatter: (value, entry) => `${entry.name} ${value}%` }}
+                                    label={{ content: <CustomLabel /> }}
                                     background
                                     dataKey="value"
                                 />
