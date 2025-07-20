@@ -73,20 +73,30 @@ export function HomeBanner() {
             </p>
             
              <div className="rounded-lg bg-card/80 backdrop-blur-sm p-4 shadow-lg border mt-4">
-              <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-center" id="search-form">
-                <div className="relative col-span-1 md:col-span-4">
+              <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center" id="search-form">
+                <div className="relative md:col-span-6">
                   <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" />
                   <Input
                     type="text"
-                    placeholder="Enter your symptoms to find the best doctor for you..."
+                    placeholder="Symptom, condition, or doctor name..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     className="pl-10 h-12 text-base"
                   />
                 </div>
+                 <div className="relative md:col-span-3">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Location (optional)"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    className="pl-10 h-12 text-base"
+                  />
+                </div>
                 
                 <TooltipProvider>
-                  <div className="md:col-span-4">
+                  <div className="md:col-span-3">
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button type="submit" className="w-full h-12 text-base" form="search-form">
