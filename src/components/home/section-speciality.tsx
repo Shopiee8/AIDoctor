@@ -13,15 +13,15 @@ import {
 import { Stethoscope, Baby, Brain, Bone, Heart, Smile, FlaskConical, GitMerge, Eye, Users, Shield, Bot } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-const specialities: { name: string; doctors: number; icon: LucideIcon; type: 'AI' | 'Human' }[] = [
-    { name: "AI Diagnostics", doctors: 15, icon: Bot, type: 'AI'},
-    { name: "Cardiology", doctors: 25, icon: Heart, type: 'Human' },
-    { name: "Orthopedics", doctors: 18, icon: Bone, type: 'Human' },
-    { name: "AI Mental Health", doctors: 12, icon: Bot, type: 'AI' },
-    { name: "Neurology", doctors: 22, icon: Brain, type: 'Human' },
-    { name: "Pediatrics", doctors: 30, icon: Baby, type: 'Human' },
-    { name: "Dentistry", doctors: 45, icon: Smile, type: 'Human' },
-    { name: "General Medicine", doctors: 50, icon: Stethoscope, type: 'Human' },
+const specialities: { name: string; doctors: number; icon: LucideIcon; type: 'AI' | 'Human'; image: string; hint: string; }[] = [
+    { name: "AI Diagnostics", doctors: 15, icon: Bot, type: 'AI', image: "https://placehold.co/250x312.png", hint: "medical specialty" },
+    { name: "Cardiology", doctors: 25, icon: Heart, type: 'Human', image: "https://placehold.co/250x312.png", hint: "medical specialty" },
+    { name: "Orthopedics", doctors: 18, icon: Bone, type: 'Human', image: "https://placehold.co/250x312.png", hint: "orthopedic surgery" },
+    { name: "AI Mental Health", doctors: 12, icon: Bot, type: 'AI', image: "https://placehold.co/250x312.png", hint: "medical specialty" },
+    { name: "Neurology", doctors: 22, icon: Brain, type: 'Human', image: "https://placehold.co/250x312.png", hint: "medical specialty" },
+    { name: "Pediatrics", doctors: 30, icon: Baby, type: 'Human', image: "https://placehold.co/250x312.png", hint: "medical specialty" },
+    { name: "Dentistry", doctors: 45, icon: Smile, type: 'Human', image: "https://placehold.co/250x312.png", hint: "medical specialty" },
+    { name: "General Medicine", doctors: 50, icon: Stethoscope, type: 'Human', image: "https://placehold.co/250x312.png", hint: "medical specialty" },
 ];
 
 
@@ -47,12 +47,12 @@ export function SectionSpeciality() {
                                     <Link href="#" className="block group">
                                         <div className="relative aspect-[4/5] overflow-hidden rounded-lg">
                                             <Image
-                                                src={`https://placehold.co/250x312.png`}
+                                                src={spec.image}
                                                 alt={spec.name}
                                                 width={250}
                                                 height={312}
                                                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                                data-ai-hint="medical specialty"
+                                                data-ai-hint={spec.hint}
                                             />
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                                             <div className="absolute bottom-4 left-4 text-white">
