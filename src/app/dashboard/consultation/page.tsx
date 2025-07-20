@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Bot, User, Send, Loader2, Mic, AlertTriangle } from 'lucide-react';
+import { Bot, User, Send, Loader2, Mic, AlertTriangle, BookCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { consultationFlow, ConsultationTurn } from '@/ai/flows/consultation-flow';
 
@@ -93,16 +93,24 @@ export default function ConsultationPage() {
                   <Bot className="h-6 w-6" />
                 </div>
               )}
-              <div className={cn(
-                "max-w-md p-4 rounded-xl", 
-                turn.role === 'user' ? "bg-secondary text-secondary-foreground" : "bg-primary/10"
-              )}>
-                <p className="text-sm">{turn.content}</p>
-                 {turn.isReferral && (
-                  <div className="mt-3 p-3 bg-destructive/10 border-l-4 border-destructive text-destructive-foreground rounded-r-lg">
-                    <p className="font-bold text-sm">Action Required</p>
-                    <p className="text-xs">{turn.referralReason}</p>
-                  </div>
+              <div className="flex flex-col">
+                <div className={cn(
+                  "max-w-md p-4 rounded-xl", 
+                  turn.role === 'user' ? "bg-secondary text-secondary-foreground" : "bg-primary/10"
+                )}>
+                  <p className="text-sm">{turn.content}</p>
+                   {turn.isReferral && (
+                    <div className="mt-3 p-3 bg-destructive/10 border-l-4 border-destructive text-destructive-foreground rounded-r-lg">
+                      <p className="font-bold text-sm">Action Required</p>
+                      <p className="text-xs">{turn.referralReason}</p>
+                    </div>
+                  )}
+                </div>
+                {turn.retrievalSource && (
+                    <div className="flex items-center gap-1.5 mt-1.5 px-2">
+                        <BookCheck className="w-3 h-3 text-muted-foreground"/>
+                        <p className="text-xs text-muted-foreground">Sourced from: {turn.retrievalSource}</p>
+                    </div>
                 )}
               </div>
                {turn.role === 'user' && (
@@ -132,7 +140,7 @@ export default function ConsultationPage() {
         <div className="p-4 border-t bg-background">
           <div className="relative">
             <Textarea
-              placeholder="Describe your symptoms here..."
+              placeholder="Describe your symptoms here... (e.g., 'What is cancer?')"
               className="pr-24"
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}

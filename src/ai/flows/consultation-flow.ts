@@ -15,6 +15,7 @@ const ConsultationTurnSchema = z.object({
   content: z.string(),
   isReferral: z.boolean().optional().describe('Set to true if this is a referral message.'),
   referralReason: z.string().optional().describe('The reason for the referral.'),
+  retrievalSource: z.string().optional().describe('The source of the retrieved knowledge, if any.'),
 });
 export type ConsultationTurn = z.infer<typeof ConsultationTurnSchema>;
 
@@ -61,7 +62,8 @@ const consultationPrompt = ai.definePrompt({
   4.  Provide simple, safe, evidence-based advice for non-high-risk symptoms, referencing the provided knowledge if available.
   5.  Maintain a caring and professional tone.
   6.  Keep your responses concise.
-  7.  Return ONLY your single new response as a model turn. Do not return the whole history.
+  7.  If you used the retrieved knowledge, set the 'retrievalSource' field in your response to 'Gale Encyclopedia of Medicine'.
+  8.  Return ONLY your single new response as a model turn. Do not return the whole history.
   `,
 });
 

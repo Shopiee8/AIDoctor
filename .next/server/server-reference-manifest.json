@@ -1,5 +1,17 @@
 {
-  "node": {},
+  "node": {
+    "7f65d50783c4b016f54faf853a0df06c7489f7dd49": {
+      "workers": {
+        "app/dashboard/consultation/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/consultation/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/consultation-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/dashboard/consultation/page": "action-browser"
+      }
+    }
+  },
   "edge": {},
   "encryptionKey": "VZ8jgaRolVHiDU6HTA75NMkUlbRsweAGud99Vn56YxE="
 }
