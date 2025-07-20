@@ -98,37 +98,32 @@ export default function PatientDashboardPage() {
             <div className="col-span-12 lg:col-span-8 space-y-6">
                 
                 {/* Health Records */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Health Records</CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {healthRecords.map((record, index) => (
-                            <div key={index} className="p-4 border rounded-lg shadow-sm">
-                                <div className="flex items-center justify-between mb-1">
-                                    <h4 className="text-sm font-semibold text-muted-foreground">{record.title}</h4>
-                                    <record.icon className={cn("w-5 h-5", record.color)} />
-                                </div>
-                                <p className="text-xl font-bold">{record.value}</p>
-                                {record.trend && <p className="text-xs text-green-500">{record.trend} from last month</p>}
-                            </div>
-                        ))}
-                         <div className="p-4 border rounded-lg shadow-sm bg-muted/40">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {healthRecords.map((record, index) => (
+                        <Card key={index} className="p-4">
                             <div className="flex items-center justify-between mb-1">
-                                <h4 className="text-sm font-semibold text-muted-foreground">Overall Report</h4>
-                                <FileText className="w-5 h-5 text-muted-foreground" />
+                                <h4 className="text-sm font-semibold text-muted-foreground">{record.title}</h4>
+                                <record.icon className={cn("w-5 h-5", record.color)} />
                             </div>
-                            <p className="text-xl font-bold">{healthReport.title}</p>
-                             <p className="text-xs text-muted-foreground">Last Visit: {new Date().toLocaleDateString()}</p>
+                            <p className="text-xl font-bold">{record.value}</p>
+                            {record.trend && <p className="text-xs text-green-500">{record.trend} from last month</p>}
+                        </Card>
+                    ))}
+                    <Card className="p-4 bg-muted/40">
+                        <div className="flex items-center justify-between mb-1">
+                            <h4 className="text-sm font-semibold text-muted-foreground">Overall Report</h4>
+                            <FileText className="w-5 h-5 text-muted-foreground" />
                         </div>
-                    </CardContent>
-                </Card>
+                        <p className="text-xl font-bold">{healthReport.title}</p>
+                        <p className="text-xs text-muted-foreground">Last Visit: {new Date().toLocaleDateString()}</p>
+                    </Card>
+                </div>
 
                 {/* Relaxation charts */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
-                            <CardTitle>Relaxation</CardTitle>
+                            <CardTitle>Relaxation Analytics</CardTitle>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button variant="ghost" size="icon"><Share2 className="w-4 h-4" /></Button>
@@ -146,23 +141,23 @@ export default function PatientDashboardPage() {
                     </CardHeader>
                     <CardContent className="space-y-8">
                         <div>
-                            <p className="font-semibold text-sm">Time of Relaxation</p>
-                            <p className="text-xs text-muted-foreground">Your average relaxation percentage</p>
+                            <h3 className="font-semibold text-sm">Time of Relaxation</h3>
+                            <p className="text-xs text-muted-foreground">Your average relaxation percentage daily.</p>
                             <ResponsiveContainer width="100%" height={200}>
                                 <BarChart data={timeOfRelaxation}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.2} />
                                     <XAxis dataKey="date" tick={{fontSize: 12}} stroke="hsl(var(--muted-foreground))" />
                                     <YAxis unit="%" tick={{fontSize: 12}} stroke="hsl(var(--muted-foreground))" />
-                                    <Tooltip content={<CustomTooltip />} cursor={{fill: 'hsl(var(--primary)/0.2)'}}/>
+                                    <Tooltip content={<CustomTooltip />} cursor={{fill: 'hsl(var(--primary)/0.1)'}}/>
                                     <Bar dataKey="relaxation" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={10} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-8">
-                            <div>
-                                <p className="font-semibold text-sm">Relaxation vs Mood</p>
-                                 <ResponsiveContainer width="100%" height={200}>
+                           <Card className="p-4">
+                                <h3 className="font-semibold text-sm">Relaxation vs Mood</h3>
+                                <ResponsiveContainer width="100%" height={200}>
                                     <LineChart data={relaxationVsMood}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.2}/>
                                         <XAxis dataKey="day" tick={{fontSize: 12}} stroke="hsl(var(--muted-foreground))" />
@@ -173,24 +168,9 @@ export default function PatientDashboardPage() {
                                         <Line type="monotone" dataKey="Mood" stroke="var(--color-chart-2)" strokeWidth={2} dot={false} />
                                     </LineChart>
                                 </ResponsiveContainer>
-                            </div>
-                            <div>
-                                <p className="font-semibold text-sm">Relaxation Distribution</p>
-                                <p className="text-xs text-muted-foreground">Daily Distribution</p>
-                                 <ResponsiveContainer width="100%" height={200}>
-                                    <RadarChart data={relaxationDistribution} outerRadius="80%">
-                                        <PolarGrid strokeOpacity={0.3} />
-                                        <PolarAngleAxis dataKey="activity" tick={{fontSize: 10}} />
-                                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                        <Radar name="distribution" dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} />
-                                    </RadarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-
-                         <div className="grid md:grid-cols-2 gap-8">
-                            <div>
-                                <p className="font-semibold text-sm">Best Time of Day for Relaxation</p>
+                           </Card>
+                           <Card className="p-4">
+                                <h3 className="font-semibold text-sm">Best Time of Day for Relaxation</h3>
                                 <ResponsiveContainer width="100%" height={200}>
                                     <PieChart>
                                         <Pie data={bestTimeOfDay} dataKey="minutes" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={70} fill="#8884d8" paddingAngle={5}>
@@ -202,22 +182,7 @@ export default function PatientDashboardPage() {
                                         <Legend iconType="circle" iconSize={8} />
                                     </PieChart>
                                 </ResponsiveContainer>
-                            </div>
-                             <div>
-                                <p className="font-semibold text-sm">Audio Therapy</p>
-                                <p className="text-xs text-muted-foreground">Your audio therapy duration</p>
-                                <div className="space-y-3 mt-4">
-                                    {audioTherapy.map(item => (
-                                        <div key={item.name}>
-                                            <div className="flex justify-between text-xs mb-1">
-                                                <span className="font-medium">{item.name}</span>
-                                                <span className="text-muted-foreground">{item.duration}</span>
-                                            </div>
-                                            <Progress value={item.progress} className="h-2" />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                           </Card>
                         </div>
                     </CardContent>
                 </Card>
