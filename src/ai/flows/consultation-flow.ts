@@ -8,7 +8,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { medicalTerms } from './medical-terms';
-import {retriever} from '@genkit-ai/googleai/rag';
+import { retriever } from '@genkit-ai/googleai';
 
 // Define the structure for a single turn in the conversation
 const ConsultationTurnSchema = z.object({
