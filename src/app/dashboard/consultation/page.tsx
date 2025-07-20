@@ -21,6 +21,7 @@ import {
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { HumanDoctorPromoModal } from '@/components/human-doctor-promo-modal';
 
 export default function ConsultationPage() {
   const [conversation, setConversation] = useState<ConsultationTurn[]>([]);
@@ -32,6 +33,7 @@ export default function ConsultationPage() {
   const [summaryData, setSummaryData] = useState<ConsultationTurn | null>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
+  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -176,6 +178,8 @@ ${plan}
   );
 
   const renderSummaryScreen = () => (
+    <>
+    <HumanDoctorPromoModal isOpen={isPromoModalOpen} onOpenChange={setIsPromoModalOpen} />
     <div className="flex flex-col items-center justify-center p-4 sm:p-6 text-center">
         <Sparkles className="h-12 w-12 text-primary mb-2" />
         <h2 className="text-2xl font-bold font-headline">AI Consult Summary</h2>
@@ -195,9 +199,7 @@ ${plan}
                 <p>Get your prescriptions and more in as little as 30 minutes.</p>
             </CardContent>
             <CardFooter className="flex-col gap-2">
-                <Button className="w-full" asChild>
-                    <Link href="/search"><Video className="mr-2 h-4 w-4" /> See a Doctor</Link>
-                </Button>
+                <Button className="w-full" onClick={() => setIsPromoModalOpen(true)}><Video className="mr-2 h-4 w-4" /> See a Doctor</Button>
                 <p className="text-xs text-primary/80">⚡ Video appointments available immediately.</p>
             </CardFooter>
         </Card>
@@ -271,6 +273,7 @@ ${plan}
             </CardContent>
         </Card>
     </div>
+    </>
   );
 
   return (
