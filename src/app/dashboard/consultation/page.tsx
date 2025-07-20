@@ -3,15 +3,22 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Bot, User, Send, Loader2, Mic, AlertTriangle, BookCheck, Stethoscope } from 'lucide-react';
+import { Bot, User, Send, Loader2, Mic, AlertTriangle, BookCheck, Stethoscope, FileText, Download, Sparkles, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { consultationFlow, ConsultationTurn } from '@/ai/flows/consultation-flow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import Link from 'next/link';
 
 export default function ConsultationPage() {
   const [conversation, setConversation] = useState<ConsultationTurn[]>([]);
@@ -19,6 +26,8 @@ export default function ConsultationPage() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [consultationStarted, setConsultationStarted] = useState(false);
+  const [isConsultationFinished, setIsConsultationFinished] = useState(false);
+  const [summaryData, setSummaryData] = useState<ConsultationTurn | null>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
 
@@ -63,7 +72,15 @@ export default function ConsultationPage() {
 
     try {
       const response = await consultationFlow(newConversation);
-      setConversation(response);
+      const latestTurn = response[response.length - 1];
+      
+      if (latestTurn.isReferral) {
+        setSummaryData(latestTurn);
+        setIsConsultationFinished(true);
+      } else {
+        setConversation(response);
+      }
+
     } catch (error) {
       console.error("Error continuing consultation:", error);
       const errorTurn: ConsultationTurn = {
@@ -74,6 +91,19 @@ export default function ConsultationPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const downloadSoapNote = () => {
+      if (summaryData?.soapNote) {
+          const blob = new Blob([summaryData.soapNote], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'SOAP-Note.txt';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+      }
   };
 
   const renderPreConsultation = () => (
@@ -126,11 +156,60 @@ export default function ConsultationPage() {
     </div>
   );
 
+  const renderSummaryScreen = () => (
+    <div className="flex flex-col items-center justify-center p-6 text-center">
+        <Sparkles className="h-12 w-12 text-primary mb-2" />
+        <h2 className="text-2xl font-bold font-headline">AI Consult Summary</h2>
+        <p className="text-sm text-muted-foreground">Today, {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+
+        <p className="mt-4 max-w-2xl text-muted-foreground">
+            {summaryData?.consultationSummary || "No summary available."}
+        </p>
+
+        <Card className="mt-6 w-full max-w-md bg-primary/10 border-primary">
+            <CardHeader>
+                <CardTitle className="text-primary">We Recommend You See a Doctor Now</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm space-y-2">
+                <p>Video visits with our licensed doctors cost $39.</p>
+                <p>We also accept all major insurance.</p>
+                <p>Get your prescriptions and more in as little as 30 minutes.</p>
+            </CardContent>
+            <CardFooter className="flex-col gap-2">
+                <Button className="w-full" asChild>
+                    <Link href="/search"><Video className="mr-2 h-4 w-4" /> See a Doctor</Link>
+                </Button>
+                <p className="text-xs text-primary/80">⚡ Video appointments available immediately.</p>
+            </CardFooter>
+        </Card>
+
+        <Accordion type="single" collapsible className="w-full max-w-md mt-6 text-left">
+            <AccordionItem value="assessment">
+                <AccordionTrigger>Assessment & Plan</AccordionTrigger>
+                <AccordionContent>
+                    A clinical overview of possible causes considered. This section will be expanded with more details in a future update.
+                </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="soap">
+                <AccordionTrigger>SOAP Note (for Physicians)</AccordionTrigger>
+                <AccordionContent className="space-y-4">
+                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">{summaryData?.soapNote || "No SOAP note generated."}</p>
+                    <Button variant="outline" size="sm" onClick={downloadSoapNote}>
+                        <Download className="mr-2 h-4 w-4" /> Download SOAP Note (TXT)
+                    </Button>
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
+    </div>
+  );
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] bg-muted/20">
-      <Card className="w-full max-w-3xl h-[80vh] flex flex-col shadow-xl">
+      <Card className="w-full max-w-3xl min-h-[80vh] flex flex-col shadow-xl">
         {!consultationStarted ? (
             renderPreConsultation()
+        ) : isConsultationFinished ? (
+            renderSummaryScreen()
         ) : (
             <>
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -154,12 +233,6 @@ export default function ConsultationPage() {
                           turn.role === 'user' ? "bg-secondary text-secondary-foreground" : "bg-primary/10"
                         )}>
                           <p className="text-sm">{turn.content}</p>
-                           {turn.isReferral && (
-                            <div className="mt-3 p-3 bg-destructive/10 border-l-4 border-destructive text-destructive-foreground rounded-r-lg">
-                              <p className="font-bold text-sm">Action Required</p>
-                              <p className="text-xs">{turn.referralReason}</p>
-                            </div>
-                          )}
                         </div>
                         {turn.retrievalSource && (
                             <div className="flex items-center gap-1.5 mt-1.5 px-2">
