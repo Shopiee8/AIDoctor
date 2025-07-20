@@ -46,6 +46,7 @@ interface DoctorCardProps {
 }
 
 function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow }: { doctor: Doctor, isFavorited: boolean, handleFavoriteClick: (e: React.MouseEvent) => void, handleBookNow: () => void }) {
+    const experienceText = typeof doctor.experience === 'string' ? doctor.experience : 'N/A';
     return (
         <div className={cn(
             "doctor-card-container card h-full doctor-list-card border rounded-lg bg-card text-card-foreground shadow-sm transition-all hover:shadow-xl hover:-translate-y-1",
@@ -105,7 +106,7 @@ function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
                         </p>
                     </div>
                      <div className="space-y-2 mb-3 text-xs">
-                        {doctor.experience && <div className="flex justify-between items-center"><span className="text-muted-foreground">Experience</span><span className="font-medium">{doctor.experience}</span></div>}
+                        {doctor.experience && <div className="flex justify-between items-center"><span className="text-muted-foreground">Experience</span><span className="font-medium">{experienceText}</span></div>}
                         {doctor.votes && <div className="flex justify-between items-center"><span className="text-muted-foreground">Patient Votes</span><span className="font-medium">{doctor.votes}</span></div>}
                         {doctor.languages && <div className="flex justify-between items-center"><span className="text-muted-foreground">Languages</span><span className="font-medium">{doctor.languages}</span></div>}
                     </div>
@@ -147,6 +148,7 @@ function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
 
 
 function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow }: { doctor: Doctor, isFavorited: boolean, handleFavoriteClick: (e: React.MouseEvent) => void, handleBookNow: () => void }) {
+    const experienceText = typeof doctor.experience === 'string' ? doctor.experience : 'N/A';
     return (
         <div className={cn(
             "doctor-card-container card doctor-list-card border rounded-lg bg-card text-card-foreground shadow-sm transition-all hover:shadow-lg",
@@ -207,7 +209,7 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
                          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-muted-foreground">
                            <p className="d-flex align-items-center mb-0"><Languages className="w-4 h-4 mr-1.5 text-primary" />{doctor.languages}</p>
                            <p className="d-flex align-items-center mb-0"><ThumbsUp className="w-4 h-4 mr-1.5 text-primary" />{doctor.votes} Votes</p>
-                           <p className="d-flex align-items-center mb-0"><Award className="w-4 h-4 mr-1.5 text-primary" />{doctor.experience} of Experience</p>
+                           <p className="d-flex align-items-center mb-0"><Award className="w-4 h-4 mr-1.5 text-primary" />{experienceText} of Experience</p>
                            <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
