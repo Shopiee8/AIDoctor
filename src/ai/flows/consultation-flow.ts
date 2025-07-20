@@ -113,8 +113,8 @@ const consultationPrompt = ai.definePrompt({
       - The 'referralReason' should be a short clinical reason (e.g., "Patient reported high-risk symptom: Chest Pain").
       - The 'consultationSummary' field must contain a detailed, patient-friendly summary of the situation and why seeing a doctor is important.
       - **Crucially, you MUST generate both a detailed SOAP Note and a detailed Assessment & Plan.**
-        - The `soapNote` field must contain a clinical SOAP note (Subjective, Objective, Assessment, Plan) for another physician to review.
-        - The `assessmentAndPlan` field must be fully populated with a differential diagnosis, a plan of action, and a conclusion.
+        - The \`soapNote\` field must contain a clinical SOAP note (Subjective, Objective, Assessment, Plan) for another physician to review.
+        - The \`assessmentAndPlan\` field must be fully populated with a differential diagnosis, a plan of action, and a conclusion.
   4.  Provide simple, safe, evidence-based advice for non-high-risk symptoms, referencing the retrieved knowledge if available.
   5.  Maintain a caring and professional tone.
   6.  Keep your standard (non-referral) responses concise.
