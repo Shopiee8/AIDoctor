@@ -76,13 +76,12 @@ export default function ConsultationPage() {
 
     try {
       const response = await consultationFlow(newConversation);
+      setConversation(response);
       const latestTurn = response[response.length - 1];
       
       if (latestTurn.isReferral) {
         setSummaryData(latestTurn);
         setIsConsultationFinished(true);
-      } else {
-        setConversation(response);
       }
 
     } catch (error) {
@@ -282,7 +281,9 @@ ${plan}
         {!consultationStarted ? (
             renderPreConsultation()
         ) : isConsultationFinished ? (
-            renderSummaryScreen()
+            <ScrollArea className="h-full">
+                {renderSummaryScreen()}
+            </ScrollArea>
         ) : (
             <>
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -369,3 +370,4 @@ ${plan}
     </div>
   );
 }
+
