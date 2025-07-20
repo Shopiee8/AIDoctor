@@ -8,7 +8,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { medicalTerms } from './medical-terms';
-import { retriever as genkitRetriever } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/googleai';
 
 // Define the structure for a single turn in the conversation
 const ConsultationTurnSchema = z.object({
@@ -34,8 +34,8 @@ export type ConsultationOutput = z.infer<typeof ConsultationOutputSchema>;
 
 // Define a retriever that points to the RAG extension you would create in Firebase.
 // The name 'aidoctor-medical-retriever' should match the name you give the index in the console.
-const medicalBookRetriever = genkitRetriever({
-  name: 'googleai/aidoctor-medical-retriever'
+const medicalBookRetriever = googleAI.retriever({
+  name: 'aidoctor-medical-retriever'
 });
 
 // Define the AI prompt
