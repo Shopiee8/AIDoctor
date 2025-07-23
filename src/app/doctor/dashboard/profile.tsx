@@ -19,7 +19,7 @@ import {
   MapPin,
   Heart,
   Share2,
-  Link2,
+  Link as LinkIcon,
   ThumbsUp,
   CheckCircle,
   MessageCircle,
@@ -35,7 +35,8 @@ import {
   Watch,
   User as UserIcon,
   Circle,
-  Reply
+  Reply,
+  Calendar
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -165,7 +166,7 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
                       <div className="flex items-center justify-center gap-2">
                            <Button variant="outline" size="icon"><Heart className="w-4 h-4" /></Button>
                            <Button variant="outline" size="icon"><Share2 className="w-4 h-4" /></Button>
-                           <Button variant="outline" size="icon"><Link2 className="w-4 h-4" /></Button>
+                           <Button variant="outline" size="icon"><LinkIcon className="w-4 h-4" /></Button>
                            <Button variant="outline"><Phone className="w-4 h-4 mr-2" /> Audio Call</Button>
                            <Button><Video className="w-4 h-4 mr-2" /> Video Call</Button>
                       </div>
