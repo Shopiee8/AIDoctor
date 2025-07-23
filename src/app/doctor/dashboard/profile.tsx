@@ -42,7 +42,35 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
 // Helper to join array or fallback to string
-const joinOrString = (val: any, sep = ', ') => Array.isArray(val) ? val.join(sep) : (val || '');
+const joinOrString = (val: any, sep = ', ') => {
+    if (Array.isArray(val)) {
+        return val.join(sep);
+    }
+    return val || '';
+};
+
+// Helper for slider arrows
+const SliderArrow = ({ className, onClick, children, isNext = false }: any) => (
+  <div
+    className={cn("absolute top-1/2 -translate-y-1/2 z-10", isNext ? 'right-0' : 'left-0', className)}
+    onClick={onClick}
+  >
+    <Button variant="outline" size="icon" className="rounded-full h-8 w-8">
+      {children}
+    </Button>
+  </div>
+);
+
+// Navigation links for sticky nav
+const navLinks = [
+    { href: "#doc_bio", label: "Doctor Bio" },
+    { href: "#experience", label: "Experience" },
+    { href: "#services", label: "Services" },
+    { href: "#speciality", label: "Speciality" },
+    { href: "#awards", label: "Awards" },
+    { href: "#review", label: "Review" },
+];
+
 
 const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
   const { user } = useAuth();
@@ -75,16 +103,6 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
     }
   }, [doctorId]);
 
-  const SliderArrow = ({ className, onClick, children, isNext = false }: any) => (
-    <div 
-        className={cn("absolute top-1/2 -translate-y-1/2 z-10", isNext ? 'right-0' : 'left-0', className)}
-        onClick={onClick}
-    >
-        <Button variant="outline" size="icon" className="rounded-full h-8 w-8">
-            {children}
-        </Button>
-    </div>
-  );
 
   const sliderSettings = {
     dots: false,
@@ -185,9 +203,24 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
               </CardContent>
            </Card>
 
+          {/* Sticky Nav */}
+           <Card className="mt-6 sticky top-20 z-30">
+                <CardContent className="p-2">
+                    <ul className="flex items-center justify-center flex-wrap gap-4">
+                        {navLinks.map((link) => (
+                            <li key={link.href}>
+                                <Link href={link.href} className="text-sm font-medium text-muted-foreground hover:text-primary p-2">
+                                    {link.label}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </CardContent>
+            </Card>
+
           {/* Detailed Info */}
           <div className="mt-8">
-            <Card>
+            <Card id="doc_bio">
               <CardHeader>
                 <CardTitle>About Me</CardTitle>
               </CardHeader>
@@ -197,7 +230,7 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
             </Card>
 
             {doctor.experience && doctor.experience.length > 0 && (
-              <Card className="mt-6">
+              <Card className="mt-6" id="experience">
                 <CardHeader><CardTitle>Experience</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   {doctor.experience.map((exp: any, index: number) => (
@@ -208,7 +241,9 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
                       <div>
                         <h5 className="font-semibold">{exp.hospital}</h5>
                         <p className="text-sm text-muted-foreground">{exp.title}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(exp.startDate).getFullYear()} - {exp.currentlyWorking ? 'Present' : new Date(exp.endDate).getFullYear()}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {exp.startDate ? new Date(exp.startDate).getFullYear() : ''} - {exp.currentlyWorking ? 'Present' : (exp.endDate ? new Date(exp.endDate).getFullYear() : '')}
+                        </p>
                         <p className="text-sm mt-1">{exp.jobDescription}</p>
                       </div>
                     </div>
@@ -218,7 +253,7 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
             )}
 
             {doctor.awards && doctor.awards.length > 0 && (
-              <Card className="mt-6">
+              <Card className="mt-6" id="awards">
                  <CardHeader><CardTitle>Awards</CardTitle></CardHeader>
                  <CardContent>
                     <Slider {...sliderSettings}>
@@ -237,7 +272,7 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
             )}
 
             {doctor.services && doctor.services.length > 0 && (
-                <Card className="mt-6">
+                <Card className="mt-6" id="services">
                     <CardHeader><CardTitle>Services</CardTitle></CardHeader>
                     <CardContent>
                         <ul className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -250,17 +285,41 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
             )}
             
             {doctor.specialization && doctor.specialization.length > 0 && (
-                 <Card className="mt-6">
+                 <Card className="mt-6" id="speciality">
                     <CardHeader><CardTitle>Specializations</CardTitle></CardHeader>
                     <CardContent>
                         <ul className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                           {doctor.specialization.map((spec: string, index: number) => (
+                           {Array.isArray(doctor.specialization) && doctor.specialization.map((spec: string, index: number) => (
                                 <li key={index} className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-primary" /> {spec}</li>
                             ))}
                         </ul>
                     </CardContent>
                 </Card>
             )}
+
+             <Card className="mt-6" id="review">
+                <CardHeader>
+                    <CardTitle>Reviews</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {/* Placeholder for reviews */}
+                    <div className="border p-4 rounded-lg">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <UserIcon className="w-8 h-8 rounded-full bg-muted p-1" />
+                                <div>
+                                    <p className="font-semibold">John Doe</p>
+                                    <div className="flex items-center gap-0.5">
+                                        {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />)}
+                                    </div>
+                                </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground">2 days ago</p>
+                        </div>
+                        <p className="mt-2 text-sm text-muted-foreground">Excellent care and attention to detail. Dr. {doctor.name} was thorough and compassionate.</p>
+                    </div>
+                </CardContent>
+             </Card>
 
           </div>
         </div>
@@ -271,5 +330,3 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
 };
 
 export default DoctorProfile;
-
-    
