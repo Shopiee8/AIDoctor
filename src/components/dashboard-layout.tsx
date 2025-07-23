@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { DashboardHeader } from './dashboard-header';
-import { SidebarProvider, Sidebar } from '@/components/ui/sidebar';
+import { SessionNavBar } from '@/components/ui/sidebar';
 import PatientSidebar from '@/components/patient-sidebar';
 
 interface DashboardLayoutProps {
@@ -54,10 +55,10 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
   }
 
   return (
-    <SidebarProvider>
+    <>
       <div className="min-h-screen w-full bg-background">
         {/* Sidebar is fixed at w-64 (16rem) on desktop, so main content needs ml-64 */}
-        {userRole === 'Patient' ? <PatientSidebar /> : <Sidebar />}
+        {userRole === 'Patient' ? <PatientSidebar /> : <SessionNavBar />}
         <div className="flex flex-col min-h-screen w-full md:ml-64">
           <DashboardHeader />
           <main className="flex-1 w-full p-6 pt-20 flex flex-col">
@@ -65,6 +66,6 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
           </main>
         </div>
       </div>
-    </SidebarProvider>
+    </>
   );
 }

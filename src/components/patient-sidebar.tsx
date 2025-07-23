@@ -1,112 +1,128 @@
-import React, { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/use-auth';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
+"use client";
+
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { motion } from "framer-motion";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarProvider,
-  SidebarSeparator,
-} from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { LogOut, Calendar, Heart, Star, Users, FileText, Wallet, Receipt, MessageCircle, Activity, Settings } from 'lucide-react';
+  LogOut,
+  Calendar,
+  Heart,
+  Star,
+  Users,
+  FileText,
+  Wallet,
+  Receipt,
+  MessageCircle,
+  Activity,
+  Settings,
+  Stethoscope,
+  Bot
+} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
 const menuItems = [
-  { label: 'Dashboard', icon: <Activity size={18} />, path: '/dashboard' },
-  { label: 'My Appointments', icon: <Calendar size={18} />, path: '/dashboard/appointments' },
-  { label: 'Favourites', icon: <Star size={18} />, path: '/dashboard/favourites' },
-  { label: 'Dependants', icon: <Users size={18} />, path: '/dashboard/dependants' },
-  { label: 'Medical Records', icon: <FileText size={18} />, path: '/dashboard/medical-records' },
-  { label: 'Wallet', icon: <Wallet size={18} />, path: '/dashboard/wallet' },
-  { label: 'Invoices', icon: <Receipt size={18} />, path: '/dashboard/invoices' },
-  { label: 'Messages', icon: <MessageCircle size={18} />, path: '/dashboard/messages' },
-  { label: 'Vitals', icon: <Heart size={18} />, path: '/dashboard/vitals' },
-  { label: 'Settings', icon: <Settings size={18} />, path: '/dashboard/settings' },
+  { label: 'Dashboard', icon: Activity, path: '/dashboard' },
+  { label: 'AI Consultation', icon: Bot, path: '/dashboard/consultation' },
+  { label: 'Appointments', icon: Calendar, path: '/dashboard/appointments' },
+  { label: 'Vitals', icon: Heart, path: '/dashboard/vitals' },
+  { label: 'My Dependents', icon: Users, path: '/dashboard/dependents' },
+  { label: 'Medical Records', icon: FileText, path: '/dashboard/medical-records' },
+  { label: 'Invoices', icon: Receipt, path: '/dashboard/invoices' },
+  { label: 'Messages', icon: MessageCircle, path: '/dashboard/messages' },
+  { label: 'My Favorites', icon: Star, path: '/dashboard/favourites' },
+  { label: 'Wallet', icon: Wallet, path: '/dashboard/wallet' },
+  { label: 'Settings', icon: Settings, path: '/dashboard/settings' },
 ];
+
+const sidebarVariants = {
+  open: { width: "16rem" },
+  closed: { width: "4rem" },
+};
+
+const textVariants = {
+  open: { opacity: 1, x: 0, display: 'inline-block' },
+  closed: { opacity: 0, x: -10, display: 'none' },
+};
+
+const navLinkTransition = { type: "tween", ease: "easeOut", duration: 0.2 };
 
 export default function PatientSidebar() {
   const { user, signOut } = useAuth();
-  const [patient, setPatient] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
-
-  useEffect(() => {
-    if (!user) return;
-    const fetchPatient = async () => {
-      const docRef = doc(db, 'users', user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setPatient(docSnap.data());
-      }
-      setLoading(false);
-    };
-    fetchPatient();
-  }, [user]);
-
-  if (loading) {
-    return <div className="w-64 p-4">Loading...</div>;
-  }
-
-  const personal = patient?.personalDetails || {};
-  const gender = personal.gender ? (personal.gender.charAt(0).toUpperCase() + personal.gender.slice(1)) : 'N/A';
-  const age = personal.age ? `${personal.age} years` : 'N/A';
-  const name = patient?.name || user?.displayName || 'User';
-  const patientId = patient?.id || user?.uid || 'N/A';
-  const photoURL = user?.photoURL || '/assets/img/ai doctor.png';
+  
+  const fallbackInitial = user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'P';
 
   return (
-    <SidebarProvider>
-      <Sidebar className="bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 min-h-screen w-64">
-        <SidebarHeader className="flex flex-col items-center py-6">
-          {/* App Logo/Name */}
-          <div className="mb-4 flex items-center gap-2">
-            <img src="/assets/img/ai doctor.png" alt="App Logo" className="w-8 h-8 rounded-full" />
-            <span className="font-bold text-lg tracking-tight">AI Doctor</span>
-          </div>
-          {/* User Info */}
-          <Avatar className="w-16 h-16 mb-2">
-            <AvatarImage src={photoURL} alt={name} />
-            <AvatarFallback>{name[0]}</AvatarFallback>
-          </Avatar>
-          <div className="text-base font-semibold">{name}</div>
-          <div className="text-xs text-gray-500">Patient ID : {patientId}</div>
-          <div className="text-xs text-gray-500">{gender}</div>
-          <div className="text-xs text-gray-500 mb-2">{age}</div>
-        </SidebarHeader>
-        <SidebarSeparator />
-        <SidebarContent>
-          <SidebarMenu>
-            {menuItems.map((item) => (
-              <SidebarMenuItem key={item.label}>
-                <SidebarMenuButton
-                  isActive={pathname === item.path}
-                  onClick={() => router.push(item.path)}
-                  className="flex items-center gap-3"
+    <motion.div
+      variants={sidebarVariants}
+      initial={isCollapsed ? "closed" : "open"}
+      animate={isCollapsed ? "closed" : "open"}
+      transition={navLinkTransition}
+      className="fixed left-0 top-0 h-full z-40 hidden md:flex"
+      onMouseEnter={() => setIsCollapsed(false)}
+      onMouseLeave={() => setIsCollapsed(true)}
+    >
+      <div className="flex flex-col h-full bg-card border-r">
+        <div className="flex-shrink-0 p-3 h-[70px] border-b flex items-center justify-center">
+             <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden">
+                <Stethoscope className="h-7 w-7 text-primary flex-shrink-0" />
+                <motion.span 
+                    variants={textVariants} 
+                    transition={navLinkTransition}
+                    className="font-bold text-lg whitespace-nowrap"
                 >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={signOut}
-                className="flex items-center gap-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900"
+                    AIDoctor
+                </motion.span>
+             </Link>
+        </div>
+        
+        <ScrollArea className="flex-grow p-2">
+           <nav className="flex flex-col gap-1">
+             {menuItems.map((item) => (
+              <Button
+                key={item.label}
+                variant={pathname === item.path ? "secondary" : "ghost"}
+                className="w-full justify-start gap-3"
+                onClick={() => router.push(item.path)}
               >
-                <LogOut size={18} />
-                <span>Logout</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-      </Sidebar>
-    </SidebarProvider>
+                <item.icon className="h-5 w-5 flex-shrink-0" />
+                <motion.span 
+                    variants={textVariants} 
+                    transition={navLinkTransition}
+                    className="whitespace-nowrap"
+                >
+                    {item.label}
+                </motion.span>
+              </Button>
+            ))}
+           </nav>
+        </ScrollArea>
+        
+        <div className="flex-shrink-0 p-3 border-t">
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3"
+            onClick={signOut}
+          >
+            <LogOut className="h-5 w-5 text-destructive" />
+            <motion.span 
+                variants={textVariants}
+                transition={navLinkTransition}
+                className="whitespace-nowrap text-destructive"
+            >
+                Logout
+            </motion.span>
+          </Button>
+        </div>
+      </div>
+    </motion.div>
   );
-} 
+}
