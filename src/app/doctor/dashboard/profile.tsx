@@ -208,7 +208,7 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
                       <div>
                         <h5 className="font-semibold">{exp.hospital}</h5>
                         <p className="text-sm text-muted-foreground">{exp.title}</p>
-                        <p className="text-xs text-muted-foreground">{exp.startDate} - {exp.currentlyWorking ? 'Present' : exp.endDate}</p>
+                        <p className="text-xs text-muted-foreground">{new Date(exp.startDate).getFullYear()} - {exp.currentlyWorking ? 'Present' : new Date(exp.endDate).getFullYear()}</p>
                         <p className="text-sm mt-1">{exp.jobDescription}</p>
                       </div>
                     </div>
@@ -235,6 +235,33 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
                  </CardContent>
               </Card>
             )}
+
+            {doctor.services && doctor.services.length > 0 && (
+                <Card className="mt-6">
+                    <CardHeader><CardTitle>Services</CardTitle></CardHeader>
+                    <CardContent>
+                        <ul className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {doctor.services.map((service: string, index: number) => (
+                                <li key={index} className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-primary" /> {service}</li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
+            )}
+            
+            {doctor.specialization && doctor.specialization.length > 0 && (
+                 <Card className="mt-6">
+                    <CardHeader><CardTitle>Specializations</CardTitle></CardHeader>
+                    <CardContent>
+                        <ul className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                           {doctor.specialization.map((spec: string, index: number) => (
+                                <li key={index} className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-primary" /> {spec}</li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
+            )}
+
           </div>
         </div>
       </div>
@@ -244,3 +271,5 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
 };
 
 export default DoctorProfile;
+
+    
