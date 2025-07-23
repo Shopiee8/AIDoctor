@@ -50,19 +50,27 @@ interface DoctorCardProps {
 }
 
 function getExperienceSummary(experience: any): string {
-  if (Array.isArray(experience)) {
-    if (experience.length === 0) return 'Experience';
-    const mostRecent = experience[0];
-    if (mostRecent.title && mostRecent.hospital) {
-      return `${mostRecent.title} at ${mostRecent.hospital}`;
+    if (!experience) {
+        return 'N/A';
     }
-    if (mostRecent.yearOfExperience) {
-      return `${mostRecent.yearOfExperience} years`;
+    if (typeof experience === 'string') {
+        return experience;
     }
-    return mostRecent.title || mostRecent.hospital || 'Experience';
-  }
-  return experience || 'Experience';
+    if (Array.isArray(experience)) {
+        if (experience.length === 0) return 'N/A';
+        const mostRecent = experience.find(exp => exp.currentlyWorking) || experience[0];
+        
+        if (mostRecent.yearOfExperience) {
+            return `${mostRecent.yearOfExperience} years`;
+        }
+        if (mostRecent.title && mostRecent.hospital) {
+            return `${mostRecent.title} at ${mostRecent.hospital}`;
+        }
+        return mostRecent.title || mostRecent.hospital || 'N/A';
+    }
+    return 'N/A';
 }
+
 
 function getSpecialty(doctor: Doctor): string {
   if (Array.isArray(doctor.specialization) && doctor.specialization.length > 0) {
@@ -299,7 +307,7 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
           <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-muted-foreground">
             <p className="d-flex align-items-center mb-0"><Languages className="w-4 h-4 mr-1.5 text-primary" />{getLanguages(doctor.languages)}</p>
             <p className="d-flex align-items-center mb-0"><ThumbsUp className="w-4 h-4 mr-1.5 text-primary" />{doctor.votes || 'Votes'} Votes</p>
-            <p className="d-flex align-items-center mb-0"><Award className="w-4 h-4 mr-1.5 text-primary" />{experienceSummary} of Experience</p>
+            <p className="d-flex align-items-center mb-0"><Award className="w-4 h-4 mr-1.5 text-primary" />{experienceSummary}</p>
             {getAiMatch(doctor.aiMatchScore) && (
               <TooltipProvider>
                 <Tooltip>

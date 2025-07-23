@@ -72,7 +72,7 @@ export function SectionDoctor() {
                                 <div className="p-1">
                                     <Card className="overflow-hidden group transition-all hover:shadow-xl hover:-translate-y-1">
                                         <div className="relative">
-                                            <Link href="/doctor-profile">
+                                            <Link href={`/doctor-profile/${doctor.id}`}>
                                                 <Image
                                                     src={doctor.image || "https://placehold.co/280x280.png"}
                                                     alt={doctor.name}
@@ -95,7 +95,7 @@ export function SectionDoctor() {
                                         </div>
                                         <CardContent className="p-4 space-y-3">
                                             <h3 className="font-bold text-lg font-headline">
-                                                <Link href="/doctor-profile" className="hover:text-primary">{doctor.name}</Link>
+                                                <Link href={`/doctor-profile/${doctor.id}`} className="hover:text-primary">{doctor.name}</Link>
                                             </h3>
                                             <p className="text-sm text-muted-foreground -mt-2">{doctor.specialty}</p>
                                             <div className="flex items-center text-xs text-muted-foreground">
