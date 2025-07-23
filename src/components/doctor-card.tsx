@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -14,6 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { usePatientDataStore } from '@/store/patient-data-store';
 
 export interface Doctor {
   id: string;
@@ -28,7 +30,7 @@ export interface Doctor {
   nextAvailable?: string;
   lastBooked?: string;
   degree?: string;
-  languages?: string;
+  languages?: string | string[];
   experience?: any;
   votes?: string;
   fees?: string;
@@ -37,6 +39,9 @@ export interface Doctor {
   aiMatchScore?: number;
   specialization?: string | string[];
   education?: any;
+  bio?: string;
+  services?: string[];
+  clinics?: any[];
 }
 
 interface DoctorCardProps {
@@ -59,11 +64,14 @@ function getExperienceSummary(experience: any): string {
   return experience || 'Experience';
 }
 
-function getSpecialty(specialization: any): string {
-  if (Array.isArray(specialization)) {
-    return specialization.join(', ');
+function getSpecialty(doctor: Doctor): string {
+  if (Array.isArray(doctor.specialization) && doctor.specialization.length > 0) {
+    return doctor.specialization.join(', ');
   }
-  return specialization || 'Specialty';
+  if (typeof doctor.specialty === 'string') {
+    return doctor.specialty;
+  }
+  return 'Specialty';
 }
 
 function getDegree(education: any): string {
@@ -109,7 +117,7 @@ function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
     )}>
       <div className="flex flex-col h-full">
         <div className="card-img card-img-hover relative w-full h-56 flex-shrink-0">
-          <Link href="#">
+          <Link href={`/doctor-profile/${doctor.id}`}>
             <Image 
               src={doctor.image} 
               alt={doctor.name} 
@@ -138,7 +146,7 @@ function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
         </div>
         <div className="card-body p-4 flex flex-col flex-1">
           <div className="flex items-center justify-between border-b pb-2">
-            <span className="font-medium text-xs text-primary">{getSpecialty(doctor.specialization)}</span>
+            <span className="font-medium text-xs text-primary">{getSpecialty(doctor)}</span>
             {doctor.available ? (
               <Badge variant="secondary" className="bg-green-100 text-green-700"><span className="w-2 h-2 rounded-full bg-green-500 mr-1.5"></span>Available</Badge>
             ) : (
@@ -146,7 +154,7 @@ function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
             )}
           </div>
           <h6 className="flex items-center text-lg font-bold font-headline mt-2">
-            {doctor.name}
+            <Link href={`/doctor-profile/${doctor.id}`}>{doctor.name}</Link>
             {doctor.isVerified && <CheckCircle className="w-4 h-4 text-green-500 ms-2" />}
           </h6>
           <p className="text-xs text-muted-foreground flex items-center gap-1.5">{getDegree(doctor.education)}</p>
@@ -232,7 +240,7 @@ function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
 }
 
 function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow }: { doctor: Doctor, isFavorited: boolean, handleFavoriteClick: (e: React.MouseEvent) => void, handleBookNow: () => void }) {
-  const experienceText = typeof doctor.experience === 'string' ? doctor.experience : 'N/A';
+  const experienceSummary = getExperienceSummary(doctor.experience);
 
   return (
     <div className={cn(
@@ -241,7 +249,7 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
     )}>
       <div className="p-4 md:flex md:items-center gap-4">
         <div className="card-img card-img-hover relative w-full md:w-52 h-56 flex-shrink-0">
-          <Link href="#">
+          <Link href={`/doctor-profile/${doctor.id}`}>
             <Image 
               src={doctor.image} 
               alt={doctor.name} 
@@ -272,7 +280,7 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
         </div>
         <div className="card-body p-0 mt-4 md:mt-0 flex-1">
           <div className="flex items-center justify-between border-b pb-3">
-            <span className="font-medium text-sm text-primary">{getSpecialty(doctor.specialization)}</span>
+            <span className="font-medium text-sm text-primary">{getSpecialty(doctor)}</span>
             {doctor.available ? (
               <Badge variant="secondary" className="bg-green-100 text-green-700"><span className="w-2 h-2 rounded-full bg-green-500 mr-1.5"></span>Available</Badge>
             ) : (
@@ -280,7 +288,7 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
             )}
           </div>
           <h6 className="flex items-center text-xl font-bold font-headline mt-2">
-            <Link href="#">{doctor.name}</Link>
+            <Link href={`/doctor-profile/${doctor.id}`}>{doctor.name}</Link>
             {doctor.isVerified && <CheckCircle className="w-4 h-4 text-green-500 ms-2" />}
           </h6>
           <p className="text-sm text-muted-foreground mt-2">{getDegree(doctor.education)}</p>
@@ -291,7 +299,7 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
           <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-muted-foreground">
             <p className="d-flex align-items-center mb-0"><Languages className="w-4 h-4 mr-1.5 text-primary" />{getLanguages(doctor.languages)}</p>
             <p className="d-flex align-items-center mb-0"><ThumbsUp className="w-4 h-4 mr-1.5 text-primary" />{doctor.votes || 'Votes'} Votes</p>
-            <p className="d-flex align-items-center mb-0"><Award className="w-4 h-4 mr-1.5 text-primary" />{getExperienceSummary(doctor.experience)} of Experience</p>
+            <p className="d-flex align-items-center mb-0"><Award className="w-4 h-4 mr-1.5 text-primary" />{experienceSummary} of Experience</p>
             {getAiMatch(doctor.aiMatchScore) && (
               <TooltipProvider>
                 <Tooltip>
@@ -326,7 +334,9 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
 }
 
 export function DoctorCard({ doctor, viewMode = 'list' }: DoctorCardProps) {
-  const [isFavorited, setIsFavorited] = useState(!!doctor.isFavorited);
+  const { favorites } = usePatientDataStore();
+  const [isFavorited, setIsFavorited] = useState(favorites.some(fav => fav.name === doctor.name));
+
   const { openBookingModal } = useBookingStore();
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
