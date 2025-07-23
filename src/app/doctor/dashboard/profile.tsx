@@ -36,7 +36,7 @@ import {
   User as UserIcon,
   Circle,
   Reply,
-  Calendar
+  Calendar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -65,9 +65,14 @@ const SliderArrow = ({ className, onClick, children, isNext = false }: any) => (
 const navLinks = [
     { href: "#doc_bio", label: "Doctor Bio" },
     { href: "#experience", label: "Experience" },
-    { href: "#services", label: "Services" },
+    { href: "#insurance", label: "Insurances" },
+    { href: "#services", label: "Treatments" },
     { href: "#speciality", label: "Speciality" },
+    { href: "#availability", label: "Availability" },
+    { href: "#clinic", label: "Clinics" },
+    { href: "#membership", label: "Memberships" },
     { href: "#awards", label: "Awards" },
+    { href: "#business_hours", label: "Business Hours" },
     { href: "#review", label: "Review" },
 ];
 
@@ -118,6 +123,23 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
       { breakpoint: 480, settings: { slidesToShow: 1 } },
     ],
   };
+  
+    const availabilitySettings = {
+        dots: false,
+        infinite: false,
+        speed: 500,
+        slidesToShow: 7,
+        slidesToScroll: 1,
+        nextArrow: <SliderArrow isNext><ChevronRight className="h-4 w-4" /></SliderArrow>,
+        prevArrow: <SliderArrow><ChevronLeft className="h-4 w-4" /></SliderArrow>,
+        responsive: [
+            { breakpoint: 1400, settings: { slidesToShow: 7 } },
+            { breakpoint: 1300, settings: { slidesToShow: 6 } },
+            { breakpoint: 1000, settings: { slidesToShow: 5 } },
+            { breakpoint: 768, settings: { slidesToShow: 3 } },
+            { breakpoint: 480, settings: { slidesToShow: 2 } },
+        ],
+    };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (error) return <div className="min-h-screen flex items-center justify-center text-destructive">{error}</div>;
@@ -231,7 +253,7 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
 
             {doctor.experience && doctor.experience.length > 0 && (
               <Card className="mt-6" id="experience">
-                <CardHeader><CardTitle>Experience</CardTitle></CardHeader>
+                <CardHeader><CardTitle>Practice Experience</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   {doctor.experience.map((exp: any, index: number) => (
                     <div key={index} className="flex gap-4">
@@ -252,6 +274,111 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
               </Card>
             )}
 
+            <Card className="mt-6" id="insurance">
+                <CardHeader>
+                    <CardTitle>Insurance Accepted ({doctor.insurance?.length || 0})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Slider {...sliderSettings}>
+                        {(doctor.insurance || []).map((ins: any, index: number) => (
+                            <div key={index} className="px-2">
+                                <div className="p-4 border rounded-lg flex items-center justify-center h-20">
+                                    <Image src={ins.logo || `https://placehold.co/100x40.png`} alt={ins.name} width={100} height={40} data-ai-hint="insurance logo" />
+                                </div>
+                            </div>
+                        ))}
+                    </Slider>
+                </CardContent>
+            </Card>
+
+            {doctor.services && doctor.services.length > 0 && (
+                <Card className="mt-6" id="services">
+                    <CardHeader><CardTitle>Services &amp; Pricing</CardTitle></CardHeader>
+                    <CardContent>
+                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {doctor.services.map((service: string, index: number) => (
+                                <li key={index} className="flex items-center justify-between text-sm p-2 rounded hover:bg-muted">
+                                    <span className='flex items-center gap-2'><CheckCircle className="w-4 h-4 text-primary" /> {service}</span>
+                                    <span className="font-bold">${Math.floor(Math.random() * (100 - 20 + 1)) + 20}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
+            )}
+            
+            {doctor.specialization && doctor.specialization.length > 0 && (
+                 <Card className="mt-6" id="speciality">
+                    <CardHeader><CardTitle>Specializations</CardTitle></CardHeader>
+                    <CardContent>
+                        <ul className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                           {Array.isArray(doctor.specialization) && doctor.specialization.map((spec: string, index: number) => (
+                                <li key={index} className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-primary" /> {spec}</li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
+            )}
+            
+            <Card className="mt-6" id="availability">
+                <CardHeader>
+                    <CardTitle>Availability</CardTitle>
+                </CardHeader>
+                <CardContent>
+                     <Slider {...availabilitySettings}>
+                        {[...Array(14)].map((_, i) => {
+                             const date = new Date();
+                             date.setDate(date.getDate() + i);
+                             const day = date.toLocaleDateString('en-US', { weekday: 'short' });
+                             const dayOfMonth = date.getDate();
+                             return (
+                                <div key={i} className="px-2">
+                                    <div className="p-4 border rounded-lg text-center cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors">
+                                        <p className="font-semibold">{day}</p>
+                                        <p className="text-sm">{dayOfMonth}</p>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                     </Slider>
+                </CardContent>
+            </Card>
+
+            <Card className="mt-6" id="clinic">
+                 <CardHeader><CardTitle>Clinics &amp; Locations</CardTitle></CardHeader>
+                 <CardContent className="space-y-6">
+                    {(doctor.clinics || []).map((clinic: any, index: number) => (
+                        <div key={index} className="grid md:grid-cols-2 gap-6 items-center">
+                            <div>
+                                <div className="flex items-center gap-4">
+                                    <Image src={clinic.logo || "https://placehold.co/80x80.png"} alt={clinic.name} width={80} height={80} className="rounded-lg object-cover" />
+                                    <div>
+                                        <h5 className="font-bold">{clinic.name}</h5>
+                                        <p className="text-sm text-muted-foreground">{clinic.address}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="h-48 w-full">
+                               <iframe
+                                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3193.7301009561315!2d-76.13077892422932!3d36.82498697224007!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89bae976cfe9f8af%3A0xa61eac05156fbdb9!2sBeachStreet%20USA!5e0!3m2!1sen!2sin!4v1669777904208!5m2!1sen!2sin"
+                                   className="w-full h-full border-0 rounded-lg"
+                                   allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"
+                                />
+                           </div>
+                        </div>
+                    ))}
+                 </CardContent>
+            </Card>
+
+            <Card className="mt-6" id="membership">
+                <CardHeader><CardTitle>Memberships</CardTitle></CardHeader>
+                <CardContent className="space-y-2">
+                    {(doctor.memberships || []).map((mem: string, index: number) => (
+                        <p key={index} className="text-sm flex items-start gap-2"><CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-1" />{mem}</p>
+                    ))}
+                </CardContent>
+            </Card>
+
             {doctor.awards && doctor.awards.length > 0 && (
               <Card className="mt-6" id="awards">
                  <CardHeader><CardTitle>Awards</CardTitle></CardHeader>
@@ -271,31 +398,19 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
               </Card>
             )}
 
-            {doctor.services && doctor.services.length > 0 && (
-                <Card className="mt-6" id="services">
-                    <CardHeader><CardTitle>Services</CardTitle></CardHeader>
-                    <CardContent>
-                        <ul className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            {doctor.services.map((service: string, index: number) => (
-                                <li key={index} className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-primary" /> {service}</li>
-                            ))}
-                        </ul>
-                    </CardContent>
-                </Card>
-            )}
-            
-            {doctor.specialization && doctor.specialization.length > 0 && (
-                 <Card className="mt-6" id="speciality">
-                    <CardHeader><CardTitle>Specializations</CardTitle></CardHeader>
-                    <CardContent>
-                        <ul className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                           {Array.isArray(doctor.specialization) && doctor.specialization.map((spec: string, index: number) => (
-                                <li key={index} className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-primary" /> {spec}</li>
-                            ))}
-                        </ul>
-                    </CardContent>
-                </Card>
-            )}
+            <Card className="mt-6" id="business_hours">
+                <CardHeader><CardTitle>Business Hours</CardTitle></CardHeader>
+                <CardContent>
+                    <ul className="space-y-2">
+                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
+                            <li key={day} className="flex justify-between items-center text-sm">
+                                <span className="font-medium">{day}</span>
+                                <span className="text-muted-foreground">07:00 AM - 09:00 PM</span>
+                            </li>
+                        ))}
+                    </ul>
+                </CardContent>
+            </Card>
 
              <Card className="mt-6" id="review">
                 <CardHeader>
@@ -330,3 +445,5 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
 };
 
 export default DoctorProfile;
+
+    
