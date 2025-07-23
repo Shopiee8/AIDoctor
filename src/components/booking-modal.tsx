@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useBookingStore } from "@/store/booking-store";
 import { Step1Service } from "./booking-steps/step-1-service";
