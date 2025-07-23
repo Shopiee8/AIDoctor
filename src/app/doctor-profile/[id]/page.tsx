@@ -2,10 +2,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
-import Image from 'next/image';
 
 import { LandingHeader } from "@/components/landing-header";
 import { Footer } from "@/components/home/footer";
@@ -40,7 +40,10 @@ function ProfileSkeleton() {
     )
 }
 
-function DoctorProfile({ id }: { id: string }) {
+export default function DoctorProfilePage() {
+  const params = useParams();
+  const id = params.id as string; // Extract ID using the hook
+
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +73,7 @@ function DoctorProfile({ id }: { id: string }) {
   }, [id]);
 
   return (
+    <>
     <div className="flex flex-col min-h-screen bg-muted/50">
         <LandingHeader />
         <main className="flex-1">
@@ -107,14 +111,6 @@ function DoctorProfile({ id }: { id: string }) {
         </main>
         <Footer />
       </div>
-  );
-}
-
-
-export default function DoctorProfilePage({ params }: { params: { id: string } }) {
-  return (
-    <>
-      <DoctorProfile id={params.id} />
       <BookingModal />
     </>
   );
