@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '@/hooks/use-auth';
@@ -44,7 +44,11 @@ import { Separator } from '@/components/ui/separator';
 // Helper to join array or fallback to string
 const joinOrString = (val: any, sep = ', ') => {
     if (Array.isArray(val)) {
-        return val.join(sep);
+      // Check if array contains objects with a 'value' property
+      if (val.length > 0 && typeof val[0] === 'object' && val[0] !== null && 'value' in val[0]) {
+        return val.map(item => item.value).join(sep);
+      }
+      return val.join(sep);
     }
     return val || '';
 };
@@ -283,7 +287,7 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
                         {(doctor.insurance || []).map((ins: any, index: number) => (
                             <div key={index} className="px-2">
                                 <div className="p-4 border rounded-lg flex items-center justify-center h-20">
-                                    <Image src={ins.logo || `https://placehold.co/100x40.png`} alt={ins.name} width={100} height={40} data-ai-hint="insurance logo" />
+                                    <Image src={ins.logo || `https://placehold.co/100x40.png?text=${ins.value}`} alt={ins.value} width={100} height={40} data-ai-hint="insurance logo" />
                                 </div>
                             </div>
                         ))}
@@ -296,9 +300,9 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
                     <CardHeader><CardTitle>Services &amp; Pricing</CardTitle></CardHeader>
                     <CardContent>
                         <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {doctor.services.map((service: string, index: number) => (
+                            {doctor.services.map((service: any, index: number) => (
                                 <li key={index} className="flex items-center justify-between text-sm p-2 rounded hover:bg-muted">
-                                    <span className='flex items-center gap-2'><CheckCircle className="w-4 h-4 text-primary" /> {service}</span>
+                                    <span className='flex items-center gap-2'><CheckCircle className="w-4 h-4 text-primary" /> {service.value || service}</span>
                                     <span className="font-bold">${Math.floor(Math.random() * (100 - 20 + 1)) + 20}</span>
                                 </li>
                             ))}
@@ -312,8 +316,8 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
                     <CardHeader><CardTitle>Specializations</CardTitle></CardHeader>
                     <CardContent>
                         <ul className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                           {Array.isArray(doctor.specialization) && doctor.specialization.map((spec: string, index: number) => (
-                                <li key={index} className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-primary" /> {spec}</li>
+                           {Array.isArray(doctor.specialization) && doctor.specialization.map((spec: any, index: number) => (
+                                <li key={index} className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-primary" /> {spec.value || spec}</li>
                             ))}
                         </ul>
                     </CardContent>
@@ -373,8 +377,8 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
             <Card className="mt-6" id="membership">
                 <CardHeader><CardTitle>Memberships</CardTitle></CardHeader>
                 <CardContent className="space-y-2">
-                    {(doctor.memberships || []).map((mem: string, index: number) => (
-                        <p key={index} className="text-sm flex items-start gap-2"><CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-1" />{mem}</p>
+                    {(doctor.memberships || []).map((mem: any, index: number) => (
+                        <p key={index} className="text-sm flex items-start gap-2"><CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-1" />{mem.value || mem}</p>
                     ))}
                 </CardContent>
             </Card>
@@ -445,5 +449,3 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
 };
 
 export default DoctorProfile;
-
-    
