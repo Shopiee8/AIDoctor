@@ -42,7 +42,7 @@ const menuItems = [
 
 const sidebarVariants = {
   open: { width: "16rem" },
-  closed: { width: "4rem" },
+  closed: { width: "5rem" },
 };
 
 const textVariants = {
@@ -66,12 +66,13 @@ export default function PatientSidebar() {
       initial={isCollapsed ? "closed" : "open"}
       animate={isCollapsed ? "closed" : "open"}
       transition={navLinkTransition}
-      className="fixed left-0 top-0 h-full z-40 hidden md:flex"
+      className={cn(
+        "fixed left-0 top-0 h-full z-40 hidden md:flex flex-col bg-[--sidebar] text-[--sidebar-foreground] border-r border-[--sidebar-border]"
+      )}
       onMouseEnter={() => setIsCollapsed(false)}
       onMouseLeave={() => setIsCollapsed(true)}
     >
-      <div className="flex flex-col h-full bg-card border-r">
-        <div className="flex-shrink-0 p-3 h-[70px] border-b flex items-center justify-center">
+      <div className="flex-shrink-0 p-4 h-[65px] border-b border-[--sidebar-border] flex items-center justify-center">
              <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden">
                 <Stethoscope className="h-7 w-7 text-primary flex-shrink-0" />
                 <motion.span 
@@ -82,46 +83,45 @@ export default function PatientSidebar() {
                     AIDoctor
                 </motion.span>
              </Link>
-        </div>
+      </div>
         
-        <ScrollArea className="flex-grow p-2">
-           <nav className="flex flex-col gap-1">
-             {menuItems.map((item) => (
-              <Button
-                key={item.label}
-                variant={pathname === item.path ? "secondary" : "ghost"}
-                className="w-full justify-start gap-3"
-                onClick={() => router.push(item.path)}
-              >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
-                <motion.span 
-                    variants={textVariants} 
-                    transition={navLinkTransition}
-                    className="whitespace-nowrap"
-                >
-                    {item.label}
-                </motion.span>
-              </Button>
-            ))}
-           </nav>
-        </ScrollArea>
-        
-        <div className="flex-shrink-0 p-3 border-t">
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3"
-            onClick={signOut}
-          >
-            <LogOut className="h-5 w-5 text-destructive" />
-            <motion.span 
-                variants={textVariants}
-                transition={navLinkTransition}
-                className="whitespace-nowrap text-destructive"
+      <ScrollArea className="flex-grow p-3">
+         <nav className="flex flex-col gap-1">
+           {menuItems.map((item) => (
+            <Button
+              key={item.label}
+              variant={pathname === item.path ? "secondary" : "ghost"}
+              className="w-full justify-start gap-3 h-10 text-base"
+              onClick={() => router.push(item.path)}
             >
-                Logout
-            </motion.span>
-          </Button>
-        </div>
+              <item.icon className="h-5 w-5 flex-shrink-0" />
+              <motion.span 
+                  variants={textVariants} 
+                  transition={navLinkTransition}
+                  className="whitespace-nowrap"
+              >
+                  {item.label}
+              </motion.span>
+            </Button>
+          ))}
+         </nav>
+      </ScrollArea>
+        
+      <div className="flex-shrink-0 p-3 border-t border-[--sidebar-border]">
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-3 h-10 text-base"
+          onClick={signOut}
+        >
+          <LogOut className="h-5 w-5 text-destructive" />
+          <motion.span 
+              variants={textVariants}
+              transition={navLinkTransition}
+              className="whitespace-nowrap text-destructive"
+          >
+              Logout
+          </motion.span>
+        </Button>
       </div>
     </motion.div>
   );

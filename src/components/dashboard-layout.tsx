@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { DashboardHeader } from './dashboard-header';
 import { SessionNavBar } from '@/components/ui/sidebar';
 import PatientSidebar from '@/components/patient-sidebar';
+import { cn } from '@/lib/utils';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -55,17 +56,12 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
   }
 
   return (
-    <>
-      <div className="min-h-screen w-full bg-background">
-        {/* Sidebar is fixed at w-64 (16rem) on desktop, so main content needs ml-64 */}
-        {userRole === 'Patient' ? <PatientSidebar /> : <SessionNavBar />}
-        <div className="flex flex-col min-h-screen w-full md:ml-64">
-          <DashboardHeader />
-          <main className="flex-1 w-full p-6 pt-20">
-            {children}
-          </main>
-        </div>
+    <div className="min-h-screen w-full bg-background flex">
+      {userRole === 'Patient' ? <PatientSidebar /> : <SessionNavBar />}
+      <div className="flex flex-col flex-1">
+        <DashboardHeader />
+        <main className="flex-1 p-6">{children}</main>
       </div>
-    </>
+    </div>
   );
 }
