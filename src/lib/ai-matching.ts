@@ -1,5 +1,6 @@
 // AI Matching Algorithm for Doctor-Patient Matching
 // This is the core algorithm that calculates dynamic AI match scores
+import { clinicalSpecialties } from "./specialties";
 
 export interface PatientQuery {
   symptoms?: string[];
@@ -58,24 +59,12 @@ export interface MatchScore {
   aiMatchPercentage: number;
 }
 
-// Specialty matching weights and keywords
-const SPECIALTY_KEYWORDS: Record<string, string[]> = {
-  'Cardiology': ['heart', 'cardiac', 'chest pain', 'hypertension', 'arrhythmia', 'heart attack', 'stroke'],
-  'Neurology': ['headache', 'migraine', 'seizure', 'numbness', 'tingling', 'memory', 'brain', 'stroke'],
-  'Orthopedics': ['bone', 'joint', 'fracture', 'back pain', 'knee', 'shoulder', 'arthritis'],
-  'Dermatology': ['skin', 'rash', 'acne', 'mole', 'itching', 'hair loss', 'psoriasis'],
-  'Pediatrics': ['child', 'baby', 'fever', 'vaccination', 'growth', 'development'],
-  'Psychiatry': ['anxiety', 'depression', 'stress', 'mood', 'sleep', 'mental health'],
-  'Endocrinology': ['diabetes', 'thyroid', 'hormone', 'weight', 'metabolism'],
-  'Gastroenterology': ['stomach', 'digestion', 'nausea', 'diarrhea', 'constipation', 'ulcer'],
-  'Pulmonology': ['cough', 'breathing', 'asthma', 'pneumonia', 'lung', 'shortness of breath'],
-  'Urology': ['urination', 'bladder', 'kidney', 'prostate', 'urinary tract'],
-  'Gynecology': ['pregnancy', 'menstrual', 'ovarian', 'uterine', 'breast'],
-  'Ophthalmology': ['eye', 'vision', 'blindness', 'glaucoma', 'cataract'],
-  'ENT': ['ear', 'nose', 'throat', 'hearing', 'sinus', 'tonsil'],
-  'Dentistry': ['tooth', 'dental', 'gum', 'mouth', 'cavity', 'braces'],
-  'General Medicine': ['fever', 'cold', 'flu', 'general', 'checkup', 'preventive']
-};
+// Specialty matching keywords
+const SPECIALTY_KEYWORDS = clinicalSpecialties.reduce((acc, spec) => {
+    acc[spec.name] = spec.keywords;
+    return acc;
+}, {} as Record<string, string[]>);
+
 
 // Education scoring
 function calculateEducationScore(education: any[]): number {
