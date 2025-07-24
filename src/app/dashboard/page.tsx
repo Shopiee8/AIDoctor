@@ -1,24 +1,38 @@
-
 import { AppSidebar } from "@/components/app-sidebar"
-import { SiteHeader } from "@/components/site-header"
-import { SectionCards } from "@/components/section-cards"
-import { DataTable } from "@/components/data-table"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-
-export default function DashboardPage() {
+import { DataTable } from "@/components/data-table"
+import { SectionCards } from "@/components/section-cards"
+import { SiteHeader } from "@/components/site-header"
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@/components/ui/sidebar"
+import data from "./data.json"
+export default function Page() {
   return (
-    <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
       <AppSidebar />
-      <div className="flex flex-col">
+      <SidebarInset>
         <SiteHeader />
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
-          <SectionCards />
-          <div className="grid gap-6 xl:grid-cols-2">
-            <DataTable />
-            <ChartAreaInteractive />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              <SectionCards />
+              <div className="px-4 lg:px-6">
+                <ChartAreaInteractive />
+              </div>
+              <DataTable />
+            </div>
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

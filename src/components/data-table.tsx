@@ -29,7 +29,7 @@ import data from "@/app/dashboard/data.json"
 
 export function DataTable() {
   return (
-    <Card>
+    <Card className="px-4 lg:px-6">
       <CardHeader>
         <CardTitle>Transactions</CardTitle>
         <CardDescription>
