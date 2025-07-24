@@ -255,7 +255,7 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
               </CardContent>
             </Card>
 
-            {doctor.experience && doctor.experience.length > 0 && (
+            {doctor.experience && Array.isArray(doctor.experience) && doctor.experience.length > 0 && (
               <Card className="mt-6" id="experience">
                 <CardHeader><CardTitle>Practice Experience</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
