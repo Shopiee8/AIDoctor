@@ -18,10 +18,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        body: ["Inter", "sans-serif"],
-        headline: ["Space Grotesk", "sans-serif"],
-        code: ['monospace'],
+        sans: ["DM Sans", "sans-serif"],
+        body: ["DM Sans", "sans-serif"],
+        headline: ["DM Sans", "sans-serif"],
+        mono: ["Space Mono", "monospace"],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -56,16 +56,6 @@ export default {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
-        },
-        sidebar: {
-          DEFAULT: 'hsl(var(--sidebar-background))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          primary: 'hsl(var(--sidebar-primary))',
-          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))',
         },
         'chart-1': 'hsl(var(--chart-1))',
         'chart-2': 'hsl(var(--chart-2))',
