@@ -1,0 +1,113 @@
+
+{
+  "cards": [
+    {
+      "title": "Total Revenue",
+      "amount": "$45,231.89",
+      "change": "+20.1% from last month",
+      "icon": "dollar-sign"
+    },
+    {
+      "title": "Subscriptions",
+      "amount": "+2350",
+      "change": "+180.1% from last month",
+      "icon": "user"
+    },
+    {
+      "title": "Sales",
+      "amount": "+12,234",
+      "change": "+19% from last month",
+      "icon": "credit-card"
+    },
+    {
+      "title": "Active Now",
+      "amount": "+573",
+      "change": "+201 since last hour",
+      "icon": "activity"
+    }
+  ],
+  "table": [
+    {
+      "name": "Liam Johnson",
+      "email": "liam@example.com",
+      "type": "Sale",
+      "status": "Approved",
+      "date": "2023-06-23",
+      "amount": "$250.00"
+    },
+    {
+      "name": "Olivia Smith",
+      "email": "olivia@example.com",
+      "type": "Refund",
+      "status": "Declined",
+      "date": "2023-06-24",
+      "amount": "$150.00"
+    },
+    {
+      "name": "Noah Williams",
+      "email": "noah@example.com",
+      "type": "Subscription",
+      "status": "Approved",
+      "date": "2023-06-25",
+      "amount": "$350.00"
+    },
+    {
+      "name": "Emma Brown",
+      "email": "emma@example.com",
+      "type": "Sale",
+      "status": "Approved",
+      "date": "2023-06-26",
+      "amount": "$450.00"
+    },
+    {
+      "name": "Lucas Jones",
+      "email": "lucas@example.com",
+      "type": "Subscription",
+      "status": "Approved",
+      "date": "2023-06-27",
+      "amount": "$550.00"
+    },
+    {
+      "name": "Sophia Miller",
+      "email": "sophia@example.com",
+      "type": "Sale",
+      "status": "Approved",
+      "date": "2023-06-28",
+      "amount": "$650.00"
+    },
+    {
+      "name": "Ethan Davis",
+      "email": "ethan@example.com",
+      "type": "Subscription",
+      "status": "Declined",
+      "date": "2023-06-29",
+      "amount": "$200.00"
+    },
+    {
+      "name": "Ava Wilson",
+      "email": "ava@example.com",
+      "type": "Sale",
+      "status": "Approved",
+      "date": "2023-06-30",
+      "amount": "$300.00"
+    }
+  ],
+  "chart": {
+    "desktop": [
+      { "month": "Jan", "desktop": 186 },
+      { "month": "Feb", "desktop": 305 },
+      { "month": "Mar", "desktop": 237 },
+      { "month": "Apr", "desktop": 73 },
+      { "month": "May", "desktop": 209 },
+      { "month": "Jun", "desktop": 214 }
+    ],
+    "mobile": [
+      { "month": "Jan", "mobile": 80 },
+      { "month": "Feb", "mobile": 200 },
+      { "month": "Mar", "mobile": 137 },
+      { "month": "Apr", "mobile": 173 },
+      { "month": "May", "mobile": 109 },
+      { "month": "Jun", "mobile": 114 }
+    ]
+  }
+}
