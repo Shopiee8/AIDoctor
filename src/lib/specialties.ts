@@ -3,8 +3,8 @@
 import {
   Stethoscope, Baby, Brain, Bone, Heart, Smile, Bot, Droplets, Activity, Wind, Microscope, Shield, User,
   Users, Eye, Scissors, HeartCrack, Syringe, Dna, Utensils, Waves, PersonStanding, GitBranch,
-  FlaskConical, Radiation, ShieldCheck, Foot, Cloudy, Rib, Anchor, MessageSquare, TestTube,
-  GitMerge, Atom, Zap, HelpingHand, VenetianMask, Leaf, HeartHandshake, Skull, Lungs, Puzzle,
+  FlaskConical, Radiation, ShieldCheck, Footprints, Cloudy, Rib, Anchor, MessageSquare, TestTube,
+  GitMerge, Atom, Zap, HelpingHand, VenetianMask, Leaf, HeartHandshake, Skull, Puzzle,
   Tractor, Weight
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -62,7 +62,7 @@ export const clinicalSpecialties: Specialty[] = [
   { name: 'Pediatric Intensive Care Unit', icon: Baby, keywords: ['picu', 'pediatric critical care', 'child intensive care'] },
   { name: 'Pediatric Neuroscience', icon: Brain, keywords: ['pediatric neuroscience', 'child brain', 'developmental neurology'] },
   { name: 'Pediatric Oncology', icon: ShieldCheck, keywords: ['pediatric oncology', 'child cancer', 'childhood cancer'] },
-  { name: 'Pediatric Pulmonology', icon: Lungs, keywords: ['pediatric pulmonology', 'child lungs', 'asthma'] },
+  { name: 'Pediatric Pulmonology', icon: Wind, keywords: ['pediatric pulmonology', 'child lungs', 'asthma'] },
   { name: 'Pediatric Surgery', icon: Scissors, keywords: ['pediatric surgery', 'child surgery'] },
   { name: 'Pediatrics', icon: Baby, keywords: ['pediatrics', 'child health', 'pediatrician'] },
   { name: 'Physical Medicine and Rehabilitation', icon: PersonStanding, keywords: ['pm&r', 'rehabilitation', 'physical therapy'] },
@@ -74,10 +74,10 @@ export const clinicalSpecialties: Specialty[] = [
   { name: 'Radiology', icon: Microscope, keywords: ['radiology', 'x-ray', 'mri', 'imaging'] },
   { name: 'Rheumatology', icon: Bone, keywords: ['rheumatology', 'arthritis', 'autoimmune', 'joint pain'] },
   { name: 'Scoliosis Surgery at Paley Middle...', icon: Rib, keywords: ['scoliosis', 'spine surgery', 'paley'] },
-  { name: 'Sports Injuries & Sports Medicine', icon: Foot, keywords: ['sports injuries', 'sports medicine', 'athlete'] },
+  { name: 'Sports Injuries & Sports Medicine', icon: Footprints, keywords: ['sports injuries', 'sports medicine', 'athlete'] },
   { name: 'Surgical Oncology', icon: ShieldCheck, keywords: ['surgical oncology', 'cancer surgery'] },
   { name: 'Thalassemia & Sickle Cell Center', icon: HeartCrack, keywords: ['thalassemia', 'sickle cell', 'blood disorder'] },
-  { name: 'Thoracic Surgery', icon: Lungs, keywords: ['thoracic surgery', 'chest surgery', 'lung surgery'] },
+  { name: 'Thoracic Surgery', icon: Wind, keywords: ['thoracic surgery', 'chest surgery', 'lung surgery'] },
   { name: 'Fertility', icon: Puzzle, keywords: ['fertility', 'ivf', 'reproduction'] },
   { name: 'Urology', icon: Anchor, keywords: ['urology', 'urinary', 'bladder', 'kidney'] },
   { name: 'Vascular Surgery', icon: Syringe, keywords: ['vascular surgery', 'veins', 'arteries', 'aneurysm'] },
