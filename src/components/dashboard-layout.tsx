@@ -5,8 +5,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { DashboardHeader } from './dashboard-header';
-import { SessionNavBar } from '@/components/ui/sidebar';
-import PatientSidebar from '@/components/patient-sidebar';
+import { SessionNavBar, SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { AppSidebar } from './app-sidebar';
 import { cn } from '@/lib/utils';
 
 interface DashboardLayoutProps {
@@ -54,13 +54,36 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
       </div>
     );
   }
+  
+  if (userRole === 'Patient') {
+     return (
+        <SidebarProvider
+            style={
+                {
+                "--sidebar-width": "calc(var(--spacing) * 72)",
+                "--header-height": "calc(var(--spacing) * 12)",
+                } as React.CSSProperties
+            }
+        >
+            <AppSidebar />
+            <SidebarInset>
+                <main className="flex-1 w-full flex flex-col">
+                    <DashboardHeader />
+                    <div className="flex-1 p-6">{children}</div>
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
+     )
+  }
 
   return (
     <div className="min-h-screen w-full bg-background flex">
-      {userRole === 'Patient' ? <PatientSidebar /> : <SessionNavBar />}
-      <div className="flex flex-col flex-1">
+      <SessionNavBar />
+      <div className="flex flex-col flex-1 ml-20">
         <DashboardHeader />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 w-full p-6">
+            {children}
+        </main>
       </div>
     </div>
   );
