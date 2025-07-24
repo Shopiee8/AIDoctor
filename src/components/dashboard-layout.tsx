@@ -61,7 +61,7 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
         {userRole === 'Patient' ? <PatientSidebar /> : <SessionNavBar />}
         <div className="flex flex-col min-h-screen w-full md:ml-64">
           <DashboardHeader />
-          <main className="flex-1 w-full p-6 pt-20 flex flex-col">
+          <main className="flex-1 w-full p-6 pt-20">
             {children}
           </main>
         </div>
