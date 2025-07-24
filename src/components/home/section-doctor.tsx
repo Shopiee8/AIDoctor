@@ -17,10 +17,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Bot, User, Calendar, CircleUserRound } from "lucide-react";
 import { Button } from "../ui/button";
+import { useBookingStore } from "@/store/booking-store";
 
 export function SectionDoctor() {
     const [doctors, setDoctors] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const { openBookingModal } = useBookingStore();
 
     const fetchDoctors = async () => {
         setLoading(true);
@@ -39,6 +41,10 @@ export function SectionDoctor() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleBookNow = (doctor: any) => {
+        openBookingModal(doctor);
     };
 
     useEffect(() => {
@@ -106,11 +112,9 @@ export function SectionDoctor() {
                                                 <p className="text-sm font-bold text-foreground">${doctor.fees || 0}</p>
                                                 <p className="text-xs text-muted-foreground">Consultation Fee</p>
                                             </div>
-                                            <Button asChild size="sm">
-                                                <Link href="/booking">
-                                                    <Calendar className="w-3.5 h-3.5 mr-2" />
-                                                    Book Now
-                                                </Link>
+                                            <Button size="sm" onClick={() => handleBookNow(doctor)}>
+                                                <Calendar className="w-3.5 h-3.5 mr-2" />
+                                                Book Now
                                             </Button>
                                         </CardContent>
                                     </Card>

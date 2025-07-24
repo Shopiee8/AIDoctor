@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { useBookingStore } from '@/store/booking-store';
 
 // Helper to join array or fallback to string
 const joinOrString = (val: any, sep = ', ') => {
@@ -86,6 +87,14 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
   const [doctor, setDoctor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { openBookingModal } = useBookingStore();
+
+  const handleBookNow = () => {
+    if (doctor) {
+      openBookingModal(doctor);
+    }
+  };
+
 
   useEffect(() => {
     const fetchDoctor = async () => {
@@ -97,7 +106,7 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
         const docRef = doc(db, 'doctors', id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setDoctor(docSnap.data());
+          setDoctor({id: docSnap.id, ...docSnap.data()});
         } else {
           setError('Doctor not found');
         }
@@ -224,7 +233,7 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
                        <span className="bg-purple-100 text-purple-600 p-2 rounded-lg flex items-center gap-1.5 text-xs"><Building className="w-4 h-4"/> 21+ Years in Practice</span>
                     </div>
                     <p><strong>Price:</strong> ${doctor.fees || '100'} - $500 for a session</p>
-                    <Button size="lg" className="w-full md:w-auto">Book Appointment</Button>
+                    <Button size="lg" className="w-full md:w-auto" onClick={handleBookNow}>Book Appointment</Button>
                 </div>
               </CardContent>
            </Card>
@@ -235,9 +244,9 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
                     <ul className="flex items-center justify-center flex-wrap gap-4">
                         {navLinks.map((link) => (
                             <li key={link.href}>
-                                <Link href={link.href} className="text-sm font-medium text-muted-foreground hover:text-primary p-2">
+                                <a href={link.href} className="text-sm font-medium text-muted-foreground hover:text-primary p-2">
                                     {link.label}
-                                </Link>
+                                </a>
                             </li>
                         ))}
                     </ul>
@@ -295,7 +304,7 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
                 </CardContent>
             </Card>
 
-            {doctor.services && doctor.services.length > 0 && (
+            {doctor.services && Array.isArray(doctor.services) && doctor.services.length > 0 && (
                 <Card className="mt-6" id="services">
                     <CardHeader><CardTitle>Services &amp; Pricing</CardTitle></CardHeader>
                     <CardContent>
@@ -311,12 +320,12 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
                 </Card>
             )}
             
-            {doctor.specialization && doctor.specialization.length > 0 && (
+            {doctor.specialization && Array.isArray(doctor.specialization) && doctor.specialization.length > 0 && (
                  <Card className="mt-6" id="speciality">
                     <CardHeader><CardTitle>Specializations</CardTitle></CardHeader>
                     <CardContent>
                         <ul className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                           {Array.isArray(doctor.specialization) && doctor.specialization.map((spec: any, index: number) => (
+                           {doctor.specialization.map((spec: any, index: number) => (
                                 <li key={index} className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-primary" /> {spec.value || spec}</li>
                             ))}
                         </ul>
@@ -383,7 +392,7 @@ const DoctorProfile = ({ doctorId }: { doctorId?: string }) => {
                 </CardContent>
             </Card>
 
-            {doctor.awards && doctor.awards.length > 0 && (
+            {doctor.awards && Array.isArray(doctor.awards) && doctor.awards.length > 0 && (
               <Card className="mt-6" id="awards">
                  <CardHeader><CardTitle>Awards</CardTitle></CardHeader>
                  <CardContent>

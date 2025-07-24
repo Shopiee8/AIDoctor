@@ -13,7 +13,6 @@ function DoctorProfilePage() {
     return (
         <Suspense fallback={<div>Loading...</div>}>
             <DoctorProfile doctorId={id} />
-            <BookingModal />
         </Suspense>
     );
 }

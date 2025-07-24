@@ -17,6 +17,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
+import { BookingModal } from '@/components/booking-modal';
 
 
 function SearchBar() {
@@ -122,6 +123,7 @@ export default function SearchPage() {
         </div>
       </main>
       <Footer />
+      <BookingModal />
     </div>
   );
 }
