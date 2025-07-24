@@ -1,63 +1,65 @@
-
 "use client"
 
-import { buttonVariants } from "@/components/ui/button"
+import * as React from "react"
+import { type Icon as TablerIcon } from "@tabler/icons-react"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
-import { CircleHelp, Settings } from "lucide-react"
-import Link from "next/link"
-import { NavUser } from "./nav-user"
 
-export function NavSecondary() {
+type NavSecondaryProps = React.ComponentProps<"div"> & {
+  items: {
+    title: string
+    url: string
+    icon: TablerIcon
+    isActive?: boolean
+  }[]
+}
+
+export function NavSecondary({ items, className, ...props }: NavSecondaryProps) {
+  const { isCollapsed } = useSidebar()
+
   return (
-    <>
-      <div className="mt-auto flex flex-col gap-2 p-4">
-        <Card x-chunk="dashboard-02-chunk-0">
-          <CardHeader className="p-2 pt-0 md:p-4">
-            <CardTitle>Upgrade to Pro</CardTitle>
-            <CardDescription>
-              Unlock all features and get unlimited access to our support team.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-            <Link
-              href="/dashboard"
-              className={cn(buttonVariants({ size: "sm" }), "w-full")}
-            >
-              Upgrade
-            </Link>
-          </CardContent>
-        </Card>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link
-              href="/dashboard"
-              className={cn(
-                buttonVariants({ variant: "ghost", size: "icon" }),
-                "h-8 w-8 shrink-0"
-              )}
-            >
-              <CircleHelp className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/dashboard"
-              className={cn(
-                buttonVariants({ variant: "ghost", size: "icon" }),
-                "h-8 w-8 shrink-0"
-              )}
-            >
-              <Settings className="h-4 w-4" />
-            </Link>
-          </div>
-          <NavUser />
-        </div>
+    <TooltipProvider>
+      <div className={cn("flex flex-col", className)} {...props}>
+        <SidebarMenu>
+          {items.map((item, index) => {
+            const Icon = item.icon
+            return (
+              <SidebarMenuItem key={index} className="w-full">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={item.isActive}
+                      className="w-full"
+                    >
+                      <a href={item.url}>
+                        <Icon className="size-5 shrink-0" />
+                        <span className="flex-1">{item.title}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  {isCollapsed && (
+                    <TooltipContent side="right" sideOffset={16}>
+                      {item.title}
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </SidebarMenuItem>
+            )
+          })}
+        </SidebarMenu>
       </div>
-    </>
+    </TooltipProvider>
   )
 }

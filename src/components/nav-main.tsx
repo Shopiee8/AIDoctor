@@ -1,88 +1,62 @@
-
 "use client"
 
+import * as React from "react"
+import { type Icon as TablerIcon } from "@tabler/icons-react"
 import {
-  Home,
-  LineChart,
-  Package,
-  Package2,
-  ShoppingCart,
-  Users2,
-} from "lucide-react"
-
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { cn } from "@/lib/utils"
-import { useIsMobile } from "@/hooks/use-mobile"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
 
-const links = [
-  { title: "Dashboard", icon: Home, href: "/dashboard" },
-  { title: "Orders", icon: ShoppingCart, href: "/dashboard" },
-  { title: "Products", icon: Package, href: "/dashboard" },
-  { title: "Customers", icon: Users2, href: "/dashboard" },
-  { title: "Analytics", icon: LineChart, href: "/dashboard" },
-]
+type NavMainProps = {
+  items: {
+    title: string
+    url: string
+    icon: TablerIcon
+    isActive?: boolean
+  }[]
+}
 
-export function NavMain() {
-  const isMobile = useIsMobile()
-  const pathname = usePathname()
-
-  if (isMobile) {
-    return (
-      <nav className="grid gap-2 text-lg font-medium">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-2 text-lg font-semibold"
-        >
-          <Package2 className="h-6 w-6" />
-          <span className="sr-only">Acme Inc</span>
-        </Link>
-        {links.map((link, i) => (
-          <Link
-            key={i}
-            href={link.href}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            {link.title}
-          </Link>
-        ))}
-      </nav>
-    )
-  }
+export function NavMain({ items }: NavMainProps) {
+  const { isCollapsed } = useSidebar()
 
   return (
-    <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-      <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-        <Package2 className="h-6 w-6" />
-        <span className="">Acme Inc</span>
-      </Link>
-      <nav className="flex flex-1 items-center justify-center gap-2 text-sm font-medium">
-        <TooltipProvider>
-          {links.map((link, i) => (
-            <Tooltip key={i}>
-              <TooltipTrigger asChild>
-                <Link
-                  href={link.href}
-                  className={cn(
-                    "flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8",
-                    pathname === link.href ? "bg-accent text-accent-foreground" : ""
-                  )}
-                >
-                  <link.icon className="h-5 w-5" />
-                  <span className="sr-only">{link.title}</span>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">{link.title}</TooltipContent>
-            </Tooltip>
-          ))}
-        </TooltipProvider>
-      </nav>
-    </div>
+    <TooltipProvider>
+      <SidebarMenu>
+        {items.map((item, index) => {
+          const Icon = item.icon
+          return (
+            <SidebarMenuItem key={index} className="w-full">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={item.isActive}
+                    className="w-full"
+                  >
+                    <a href={item.url}>
+                      <Icon className="size-5 shrink-0" />
+                      <span className="flex-1">{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </TooltipTrigger>
+                {isCollapsed && (
+                  <TooltipContent side="right" sideOffset={16}>
+                    {item.title}
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </SidebarMenuItem>
+          )
+        })}
+      </SidebarMenu>
+    </TooltipProvider>
   )
 }

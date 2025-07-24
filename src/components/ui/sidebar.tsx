@@ -1,18 +1,17 @@
 "use client"
 
 import * as React from "react"
-import { motion } from "framer-motion"
-import { LogOut, Settings, Users, Calendar, FileText, Wallet, Receipt, MessageCircle, Star, Heart, Activity, Stethoscope, Bot, Clock } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
-import { usePathname, useRouter } from "next/navigation";
+import { cva } from "class-variance-authority"
+import { motion, useAnimation } from "framer-motion"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { IconLayoutSidebarLeftCollapse, IconLayoutSidebarRightCollapse } from "@tabler/icons-react"
 import { cn } from "@/lib/utils"
-import Link from "next/link";
-import { Button } from "./button";
-import { ScrollArea } from "./scroll-area";
 
 type SidebarContextProps = {
   isCollapsed?: boolean
   isInside?: boolean
+  isMobile?: boolean
+  isCollapsible?: boolean
 }
 
 const SidebarContext = React.createContext<SidebarContextProps | undefined>(
@@ -57,21 +56,82 @@ const Sidebar = React.forwardRef<
   HTMLElement,
   React.ComponentProps<"aside"> & {
     variant?: "default" | "inset"
+    collapsible?: "default" | "offcanvas"
   }
->(({ className, variant = "default", ...props }, ref) => {
-  return (
-    <aside
-      ref={ref}
-      className={cn(
-        "relative flex h-screen w-[var(--sidebar-width)] flex-col border-r bg-[var(--sidebar-bg)] text-[--sidebar-fg] [border-color:var(--sidebar-border)]",
-        variant === "inset" &&
-          "left-[var(--sidebar-offset,0)] top-[var(--header-height,0)] h-[calc(100vh-var(--header-height,0))]",
-        className
-      )}
-      {...props}
-    />
-  )
-})
+>(
+  (
+    {
+      className,
+      variant = "default",
+      collapsible = "default",
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    const isMobile = useIsMobile()
+    const controls = useAnimation()
+    const [isCollapsed, setIsCollapsed] = React.useState(false)
+
+    React.useEffect(() => {
+      if (isMobile) {
+        controls.start("hidden")
+        setIsCollapsed(true)
+      } else {
+        controls.start("visible")
+        setIsCollapsed(false)
+      }
+    }, [isMobile, controls])
+
+    const handleMouseEnter = () => {
+      if (!isMobile) {
+        setIsCollapsed(false)
+        controls.start("visible")
+      }
+    }
+
+    const handleMouseLeave = () => {
+      if (!isMobile) {
+        setIsCollapsed(true)
+        controls.start("hidden")
+      }
+    }
+
+    const isCollapsible = collapsible !== "offcanvas"
+
+    return (
+      <SidebarContext.Provider
+        value={{
+          isCollapsed,
+          isInside: true,
+          isMobile: isMobile,
+          isCollapsible,
+        }}
+      >
+        <motion.aside
+          ref={ref}
+          initial={isMobile ? "hidden" : "visible"}
+          animate={controls}
+          variants={{
+            visible: { width: "var(--sidebar-width)", transition: { type: "spring", stiffness: 300, damping: 30 } },
+            hidden: { width: "calc(var(--spacing) * 14)", transition: { type: "spring", stiffness: 300, damping: 30 } },
+          }}
+          onMouseEnter={isCollapsible ? handleMouseEnter : undefined}
+          onMouseLeave={isCollapsible ? handleMouseLeave : undefined}
+          className={cn(
+            "relative flex h-screen flex-col border-r bg-[var(--sidebar-bg)] text-[var(--sidebar-fg)] [border-color:var(--sidebar-border)]",
+            variant === "inset" &&
+              "left-[var(--sidebar-offset,0)] top-[var(--header-height,0)] h-[calc(100vh-var(--header-height,0))]",
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </motion.aside>
+      </SidebarContext.Provider>
+    )
+  }
+)
 Sidebar.displayName = "Sidebar"
 
 const SidebarHeader = React.forwardRef<
@@ -91,7 +151,7 @@ const SidebarHeader = React.forwardRef<
 })
 SidebarHeader.displayName = "SidebarHeader"
 
-const SidebarBody = React.forwardRef<
+const SidebarContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
@@ -103,7 +163,7 @@ const SidebarBody = React.forwardRef<
     />
   )
 })
-SidebarBody.displayName = "SidebarBody"
+SidebarContent.displayName = "SidebarContent"
 
 const SidebarFooter = React.forwardRef<
   HTMLDivElement,
@@ -136,138 +196,106 @@ const SidebarInset = React.forwardRef<
 })
 SidebarInset.displayName = "SidebarInset"
 
-const SidebarMain = React.forwardRef<
+const SidebarMenu = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
+  const { isCollapsed } = useSidebar()
+
   return (
     <div
       ref={ref}
-      className={cn("flex flex-1 flex-col", className)}
+      className={cn(
+        "flex w-full items-center",
+        isCollapsed ? "justify-center" : "justify-between",
+        className
+      )}
       {...props}
     />
   )
 })
-SidebarMain.displayName = "SidebarMain"
+SidebarMenu.displayName = "SidebarMenu"
 
+const SidebarMenuItem = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(({ className, ...props }, ref) => {
+  return <div ref={ref} className={cn("flex", className)} {...props} />
+})
+SidebarMenuItem.displayName = "SidebarMenuItem"
 
-const adminMenuItems = [
-  { label: 'Dashboard', icon: Activity, path: '/admin/dashboard' },
-  { label: 'AI Agents', icon: Bot, path: '/admin/dashboard/agents' },
-  { label: 'System Logs', icon: FileText, path: '/admin/dashboard/logs' },
-  { label: 'Settings', icon: Settings, path: '/admin/dashboard/settings' },
-];
+const buttonVariants = cva("flex items-center justify-start gap-4 p-2", {
+  variants: {
+    variant: {
+      default:
+        "rounded-lg text-[var(--sidebar-muted-fg)] hover:bg-[var(--sidebar-accent)] hover:text-[var(--sidebar-accent-fg)]",
+      active:
+        "rounded-lg bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-fg)]",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+})
 
-const doctorMenuItems = [
-  { label: 'Dashboard', icon: Activity, path: '/doctor/dashboard' },
-  { label: 'AI Scribe', icon: Bot, path: '/doctor/dashboard/ai-scribe' },
-  { label: 'Appointments', icon: Calendar, path: '/doctor/dashboard/appointments' },
-  { label: 'My Patients', icon: Users, path: '/doctor/dashboard/my-patients' },
-  { label: 'Schedule', icon: Clock, path: '/doctor/dashboard/schedule' },
-  { label: 'Invoices', icon: Receipt, path: '/doctor/dashboard/invoices' },
-  { label: 'Reviews', icon: Star, path: '/doctor/dashboard/reviews' },
-  { label: 'Messages', icon: MessageCircle, path: '/doctor/dashboard/messages' },
-  { label: 'Profile Settings', icon: Settings, path: '/doctor/dashboard/settings' },
-  { label: 'Social Media', icon: Heart, path: '/doctor/dashboard/social-media' },
-  { label: 'Change Password', icon: Wallet, path: '/doctor/dashboard/change-password' },
-];
-
-const sidebarVariants = {
-  open: { width: "16rem" },
-  closed: { width: "5rem" },
-};
-
-const textVariants = {
-  open: { opacity: 1, x: 0, display: 'inline-block' },
-  closed: { opacity: 0, x: -10, display: 'none' },
-};
-
-const navLinkTransition = { type: "tween", ease: "easeOut", duration: 0.2 };
-
-export function SessionNavBar() {
-  const { user, userRole, signOut } = useAuth();
-  const [isCollapsed, setIsCollapsed] = React.useState(true);
-  const pathname = usePathname();
-  const router = useRouter();
-
-  const menuItems = userRole === 'Doctor' ? doctorMenuItems : adminMenuItems;
-  const dashboardHome = userRole === 'Doctor' ? '/doctor/dashboard' : '/admin/dashboard';
-  
+const SidebarMenuButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<"button"> & {
+    asChild?: boolean
+    isActive?: boolean
+  }
+>(({ className, isActive, asChild, ...props }, ref) => {
+  const Comp = asChild ? "div" : "button"
   return (
-     <motion.div
-      variants={sidebarVariants}
-      initial={isCollapsed ? "closed" : "open"}
-      animate={isCollapsed ? "closed" : "open"}
-      transition={navLinkTransition}
+    <Comp
+      data-slot="sidebar-menu-button"
+      ref={ref}
       className={cn(
-        "fixed left-0 top-0 h-full z-40 hidden md:flex flex-col bg-[--sidebar] text-[--sidebar-foreground] border-r border-[--sidebar-border]"
+        buttonVariants({ variant: isActive ? "active" : "default" }),
+        className
       )}
-      onMouseEnter={() => setIsCollapsed(false)}
-      onMouseLeave={() => setIsCollapsed(true)}
-    >
-      <div className="flex-shrink-0 p-4 h-[65px] border-b border-[--sidebar-border] flex items-center justify-center">
-             <Link href={dashboardHome} className="flex items-center gap-2 overflow-hidden">
-                <Stethoscope className="h-7 w-7 text-primary flex-shrink-0" />
-                <motion.span 
-                    variants={textVariants} 
-                    transition={navLinkTransition}
-                    className="font-bold text-lg whitespace-nowrap"
-                >
-                    AIDoctor
-                </motion.span>
-             </Link>
-      </div>
-        
-      <ScrollArea className="flex-grow p-3">
-         <nav className="flex flex-col gap-1">
-           {menuItems.map((item) => (
-            <Button
-              key={item.label}
-              variant={pathname === item.path ? "secondary" : "ghost"}
-              className="w-full justify-start gap-3 h-10 text-base"
-              onClick={() => router.push(item.path)}
-            >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
-              <motion.span 
-                  variants={textVariants} 
-                  transition={navLinkTransition}
-                  className="whitespace-nowrap"
-              >
-                  {item.label}
-              </motion.span>
-            </Button>
-          ))}
-         </nav>
-      </ScrollArea>
-        
-      <div className="flex-shrink-0 p-3 border-t border-[--sidebar-border]">
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 h-10 text-base"
-          onClick={signOut}
-        >
-          <LogOut className="h-5 w-5 text-destructive" />
-          <motion.span 
-              variants={textVariants}
-              transition={navLinkTransition}
-              className="whitespace-nowrap text-destructive"
-          >
-              Logout
-          </motion.span>
-        </Button>
-      </div>
-    </motion.div>
+      {...props}
+    />
   )
-}
+})
+SidebarMenuButton.displayName = "SidebarMenuButton"
+
+const SidebarCollapseButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<"button">
+>(({ className, ...props }, ref) => {
+  const { isCollapsed } = useSidebar()
+  return (
+    <button
+      ref={ref}
+      className={cn(
+        "absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 translate-x-1/2 rounded-full border bg-background p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground lg:block",
+        className
+      )}
+      {...props}
+    >
+      {isCollapsed ? (
+        <IconLayoutSidebarRightCollapse />
+      ) : (
+        <IconLayoutSidebarLeftCollapse />
+      )}
+    </button>
+  )
+})
+
+SidebarCollapseButton.displayName = "SidebarCollapseButton"
 
 export {
   useSidebar,
   Sidebar,
-  SidebarBody,
+  SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarInset,
-  SidebarMain,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarProvider,
+  SidebarCollapseButton,
 }
 export type { SidebarContextProps }
