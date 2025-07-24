@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect } from "react";
@@ -104,7 +105,7 @@ export default function PatientDashboardPage() {
   ];
 
   return (
-    <div className="space-y-6 max-w-[1800px] mx-auto p-4">
+    <div className="space-y-6">
 
       {/* Patient Header */}
       <div className="flex items-center gap-4 mb-8">
