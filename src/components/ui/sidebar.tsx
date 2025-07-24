@@ -38,6 +38,23 @@ const SIDEBAR_STYLES = [
   "[--sidebar-accent:theme(colors.accent)]",
 ]
 
+const SessionNavBar = React.forwardRef<
+  HTMLElement,
+  React.ComponentProps<"aside">
+>(({ className, children, ...props }, ref) => {
+  return (
+     <aside
+      ref={ref}
+      className={cn("w-20 flex-col border-r bg-background text-foreground", className)}
+      {...props}
+    >
+      {children}
+    </aside>
+  );
+});
+SessionNavBar.displayName = "SessionNavBar";
+
+
 const SidebarProvider = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
@@ -112,6 +129,7 @@ const Sidebar = React.forwardRef<
           ref={ref}
           initial={isMobile ? "hidden" : "visible"}
           animate={controls}
+          data-collapsible={isCollapsible ? (isCollapsed ? "icon" : "full") : "none"}
           variants={{
             visible: { width: "var(--sidebar-width)", transition: { type: "spring", stiffness: 300, damping: 30 } },
             hidden: { width: "calc(var(--spacing) * 14)", transition: { type: "spring", stiffness: 300, damping: 30 } },
@@ -119,7 +137,7 @@ const Sidebar = React.forwardRef<
           onMouseEnter={isCollapsible ? handleMouseEnter : undefined}
           onMouseLeave={isCollapsible ? handleMouseLeave : undefined}
           className={cn(
-            "relative flex h-screen flex-col border-r bg-[var(--sidebar-bg)] text-[var(--sidebar-fg)] [border-color:var(--sidebar-border)]",
+            "group relative flex h-screen flex-col border-r bg-[var(--sidebar-bg)] text-[var(--sidebar-fg)] [border-color:var(--sidebar-border)]",
             variant === "inset" &&
               "left-[var(--sidebar-offset,0)] top-[var(--header-height,0)] h-[calc(100vh-var(--header-height,0))]",
             className
@@ -158,7 +176,7 @@ const SidebarContent = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("flex flex-1 flex-col", className)}
+      className={cn("flex flex-1 flex-col overflow-y-auto", className)}
       {...props}
     />
   )
@@ -173,7 +191,7 @@ const SidebarFooter = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "flex items-center gap-2 border-t p-4 [border-color:var(--sidebar-border)]",
+        "flex items-center gap-2 border-t p-2 [border-color:var(--sidebar-border)]",
         className
       )}
       {...props}
@@ -200,14 +218,11 @@ const SidebarMenu = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
-  const { isCollapsed } = useSidebar()
-
   return (
     <div
       ref={ref}
       className={cn(
-        "flex w-full items-center",
-        isCollapsed ? "justify-center" : "justify-between",
+        "flex w-full flex-col",
         className
       )}
       {...props}
@@ -216,11 +231,41 @@ const SidebarMenu = React.forwardRef<
 })
 SidebarMenu.displayName = "SidebarMenu"
 
+const SidebarGroup = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(({ className, ...props }, ref) => {
+  return (
+    <div ref={ref} className={cn("flex flex-col", className)} {...props} />
+  )
+})
+SidebarGroup.displayName = "SidebarGroup"
+
+const SidebarGroupLabel = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(({ className, ...props }, ref) => {
+  const { isCollapsed } = useSidebar()
+  if (isCollapsed) return null
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "px-4 pt-4 pb-2 text-xs font-medium text-muted-foreground",
+        className
+      )}
+      {...props}
+    />
+  )
+})
+SidebarGroupLabel.displayName = "SidebarGroupLabel"
+
+
 const SidebarMenuItem = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
-  return <div ref={ref} className={cn("flex", className)} {...props} />
+  return <div ref={ref} className={cn("group/item flex items-center justify-between", className)} {...props} />
 })
 SidebarMenuItem.displayName = "SidebarMenuItem"
 
@@ -245,6 +290,7 @@ const SidebarMenuButton = React.forwardRef<
     isActive?: boolean
   }
 >(({ className, isActive, asChild, ...props }, ref) => {
+  const { isCollapsed } = useSidebar()
   const Comp = asChild ? "div" : "button"
   return (
     <Comp
@@ -252,6 +298,8 @@ const SidebarMenuButton = React.forwardRef<
       ref={ref}
       className={cn(
         buttonVariants({ variant: isActive ? "active" : "default" }),
+        "w-full flex-1",
+        isCollapsed && "justify-center",
         className
       )}
       {...props}
@@ -259,6 +307,30 @@ const SidebarMenuButton = React.forwardRef<
   )
 })
 SidebarMenuButton.displayName = "SidebarMenuButton"
+
+const SidebarMenuAction = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<"button"> & {
+    showOnHover?: boolean
+  }
+>(({ className, showOnHover, ...props }, ref) => {
+  const { isCollapsed } = useSidebar()
+  if (isCollapsed) return null
+  return (
+    <button
+      ref={ref}
+      className={cn(
+        "p-1",
+        showOnHover &&
+          "invisible group-hover/item:visible",
+        className
+      )}
+      {...props}
+    />
+  )
+})
+SidebarMenuAction.displayName = "SidebarMenuAction"
+
 
 const SidebarCollapseButton = React.forwardRef<
   HTMLButtonElement,
@@ -297,5 +369,9 @@ export {
   SidebarMenuItem,
   SidebarProvider,
   SidebarCollapseButton,
+  SessionNavBar,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenuAction,
 }
 export type { SidebarContextProps }
