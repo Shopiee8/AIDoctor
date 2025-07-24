@@ -3,7 +3,7 @@
 import {
   Stethoscope, Baby, Brain, Bone, Heart, Smile, Bot, Droplets, Activity, Wind, Microscope, Shield, User,
   Users, Eye, Scissors, HeartCrack, Syringe, Dna, Utensils, Waves, PersonStanding, GitBranch,
-  FlaskConical, Radiation, ShieldCheck, Footprints, Cloudy, Rib, Anchor, MessageSquare, TestTube,
+  FlaskConical, Radiation, ShieldCheck, Footprints, Cloudy, Anchor, MessageSquare, TestTube,
   GitMerge, Atom, Zap, HelpingHand, VenetianMask, Leaf, HeartHandshake, Skull, Puzzle,
   Tractor, Weight
 } from "lucide-react";
@@ -73,7 +73,7 @@ export const clinicalSpecialties: Specialty[] = [
   { name: 'Radiation Oncology', icon: Radiation, keywords: ['radiation oncology', 'cancer treatment', 'radiotherapy'] },
   { name: 'Radiology', icon: Microscope, keywords: ['radiology', 'x-ray', 'mri', 'imaging'] },
   { name: 'Rheumatology', icon: Bone, keywords: ['rheumatology', 'arthritis', 'autoimmune', 'joint pain'] },
-  { name: 'Scoliosis Surgery at Paley Middle...', icon: Rib, keywords: ['scoliosis', 'spine surgery', 'paley'] },
+  { name: 'Scoliosis Surgery at Paley Middle...', icon: Bone, keywords: ['scoliosis', 'spine surgery', 'paley'] },
   { name: 'Sports Injuries & Sports Medicine', icon: Footprints, keywords: ['sports injuries', 'sports medicine', 'athlete'] },
   { name: 'Surgical Oncology', icon: ShieldCheck, keywords: ['surgical oncology', 'cancer surgery'] },
   { name: 'Thalassemia & Sickle Cell Center', icon: HeartCrack, keywords: ['thalassemia', 'sickle cell', 'blood disorder'] },
