@@ -79,7 +79,7 @@ export function Step4Details() {
                                         <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                                     )}/>
                                      <FormField control={form.control} name="email" render={({ field }) => (
-                                        <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input type="email" {...field} disabled /></FormControl><FormMessage /></FormItem>
+                                        <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>
                                     )}/>
                                     <FormField control={form.control} name="patient" render={({ field }) => (
                                         <FormItem><FormLabel>Select Patient</FormLabel>
