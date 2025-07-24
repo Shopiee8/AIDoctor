@@ -31,42 +31,37 @@ export function DataTable() {
   return (
     <Card className="px-4 lg:px-6">
       <CardHeader>
-        <CardTitle>Transactions</CardTitle>
+        <CardTitle>Documents</CardTitle>
         <CardDescription>
-          Recent transactions from your store.
+          Manage and track your document sections.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Customer</TableHead>
+              <TableHead>Header</TableHead>
               <TableHead className="hidden md:table-cell">Type</TableHead>
               <TableHead className="hidden md:table-cell">Status</TableHead>
-              <TableHead className="hidden md:table-cell">Date</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
+              <TableHead className="hidden md:table-cell">Reviewer</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.table.map((row, index) => (
-              <TableRow key={index}>
+            {data.map((row) => (
+              <TableRow key={row.id}>
                 <TableCell>
-                  <div className="font-medium">{row.name}</div>
-                  <div className="hidden text-sm text-muted-foreground md:inline">
-                    {row.email}
-                  </div>
+                  <div className="font-medium">{row.header}</div>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">{row.type}</TableCell>
                 <TableCell className="hidden md:table-cell">
-                  <Badge className="text-xs" variant="outline">
+                  <Badge className="text-xs" variant={row.status === "Done" ? "default" : "secondary"}>
                     {row.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="hidden md:table-cell">{row.date}</TableCell>
-                <TableCell className="text-right">{row.amount}</TableCell>
+                <TableCell className="hidden md:table-cell">{row.reviewer}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
