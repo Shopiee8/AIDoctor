@@ -37,46 +37,50 @@ export function Step3DateTime() {
     );
 
     return (
-        <Card className="border-none shadow-none">
-            <CardHeader className="bg-muted/50 rounded-t-lg">
-                <div className="flex items-center gap-4">
-                    <Avatar className="w-24 h-24 border-4 border-background">
-                        <AvatarImage src={doctor.image} />
-                        <AvatarFallback>{doctor.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                     <div>
-                        <h4 className="text-xl font-bold flex items-center gap-2">{doctor.name} <Badge variant="secondary"><Star className="w-3 h-3 mr-1 text-yellow-400 fill-yellow-400" />{doctor.rating}</Badge></h4>
-                        <p className="text-primary font-semibold">{doctor.specialty}</p>
-                        <p className="text-muted-foreground text-sm flex items-center gap-1 mt-1"><MapPin className="w-4 h-4" /> {doctor.location}</p>
-                    </div>
-                </div>
-            </CardHeader>
-            <CardContent className="p-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                        <Calendar
-                            mode="single"
-                            selected={appointmentDate}
-                            onSelect={setAppointmentDate}
-                            className="rounded-md border p-0"
-                            disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() - 1))}
-                        />
-                    </div>
-                    <div className="space-y-4">
-                        <TimeSlotGroup title="Morning" slots={morningSlots} />
-                        <TimeSlotGroup title="Afternoon" slots={afternoonSlots} />
-                        <TimeSlotGroup title="Evening" slots={eveningSlots} />
-                    </div>
-                </div>
-            </CardContent>
-            <CardFooter className="flex justify-between border-t pt-6">
+        <div className="flex flex-col h-full">
+            <div className="flex-grow">
+                <Card className="border-none shadow-none">
+                    <CardHeader className="bg-muted/50 rounded-t-lg p-4">
+                        <div className="flex items-center gap-4">
+                            <Avatar className="w-16 h-16 border-2 border-background">
+                                <AvatarImage src={doctor?.image} />
+                                <AvatarFallback>{doctor?.name?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                             <div>
+                                <h4 className="text-lg font-bold flex items-center gap-2">{doctor?.name} <Badge variant="secondary"><Star className="w-3 h-3 mr-1 text-yellow-400 fill-yellow-400" />{doctor?.rating}</Badge></h4>
+                                <p className="text-primary font-semibold">{doctor?.specialty}</p>
+                                <p className="text-muted-foreground text-sm flex items-center gap-1 mt-1"><MapPin className="w-4 h-4" /> {doctor?.location}</p>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <Calendar
+                                    mode="single"
+                                    selected={appointmentDate}
+                                    onSelect={setAppointmentDate}
+                                    className="rounded-md border p-0"
+                                    disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() - 1))}
+                                />
+                            </div>
+                            <div className="space-y-4">
+                                <TimeSlotGroup title="Morning" slots={morningSlots} />
+                                <TimeSlotGroup title="Afternoon" slots={afternoonSlots} />
+                                <TimeSlotGroup title="Evening" slots={eveningSlots} />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="flex justify-between border-t pt-4 mt-4">
                 <Button variant="outline" onClick={prevStep}>
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
                 <Button onClick={nextStep} disabled={!appointmentDate || !appointmentTime}>
                     Add Basic Information <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-            </CardFooter>
-        </Card>
+            </div>
+        </div>
     );
 }

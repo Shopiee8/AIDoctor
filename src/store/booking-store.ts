@@ -14,7 +14,7 @@ interface BookingDetails {
 interface BookingState {
     isBookingModalOpen: boolean;
     currentStep: number;
-    doctor: Doctor;
+    doctor: Doctor | null;
     services: string[];
     appointmentType: string;
     clinic: string;
@@ -36,21 +36,13 @@ interface BookingState {
     setBookingDetails: (details: Partial<BookingDetails>) => void;
 }
 
-const initialDoctor: Doctor = {
-    name: "Dr. Michael Brown",
-    specialty: "Cardiology",
-    location: "5th Street - 1011 W 5th St, Austin, TX 78703",
-    rating: 5.0,
-    image: "https://placehold.co/100x100.png"
-};
-
 const initialState = {
     isBookingModalOpen: false,
     currentStep: 1,
-    doctor: initialDoctor,
-    services: ["s1"],
+    doctor: null,
+    services: [],
     appointmentType: "clinic",
-    clinic: "c1",
+    clinic: "",
     appointmentDate: new Date(),
     appointmentTime: "",
     bookingDetails: {},
@@ -60,14 +52,22 @@ const initialState = {
 export const useBookingStore = create<BookingState>((set, get) => ({
     ...initialState,
     
-    openBookingModal: (doctor) => set({ isBookingModalOpen: true, doctor: doctor || initialDoctor, currentStep: 1 }),
+    openBookingModal: (doctor) => set({ 
+        ...initialState, // Reset all fields on new booking
+        isBookingModalOpen: true, 
+        doctor: doctor,
+        appointmentType: doctor.clinics && doctor.clinics.length > 0 ? "clinic" : "video",
+    }),
     closeBookingModal: () => set({ isBookingModalOpen: false }),
     nextStep: () => set(state => ({ currentStep: Math.min(state.currentStep + 1, 6) })),
     prevStep: () => set(state => ({ currentStep: Math.max(state.currentStep - 1, 1) })),
-    resetBooking: () => set({ ...initialState, isBookingModalOpen: true }),
+    resetBooking: () => {
+        const currentDoctor = get().doctor;
+        set({ ...initialState, doctor: currentDoctor, isBookingModalOpen: true });
+    },
     
     setServices: (services) => set({ services }),
-    setAppointmentType: (appointmentType) => set({ appointmentType }),
+    setAppointmentType: (appointmentType) => set({ appointmentType, clinic: "" }), // Reset clinic when type changes
     setClinic: (clinic) => set({ clinic }),
     setAppointmentDate: (appointmentDate) => set({ appointmentDate }),
     setAppointmentTime: (appointmentTime) => set({ appointmentTime }),

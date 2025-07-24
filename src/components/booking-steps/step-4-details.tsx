@@ -49,68 +49,72 @@ export function Step4Details() {
     }
 
     return (
-        <Card className="border-none shadow-none">
-            <CardHeader className="bg-muted/50 rounded-t-lg">
-                <div className="flex items-center gap-4">
-                    <Avatar className="w-24 h-24 border-4 border-background">
-                        <AvatarImage src={doctor.image} />
-                        <AvatarFallback>{doctor.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                     <div>
-                        <h4 className="text-xl font-bold flex items-center gap-2">{doctor.name} <Badge variant="secondary"><Star className="w-3 h-3 mr-1 text-yellow-400 fill-yellow-400" />{doctor.rating}</Badge></h4>
-                        <p className="text-primary font-semibold">{doctor.specialty}</p>
-                        <p className="text-muted-foreground text-sm flex items-center gap-1 mt-1"><MapPin className="w-4 h-4" /> {doctor.location}</p>
-                    </div>
-                </div>
-            </CardHeader>
-            <CardContent className="p-6">
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <FormField control={form.control} name="firstName" render={({ field }) => (
-                                <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                            <FormField control={form.control} name="lastName" render={({ field }) => (
-                                <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                            <FormField control={form.control} name="phone" render={({ field }) => (
-                                <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                             <FormField control={form.control} name="email" render={({ field }) => (
-                                <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input type="email" {...field} disabled /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                            <FormField control={form.control} name="patient" render={({ field }) => (
-                                <FormItem><FormLabel>Select Patient</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder="Select patient" /></SelectTrigger></FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="self">Self</SelectItem>
-                                            <SelectItem value="child">Child</SelectItem>
-                                            <SelectItem value="other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                <FormMessage />
-                                </FormItem>
-                            )}/>
-                            <FormField control={form.control} name="symptoms" render={({ field }) => (
-                                <FormItem><FormLabel>Symptoms (Optional)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                             <div className="md:col-span-2">
-                                <Label>Attachment (Optional)</Label>
-                                <Input type="file" />
+        <div className="flex flex-col h-full">
+            <div className="flex-grow">
+                <Card className="border-none shadow-none">
+                    <CardHeader className="bg-muted/50 rounded-t-lg p-4">
+                        <div className="flex items-center gap-4">
+                            <Avatar className="w-16 h-16 border-2 border-background">
+                                <AvatarImage src={doctor?.image} />
+                                <AvatarFallback>{doctor?.name?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                             <div>
+                                <h4 className="text-lg font-bold flex items-center gap-2">{doctor?.name} <Badge variant="secondary"><Star className="w-3 h-3 mr-1 text-yellow-400 fill-yellow-400" />{doctor?.rating}</Badge></h4>
+                                <p className="text-primary font-semibold">{doctor?.specialty}</p>
+                                <p className="text-muted-foreground text-sm flex items-center gap-1 mt-1"><MapPin className="w-4 h-4" /> {doctor?.location}</p>
                             </div>
                         </div>
-                    </form>
-                </Form>
-            </CardContent>
-            <CardFooter className="flex justify-between border-t pt-6">
+                    </CardHeader>
+                    <CardContent className="p-4">
+                        <Form {...form}>
+                            <form className="space-y-4">
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <FormField control={form.control} name="firstName" render={({ field }) => (
+                                        <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                    <FormField control={form.control} name="lastName" render={({ field }) => (
+                                        <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                    <FormField control={form.control} name="phone" render={({ field }) => (
+                                        <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                     <FormField control={form.control} name="email" render={({ field }) => (
+                                        <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input type="email" {...field} disabled /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                    <FormField control={form.control} name="patient" render={({ field }) => (
+                                        <FormItem><FormLabel>Select Patient</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl><SelectTrigger><SelectValue placeholder="Select patient" /></SelectTrigger></FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="self">Self</SelectItem>
+                                                    <SelectItem value="child">Child</SelectItem>
+                                                    <SelectItem value="other">Other</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}/>
+                                    <FormField control={form.control} name="symptoms" render={({ field }) => (
+                                        <FormItem><FormLabel>Symptoms (Optional)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                     <div className="md:col-span-2">
+                                        <Label>Attachment (Optional)</Label>
+                                        <Input type="file" />
+                                    </div>
+                                </div>
+                            </form>
+                        </Form>
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="flex justify-between border-t pt-4 mt-4">
                 <Button variant="outline" onClick={prevStep}>
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
                 <Button onClick={form.handleSubmit(onSubmit)}>
                     Select Payment <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-            </CardFooter>
-        </Card>
+            </div>
+        </div>
     );
 }
