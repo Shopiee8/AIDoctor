@@ -71,119 +71,116 @@ export default function DoctorDashboardPage() {
             </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Main Column */}
-            <div className="lg:col-span-8 space-y-6">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <div>
-                            <CardTitle>Today's Appointments</CardTitle>
-                            <CardDescription>You have {todayAppointments.length} appointments scheduled for today.</CardDescription>
-                        </div>
-                        <Button asChild variant="outline" size="sm">
-                            <Link href="/doctor/dashboard/appointments">View All</Link>
-                        </Button>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {todayAppointments.map((appt) => (
-                                <div key={appt.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted">
-                                    <div className="flex items-center gap-3">
-                                        <Avatar className="h-10 w-10">
-                                            <AvatarImage src={appt.image} data-ai-hint={appt.imageHint} />
-                                            <AvatarFallback>{appt.patient.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <p className="font-semibold">{appt.patient}</p>
-                                            <p className="text-xs text-muted-foreground">{appt.purpose}</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="font-medium text-sm flex items-center gap-2"><Clock className="w-4 h-4 text-primary" />{appt.time}</p>
-                                        <Button variant="link" size="sm" className="p-0 h-auto" asChild>
-                                            <Link href={`/doctor/dashboard/my-patients/${appt.patientId}`}>View Patient</Link>
-                                        </Button>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>Today's Appointments</CardTitle>
+                        <CardDescription>You have {todayAppointments.length} appointments scheduled for today.</CardDescription>
+                    </div>
+                    <Button asChild variant="outline" size="sm">
+                        <Link href="/doctor/dashboard/appointments">View All</Link>
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        {todayAppointments.map((appt) => (
+                            <div key={appt.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-10 w-10">
+                                        <AvatarImage src={appt.image} data-ai-hint={appt.imageHint} />
+                                        <AvatarFallback>{appt.patient.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-semibold">{appt.patient}</p>
+                                        <p className="text-xs text-muted-foreground">{appt.purpose}</p>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Recent Patient Activity</CardTitle>
-                         <Button asChild variant="outline" size="sm">
-                            <Link href="/doctor/dashboard/my-patients">View All</Link>
-                        </Button>
-                    </CardHeader>
-                     <CardContent>
-                        <table className="w-full text-sm">
-                             <tbody>
-                                {recentPatients.map((patient) => (
-                                    <tr key={patient.id} className="border-b last:border-b-0">
-                                        <td className="p-3">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={patient.image} data-ai-hint={patient.imageHint} />
-                                                    <AvatarFallback>{patient.patient.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="font-semibold">{patient.patient}</p>
-                                                    <p className="text-xs text-muted-foreground">#{patient.patientId}</p>
-                                                </div>
+                                <div className="text-right">
+                                    <p className="font-medium text-sm flex items-center gap-2"><Clock className="w-4 h-4 text-primary" />{appt.time}</p>
+                                    <Button variant="link" size="sm" className="p-0 h-auto" asChild>
+                                        <Link href={`/doctor/dashboard/my-patients/${appt.patientId}`}>View Patient</Link>
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Recent Patient Activity</CardTitle>
+                     <Button asChild variant="outline" size="sm">
+                        <Link href="/doctor/dashboard/my-patients">View All</Link>
+                    </Button>
+                </CardHeader>
+                 <CardContent>
+                    <table className="w-full text-sm">
+                         <tbody>
+                            {recentPatients.map((patient) => (
+                                <tr key={patient.id} className="border-b last:border-b-0">
+                                    <td className="p-3">
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="h-10 w-10">
+                                                <AvatarImage src={patient.image} data-ai-hint={patient.imageHint} />
+                                                <AvatarFallback>{patient.patient.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p className="font-semibold">{patient.patient}</p>
+                                                <p className="text-xs text-muted-foreground">#{patient.patientId}</p>
                                             </div>
-                                        </td>
-                                        <td className="p-3 text-muted-foreground">{patient.lastVisit}</td>
-                                        <td className="p-3 font-medium">${patient.paid.toFixed(2)}</td>
-                                         <td className="text-right p-3">
-                                            <Button variant="ghost" size="sm">View</Button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </CardContent>
-                </Card>
-            </div>
-            {/* Side Column */}
-            <div className="lg:col-span-4 space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Notifications</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ul className="space-y-3">
-                            {notifications.map((item) => {
-                                const Icon = item.icon;
-                                return(
-                                <li key={item.id} className="flex items-start gap-3">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${item.color}`}>
-                                        <Icon className="w-4 h-4"/>
-                                    </div>
-                                    <div className="flex-1 text-sm">
-                                        <p className="text-muted-foreground leading-tight">{item.message}</p>
-                                        <p className="text-xs text-muted-foreground/70">{item.time}</p>
-                                    </div>
-                                </li>
-                            )})}
-                        </ul>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Availability Summary</CardTitle>
-                        <CardDescription>Your current weekly schedule.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2 text-sm">
-                        <div className="flex justify-between"><span className="font-medium">Mon, Wed, Fri</span><span className="text-muted-foreground">09:00 AM - 05:00 PM</span></div>
-                        <div className="flex justify-between"><span className="font-medium">Tue, Thu</span><span className="text-muted-foreground">10:00 AM - 07:00 PM</span></div>
-                        <div className="flex justify-between"><span className="font-medium">Sat, Sun</span><span className="text-muted-foreground">Closed</span></div>
-                         <Button asChild variant="secondary" className="w-full mt-2">
-                            <Link href="/doctor/dashboard/schedule">Edit Schedule</Link>
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+                                        </div>
+                                    </td>
+                                    <td className="p-3 text-muted-foreground">{patient.lastVisit}</td>
+                                    <td className="p-3 font-medium">${patient.paid.toFixed(2)}</td>
+                                     <td className="text-right p-3">
+                                        <Button variant="ghost" size="sm">View</Button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </CardContent>
+            </Card>
+        </div>
+        
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Notifications</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <ul className="space-y-3">
+                        {notifications.map((item) => {
+                            const Icon = item.icon;
+                            return(
+                            <li key={item.id} className="flex items-start gap-3">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${item.color}`}>
+                                    <Icon className="w-4 h-4"/>
+                                </div>
+                                <div className="flex-1 text-sm">
+                                    <p className="text-muted-foreground leading-tight">{item.message}</p>
+                                    <p className="text-xs text-muted-foreground/70">{item.time}</p>
+                                </div>
+                            </li>
+                        )})}
+                    </ul>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Availability Summary</CardTitle>
+                    <CardDescription>Your current weekly schedule.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                    <div className="flex justify-between"><span className="font-medium">Mon, Wed, Fri</span><span className="text-muted-foreground">09:00 AM - 05:00 PM</span></div>
+                    <div className="flex justify-between"><span className="font-medium">Tue, Thu</span><span className="text-muted-foreground">10:00 AM - 07:00 PM</span></div>
+                    <div className="flex justify-between"><span className="font-medium">Sat, Sun</span><span className="text-muted-foreground">Closed</span></div>
+                     <Button asChild variant="secondary" className="w-full mt-2 !mt-4">
+                        <Link href="/doctor/dashboard/schedule">Edit Schedule</Link>
+                    </Button>
+                </CardContent>
+            </Card>
         </div>
     </div>
   );
