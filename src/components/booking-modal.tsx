@@ -46,39 +46,40 @@ export function BookingModal() {
     return (
         <Dialog open={isBookingModalOpen} onOpenChange={closeBookingModal}>
             <DialogContent className="max-w-4xl p-0">
-                <DialogHeader className="p-6 pb-0">
+                <DialogHeader className="p-6 pb-4">
                     <DialogTitle className="text-center font-headline text-2xl">Booking Appointment</DialogTitle>
                 </DialogHeader>
 
-                <div className="p-6">
+                <div className="p-6 pt-0">
+                    {/* Progress Bar */}
                     <div className="flex items-center justify-center mb-8">
                         {steps.map((step, index) => (
                             <React.Fragment key={step.id}>
-                                <div className={cn(
-                                    "flex flex-col items-center",
-                                    currentStep >= step.id ? "text-primary" : "text-muted-foreground"
-                                )}>
-                                    <div className={cn(
-                                        "w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold",
-                                        currentStep >= step.id ? "bg-primary text-primary-foreground border-primary" : "bg-muted"
-                                    )}>
+                                <div className="flex flex-col items-center text-center">
+                                    <div
+                                        className={cn(
+                                            "w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold transition-all",
+                                            currentStep > step.id ? "bg-primary border-primary text-primary-foreground" :
+                                            currentStep === step.id ? "border-primary text-primary" : "border-muted-foreground text-muted-foreground"
+                                        )}
+                                    >
                                         {step.id}
                                     </div>
-                                    <p className="text-xs mt-1 text-center">{step.title}</p>
+                                    <p className={cn(
+                                        "text-xs mt-1 w-20 transition-all",
+                                         currentStep >= step.id ? "text-primary" : "text-muted-foreground"
+                                        )}>{step.title}</p>
                                 </div>
                                 {index < steps.length - 1 && (
                                     <div className={cn(
-                                        "flex-1 h-0.5 mx-2",
+                                        "flex-1 h-0.5 mx-2 transition-all",
                                         currentStep > step.id ? "bg-primary" : "bg-muted"
                                     )} />
                                 )}
                             </React.Fragment>
                         ))}
                     </div>
-
-                    <div className="border rounded-lg shadow-sm">
-                        {renderStepContent()}
-                    </div>
+                    {renderStepContent()}
                 </div>
             </DialogContent>
         </Dialog>

@@ -12,7 +12,6 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Star, MapPin, ArrowRight, ArrowLeft } from "lucide-react";
-import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -50,21 +49,21 @@ export function Step4Details() {
     }
 
     return (
-        <>
-            <CardHeader>
+        <Card className="border-none shadow-none">
+            <CardHeader className="bg-muted/50 rounded-t-lg">
                 <div className="flex items-center gap-4">
-                    <Avatar className="w-20 h-20 border">
+                    <Avatar className="w-24 h-24 border-4 border-background">
                         <AvatarImage src={doctor.image} />
                         <AvatarFallback>{doctor.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                      <div>
-                        <h4 className="text-xl font-bold flex items-center gap-2">{doctor.name} <Badge><Star className="w-3 h-3 mr-1" />{doctor.rating}</Badge></h4>
-                        <p className="text-primary">{doctor.specialty}</p>
+                        <h4 className="text-xl font-bold flex items-center gap-2">{doctor.name} <Badge variant="secondary"><Star className="w-3 h-3 mr-1 text-yellow-400 fill-yellow-400" />{doctor.rating}</Badge></h4>
+                        <p className="text-primary font-semibold">{doctor.specialty}</p>
                         <p className="text-muted-foreground text-sm flex items-center gap-1 mt-1"><MapPin className="w-4 h-4" /> {doctor.location}</p>
                     </div>
                 </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <div className="grid md:grid-cols-2 gap-4">
@@ -96,27 +95,22 @@ export function Step4Details() {
                             <FormField control={form.control} name="symptoms" render={({ field }) => (
                                 <FormItem><FormLabel>Symptoms (Optional)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                             )}/>
-                        </div>
-                        <div className="md:col-span-2">
-                            <Label>Attachment</Label>
-                            <Input type="file" />
-                        </div>
-                         <div className="md:col-span-2">
-                             <FormField control={form.control} name="symptoms" render={({ field }) => (
-                                <FormItem><FormLabel>Reason for Visit</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>
-                            )}/>
+                             <div className="md:col-span-2">
+                                <Label>Attachment (Optional)</Label>
+                                <Input type="file" />
+                            </div>
                         </div>
                     </form>
                 </Form>
             </CardContent>
-            <CardFooter className="flex justify-between">
-                <Button variant="ghost" onClick={prevStep}>
+            <CardFooter className="flex justify-between border-t pt-6">
+                <Button variant="outline" onClick={prevStep}>
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
                 <Button onClick={form.handleSubmit(onSubmit)}>
                     Select Payment <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             </CardFooter>
-        </>
+        </Card>
     );
 }
