@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -24,6 +23,9 @@ export default function ConsultationPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [hasCameraPermission, setHasCameraPermission] = useState(true);
     const [currentMessage, setCurrentMessage] = useState("");
+    const [isRecording, setIsRecording] = useState(false);
+    const [liveTranscript, setLiveTranscript] = useState("");
+
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -33,7 +35,7 @@ export default function ConsultationPage() {
     useEffect(() => {
         const getCameraPermission = async () => {
           try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             if (videoRef.current) {
               videoRef.current.srcObject = stream;
             }
@@ -42,8 +44,8 @@ export default function ConsultationPage() {
             console.error('Error accessing camera:', error);
             setHasCameraPermission(false);
             toast({
-                title: 'Camera Access Denied',
-                description: 'Please enable camera permissions in your browser settings.',
+                title: 'Camera & Mic Access Denied',
+                description: 'Please enable camera and microphone permissions in your browser settings.',
                 variant: 'destructive',
             });
           }
@@ -89,6 +91,22 @@ export default function ConsultationPage() {
         }
     };
     
+    // Placeholder for Speechmatics logic
+    const handleToggleRecording = () => {
+        if (isRecording) {
+            // Stop recording logic here
+            setIsRecording(false);
+            // On stop, append the live transcript to the main chat input
+            setCurrentMessage(prev => prev + liveTranscript);
+            setLiveTranscript("");
+        } else {
+            // Start recording logic here
+            // This would involve setting up the WebSocket to Speechmatics
+            setIsRecording(true);
+            toast({ title: 'Recording Started', description: 'Live transcription is active.' });
+        }
+    };
+    
     return (
         <div className="flex h-screen bg-muted/30">
             {/* Main Content */}
@@ -130,7 +148,9 @@ export default function ConsultationPage() {
                                 </div>
                             )}
                             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/50 backdrop-blur-sm p-2 rounded-full">
-                                <Button size="icon" variant="secondary" className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none"><MicIcon className="w-6 h-6"/></Button>
+                                <Button size="icon" variant={isRecording ? "destructive" : "secondary"} className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none" onClick={handleToggleRecording}>
+                                    {isRecording ? <StopCircle className="w-6 h-6"/> : <MicIcon className="w-6 h-6"/>}
+                                </Button>
                                 <Button size="icon" variant="secondary" className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none"><VideoIcon className="w-6 h-6"/></Button>
                                 <Button size="icon" variant="destructive" className="rounded-full w-12 h-12"><PhoneOff className="w-6 h-6"/></Button>
                                 <Button size="icon" variant="secondary" className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none"><Wand2 className="w-6 h-6"/></Button>
@@ -145,6 +165,7 @@ export default function ConsultationPage() {
                             <Card className="flex flex-col">
                                 <CardHeader className="flex-row items-center justify-between pb-2">
                                     <CardTitle className="text-base flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" />Live Transcript</CardTitle>
+                                     {isRecording && <Waveform />}
                                 </CardHeader>
                                 <CardContent className="flex-1 overflow-y-auto p-4">
                                      <ScrollArea className="h-full">
@@ -160,7 +181,18 @@ export default function ConsultationPage() {
                                                     </div>
                                                 </div>
                                             ))}
-                                            {transcript.length === 0 && !isLoading && (
+                                            {liveTranscript && (
+                                                <div className="flex gap-3">
+                                                     <Avatar className="h-6 w-6">
+                                                      <AvatarFallback>U</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1">
+                                                        <p className="font-semibold">You (speaking...)</p>
+                                                        <p className="text-muted-foreground italic">{liveTranscript}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {transcript.length === 0 && !isLoading && !isRecording &&(
                                                 <div className="text-center text-muted-foreground pt-8">Conversation will appear here...</div>
                                             )}
                                             {isLoading && <div className="text-center text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin inline mr-2"/>AI is thinking...</div>}
@@ -229,7 +261,7 @@ export default function ConsultationPage() {
                                      {transcript.length === 0 && !isLoading && (
                                         <div className="text-center text-muted-foreground pt-8">
                                             <MessageSquare className="w-12 h-12 mx-auto mb-2" />
-                                            <p>Type a message below to start your AI consultation.</p>
+                                            <p>Type a message below or use the microphone to start your AI consultation.</p>
                                         </div>
                                     )}
                                 </div>
@@ -237,7 +269,7 @@ export default function ConsultationPage() {
                              <div className="p-4 border-t">
                                 <div className="relative">
                                     <Input 
-                                      placeholder="Reply or @mention someone" 
+                                      placeholder="Type message or start recording..." 
                                       className="pr-10"
                                       value={currentMessage}
                                       onChange={(e) => setCurrentMessage(e.target.value)}
