@@ -113,17 +113,19 @@ export default function ConsultationPage() {
         
         recognition.onerror = (event: any) => {
             console.error('Speech recognition error:', event.error);
-            toast({ title: 'Transcription Error', description: `Error: ${event.error}. Please try again.`, variant: 'destructive' });
+            // Avoid spamming toasts for "aborted" errors, which can happen on purpose.
+            if (event.error !== 'aborted') {
+                toast({ title: 'Transcription Error', description: `Error: ${event.error}. Please try again.`, variant: 'destructive' });
+            }
             setIsRecording(false);
         };
         
-        // This is a new onend handler.
         recognition.onend = () => {
              // The `isRecording` state is managed outside this hook, so we access its latest value
              // via a function passed to the state setter to ensure we are not using a stale value.
              setIsRecording(currentIsRecording => {
                 if (currentIsRecording) {
-                    console.log("Speech recognition ended unexpectedly, restarting...");
+                    console.log("Speech recognition ended, restarting...");
                     recognition.start(); // Restart if it was supposed to be running
                 }
                 return currentIsRecording;
@@ -182,9 +184,9 @@ export default function ConsultationPage() {
             // Generate and play audio for the AI response
             if (aiResponse.content) {
                 const audioData = await ttsFlow(aiResponse.content);
-                if (audioRef.current && audioData.media) {
+                if (audioRef.current && audioData?.media) {
                     audioRef.current.src = audioData.media;
-                    audioRef.current.play();
+                    audioRef.current.play().catch(e => console.error("Error playing audio:", e));
                 }
             }
 
@@ -198,17 +200,20 @@ export default function ConsultationPage() {
     };
     
     const handleToggleRecording = () => {
-        if (isRecording) {
-            recognitionRef.current?.stop();
-            setIsRecording(false);
-        } else {
-            if (recognitionRef.current) {
-                recognitionRef.current.start();
-                setIsRecording(true);
+        setIsRecording(isRec => {
+            if (isRec) {
+                recognitionRef.current?.stop();
+                return false;
             } else {
-                toast({ title: 'Error', description: 'Speech recognition is not available.', variant: 'destructive'});
+                 if (recognitionRef.current) {
+                    recognitionRef.current.start();
+                    return true;
+                } else {
+                    toast({ title: 'Error', description: 'Speech recognition is not available.', variant: 'destructive'});
+                    return false;
+                }
             }
-        }
+        });
     };
     
     return (
@@ -393,37 +398,39 @@ export default function ConsultationPage() {
                                 <CardTitle className="text-base">Chat with AI Doctor</CardTitle>
                             </CardHeader>
                              <CardContent className="flex-1 overflow-y-auto p-4">
-                                <div className="space-y-4 text-sm">
-                                     {transcript.map((item, index) => (
-                                        <div key={index} className={cn(
-                                            "flex gap-3",
-                                            item.role === 'model' ? 'justify-start' : 'justify-end'
-                                        )}>
-                                            {item.role === 'model' && 
-                                                <Avatar className="h-6 w-6">
-                                                  <AvatarFallback>AI</AvatarFallback>
-                                                </Avatar>
-                                            }
-                                            <div className={cn(
-                                                "p-2 rounded-lg max-w-xs",
-                                                item.role === 'model' ? 'bg-secondary' : 'bg-primary text-primary-foreground'
+                                <ScrollArea className="h-full">
+                                    <div className="space-y-4 text-sm">
+                                        {transcript.map((item, index) => (
+                                            <div key={index} className={cn(
+                                                "flex gap-3",
+                                                item.role === 'model' ? 'justify-start' : 'justify-end'
                                             )}>
-                                                <p>{item.content}</p>
+                                                {item.role === 'model' && 
+                                                    <Avatar className="h-6 w-6">
+                                                    <AvatarFallback>AI</AvatarFallback>
+                                                    </Avatar>
+                                                }
+                                                <div className={cn(
+                                                    "p-2 rounded-lg max-w-xs",
+                                                    item.role === 'model' ? 'bg-secondary' : 'bg-primary text-primary-foreground'
+                                                )}>
+                                                    <p>{item.content}</p>
+                                                </div>
+                                                {item.role === 'user' && 
+                                                    <Avatar className="h-6 w-6">
+                                                    <AvatarFallback>U</AvatarFallback>
+                                                    </Avatar>
+                                                }
                                             </div>
-                                             {item.role === 'user' && 
-                                                <Avatar className="h-6 w-6">
-                                                  <AvatarFallback>U</AvatarFallback>
-                                                </Avatar>
-                                            }
-                                        </div>
-                                    ))}
-                                     {transcript.length === 0 && !isLoading && (
-                                        <div className="text-center text-muted-foreground pt-8">
-                                            <MessageSquare className="w-12 h-12 mx-auto mb-2" />
-                                            <p>Type a message below or use the microphone to start your AI consultation.</p>
-                                        </div>
-                                    )}
-                                </div>
+                                        ))}
+                                        {transcript.length === 0 && !isLoading && (
+                                            <div className="text-center text-muted-foreground pt-8">
+                                                <MessageSquare className="w-12 h-12 mx-auto mb-2" />
+                                                <p>Type a message below or use the microphone to start your AI consultation.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </ScrollArea>
                             </CardContent>
                              <div className="p-4 border-t">
                                 <div className="relative">
