@@ -6,6 +6,7 @@ import { motion, useAnimation } from "framer-motion"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { IconLayoutSidebarLeftCollapse, IconLayoutSidebarRightCollapse } from "@tabler/icons-react"
 import { cn } from "@/lib/utils"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip"
 
 type SidebarContextProps = {
   isCollapsed?: boolean
@@ -288,11 +289,13 @@ const SidebarMenuButton = React.forwardRef<
   React.ComponentProps<"button"> & {
     asChild?: boolean
     isActive?: boolean
+    tooltip?: string
   }
->(({ className, isActive, asChild, ...props }, ref) => {
+>(({ className, isActive, asChild, tooltip, ...props }, ref) => {
   const { isCollapsed } = useSidebar()
   const Comp = asChild ? "div" : "button"
-  return (
+
+  const button = (
     <Comp
       data-slot="sidebar-menu-button"
       ref={ref}
@@ -305,6 +308,23 @@ const SidebarMenuButton = React.forwardRef<
       {...props}
     />
   )
+
+  if (isCollapsed && tooltip) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {button}
+          </TooltipTrigger>
+          <TooltipContent side="right" sideOffset={16}>
+            {tooltip}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
+  return button
 })
 SidebarMenuButton.displayName = "SidebarMenuButton"
 
@@ -357,6 +377,15 @@ const SidebarCollapseButton = React.forwardRef<
 
 SidebarCollapseButton.displayName = "SidebarCollapseButton"
 
+const SidebarGroupContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  return <div ref={ref} className={cn("p-2", className)} {...props} />
+})
+SidebarGroupContent.displayName = "SidebarGroupContent"
+
+
 export {
   useSidebar,
   Sidebar,
@@ -371,6 +400,7 @@ export {
   SidebarCollapseButton,
   SessionNavBar,
   SidebarGroup,
+  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenuAction,
 }
