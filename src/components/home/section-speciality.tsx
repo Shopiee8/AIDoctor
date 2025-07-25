@@ -19,9 +19,15 @@ import {
   Bot,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { collection, onSnapshot, QuerySnapshot, DocumentData } from "firebase/firestore";
 import { db } from '@/lib/firebase';
+
+interface DoctorData {
+  specialization?: string | string[];
+  specialty?: string | string[];
+  isAI?: boolean;
+}
 
 interface Specialty {
   name: string;
@@ -33,14 +39,21 @@ interface Specialty {
 }
 
 const SPECIALTY_ICON_MAP: Record<string, { icon: LucideIcon; type: 'AI' | 'Human'; image?: string; hint?: string }> = {
-  "AI Diagnostics": { icon: Bot, type: 'AI', hint: "Artificial Intelligence diagnostics specialty" },
+  "AI Diagnostics": { icon: Bot, type: 'AI', image: "/assets/img/ai cardiology.jpg", hint: "Artificial Intelligence diagnostics specialty" },
+  "AI Cardiology": { icon: Bot, type: 'AI', image: "/assets/img/ai cardiology.jpg", hint: "Artificial Intelligence cardiology specialty" },
+  "AI Cardiologist": { icon: Bot, type: 'AI', image: "/assets/img/ai cardiology.jpg", hint: "Artificial Intelligence cardiology specialty (use 'AI Cardiology' as the standard name)" },
   "Cardiology": { icon: Heart, type: 'Human', image: "/assets/img/cardio.jpg", hint: "Heart related specialty" },
   "Orthopedics": { icon: Bone, type: 'Human', hint: "Bone and musculoskeletal specialty" },
   "AI Mental Health": { icon: Bot, type: 'AI', hint: "AI mental health specialty" },
-  "Neurology": { icon: Brain, type: 'Human', hint: "Brain and nervous system specialty" },
-  "Pediatrics": { icon: Baby, type: 'Human', hint: "Child healthcare specialty" },
+  "Neurology": { icon: Brain, type: 'Human', image: "/assets/img/neurology.jfif", hint: "Brain and nervous system specialty" },
+  "Pediatrics": { icon: Baby, type: 'Human', image: "/assets/img/pediatric.jpg", hint: "Child healthcare specialty" },
   "Dentistry": { icon: Smile, type: 'Human', hint: "Dental specialty" },
   "General Medicine": { icon: Stethoscope, type: 'Human', hint: "General health specialty" },
+  "Psychology": { icon: Brain, type: 'Human', image: "/assets/img/psychology.jpg", hint: "Psychology specialty (use 'Psychology' as the standard name)" },
+  "Psychologist": { icon: Brain, type: 'Human', image: "/assets/img/psychology.jpg", hint: "Psychology specialty (use 'Psychology' as the standard name)" },
+  "AI Pediatrics": { icon: Baby, type: 'AI', image: "/assets/img/ai pediatric.jfif", hint: "AI child healthcare specialty" },
+  "Pediatric Cardiology": { icon: Baby, type: 'Human', image: "/assets/img/pediatric cardio.avif", hint: "Pediatric heart specialty" },
+  "AI Pediatric Cardiology": { icon: Baby, type: 'AI', image: "/assets/img/ai pediatric.jfif", hint: "AI pediatric heart specialty" },
 };
 
 interface SectionSpecialityProps {
@@ -50,60 +63,109 @@ interface SectionSpecialityProps {
 export function SectionSpeciality({ onSelectSpecialty }: SectionSpecialityProps) {
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const unsubscribeRef = useRef<() => void>();
 
-  const fetchSpecialties = useCallback((snapshot: QuerySnapshot<DocumentData>) => {
-    const specialtyCount: Record<string, Specialty> = {};
+  const processDoctorsSnapshot = useCallback((snapshot: QuerySnapshot<DocumentData>) => {
+    try {
+      const specialtyCount: Record<string, Specialty> = {};
 
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      let specs: string[] = [];
-      if (Array.isArray(data.specialization)) {
-        specs = data.specialization;
-      } else if (typeof data.specialization === "string") {
-        specs = [data.specialization];
-      } else if (Array.isArray(data.specialty)) {
-        specs = data.specialty;
-      } else if (typeof data.specialty === "string") {
-        specs = [data.specialty];
-      }
-      specs.forEach((spec) => {
-        if (!spec) return;
-        const iconData = SPECIALTY_ICON_MAP[spec] || { icon: Stethoscope, type: 'Human', hint: "Medical specialty" };
-        if (!specialtyCount[spec]) {
-          specialtyCount[spec] = { name: spec, count: 1, ...iconData };
-        } else {
-          specialtyCount[spec].count += 1;
+      snapshot.forEach((doc) => {
+        // Use DoctorData interface to type the document data
+        const data = doc.data() as DoctorData;
+        let specs: string[] = [];
+        
+        // Handle different possible field names and types with type safety
+        if (Array.isArray(data.specialization)) {
+          specs = data.specialization;
+        } else if (typeof data.specialization === 'string') {
+          specs = [data.specialization];
+        } else if (Array.isArray(data.specialty)) {
+          specs = data.specialty;
+        } else if (typeof data.specialty === 'string') {
+          specs = [data.specialty];
         }
+
+        // Process each specialty
+        specs.forEach((spec) => {
+          if (!spec) return;
+
+          const iconData = SPECIALTY_ICON_MAP[spec] || { 
+            icon: Stethoscope, 
+            type: data.isAI ? 'AI' : 'Human',
+            hint: 'Medical specialty' 
+          };
+
+          if (!specialtyCount[spec]) {
+            specialtyCount[spec] = { 
+              name: spec, 
+              count: 1, 
+              ...iconData 
+            };
+          } else {
+            specialtyCount[spec].count += 1;
+          }
+        });
       });
-    });
 
-    const sorted = Object.values(specialtyCount)
-      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+      const sorted = Object.values(specialtyCount)
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
-    setSpecialties(sorted);
-    setLoading(false);
+      setSpecialties(sorted);
+      setError(null);
+    } catch (err) {
+      console.error('Error processing doctors data:', err);
+      setError('Failed to load specialties. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     setLoading(true);
-    const doctorsRef = collection(db, 'doctors');
-    // Real-time updates with onSnapshot
-    const unsubscribe = onSnapshot(
-      doctorsRef,
-      (snapshot) => {
-        fetchSpecialties(snapshot);
-      },
-      (error) => {
-        console.error("Error fetching specialties:", error);
-        setLoading(false);
-      }
-    );
 
-    return () => unsubscribe();
-  }, [fetchSpecialties]);
+    try {
+      const doctorsRef = collection(db, 'doctors');
+
+      // Set up real-time listener
+      const unsubscribe = onSnapshot(
+        doctorsRef,
+        (snapshot) => {
+          processDoctorsSnapshot(snapshot);
+        },
+        (error) => {
+          console.error("Error fetching specialties:", error);
+          setError('Failed to connect to the database. Please check your connection.');
+          setLoading(false);
+        }
+      );
+
+      // Store unsubscribe function
+      unsubscribeRef.current = unsubscribe;
+
+      // Cleanup function
+      return () => {
+        if (unsubscribeRef.current) {
+          unsubscribeRef.current();
+        }
+      };
+    } catch (err) {
+      console.error('Error setting up Firestore listener:', err);
+      setError('Failed to initialize data connection.');
+      setLoading(false);
+    }
+  }, [processDoctorsSnapshot]);
 
   // Handler for when a specialty is clicked
   const handleSpecialtyClick = (name: string) => {
+    // Remove 'AI ' prefix if present for the search
+    const searchTerm = name.replace(/^AI\s+/, '');
+    // Construct the search URL with the specialty as a parameter
+    const searchUrl = `/search?specialty=${encodeURIComponent(searchTerm)}`;
+    // Navigate to the search results page
+    window.location.href = searchUrl;
+    
+    // Call the onSelectSpecialty callback if provided
     if (onSelectSpecialty) {
       onSelectSpecialty(name);
     }
@@ -121,6 +183,26 @@ export function SectionSpeciality({ onSelectSpecialty }: SectionSpecialityProps)
       ))}
     </div>
   );
+
+  // Error state UI
+  if (error) {
+    return (
+      <section className="py-16 md:py-20 bg-background">
+        <div className="container mx-auto px-6 md:px-8">
+          <div className="text-center p-8 bg-red-50 rounded-lg">
+            <h3 className="text-lg font-medium text-red-800">Error Loading Specialties</h3>
+            <p className="mt-2 text-sm text-red-700">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-md text-sm font-medium hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-16 md:py-20 bg-background">
@@ -185,7 +267,7 @@ export function SectionSpeciality({ onSelectSpecialty }: SectionSpecialityProps)
                             {spec.name}
                           </h6>
                           <p className="text-xs text-white/80">
-                            {spec.type === "AI" ? "AI-Powered" : `${spec.count} Doctors`}
+                            {spec.type === "AI" ? "AI-Powered" : `${spec.count} ${spec.count === 1 ? 'Doctor' : 'Doctors'}`}
                           </p>
                         </div>
                       </div>
@@ -194,14 +276,8 @@ export function SectionSpeciality({ onSelectSpecialty }: SectionSpecialityProps)
                 );
               })}
             </CarouselContent>
-            <CarouselPrevious
-              className="absolute left-[-16px] top-1/2 -translate-y-1/2"
-              aria-label="Previous specialty"
-            />
-            <CarouselNext
-              className="absolute right-[-16px] top-1/2 -translate-y-1/2"
-              aria-label="Next specialty"
-            />
+            <CarouselPrevious className="hidden md:flex" />
+            <CarouselNext className="hidden md:flex" />
           </Carousel>
         )}
       </div>

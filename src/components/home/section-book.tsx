@@ -101,7 +101,7 @@ export function SectionBook() {
                 <div id="solution" className="mt-24 grid lg:grid-cols-2 gap-10 items-center">
                     <div className="lg:order-2">
                         <Image
-                            src="https://placehold.co/500x500.png"
+                            src="/assets/img/ai-human.png"
                             alt="AI and Human doctors collaborating"
                             width={500}
                             height={500}

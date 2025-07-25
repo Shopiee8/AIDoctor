@@ -15,7 +15,7 @@ import Link from "next/link";
 
 import {
   Heart, Thermometer, Brain, Droplets, Scale,
-  ArrowUp, ArrowDown
+  ArrowUp, ArrowDown, MessageSquare, Video, User
 } from "lucide-react";
 
 import { usePatientDataStore } from "@/store/patient-data-store";
@@ -51,8 +51,15 @@ const CustomLabel = (props: any) => {
   if (!payload) return null;
 
   return (
-    <Text x={x} y={y} dy={5} fill="hsl(var(--foreground))" fontSize={12} textAnchor="start">
-      {payload.name} {value}%
+    <Text
+      x={x}
+      y={y}
+      dy={5}
+      fill="hsl(var(--foreground))"
+      fontSize={12}
+      textAnchor="start"
+    >
+      {`${payload.name} ${value}%`}
     </Text>
   );
 };
@@ -96,11 +103,9 @@ function AIDoctorPanel() {
   );
 }
 
-export default function PatientDashboardPage() {
+export function PatientDashboardPage() {
   // Get patient health report from store
   const { healthReport, isLoading } = usePatientDataStore();
-
-  // Placeholder data for patient info and other UI sections
   const patientName = "Hendrita";
   const patientImg = "/assets/img/ai doctor.png";
 
@@ -397,3 +402,5 @@ export default function PatientDashboardPage() {
     </div>
   );
 }
+
+export default PatientDashboardPage;

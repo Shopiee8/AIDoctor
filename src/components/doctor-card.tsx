@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Heart, Star, MapPin, Calendar, CheckCircle, Clock, Languages, Award, ThumbsUp, Bot, User, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -109,7 +109,7 @@ function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
     )}>
       <div className="flex flex-col h-full">
         <div className="card-img card-img-hover relative w-full h-56 flex-shrink-0">
-          <Link href="#">
+          <div className="w-full h-full">
             <Image 
               src={doctor.image} 
               alt={doctor.name} 
@@ -118,7 +118,7 @@ function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
               className="w-full h-full object-cover rounded-t-lg"
               data-ai-hint={doctor.imageHint || "doctor portrait"}
             />
-          </Link>
+          </div>
           <div className="absolute top-3 right-3 z-10">
             <span className="badge bg-background/80 backdrop-blur-sm text-primary px-2 py-1 flex items-center gap-1 shadow">
               <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
@@ -241,7 +241,7 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
     )}>
       <div className="p-4 md:flex md:items-center gap-4">
         <div className="card-img card-img-hover relative w-full md:w-52 h-56 flex-shrink-0">
-          <Link href="#">
+          <div className="w-full h-full">
             <Image 
               src={doctor.image} 
               alt={doctor.name} 
@@ -250,7 +250,7 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
               className="w-full h-full object-cover rounded-lg"
               data-ai-hint={doctor.imageHint || "doctor portrait"}
             />
-          </Link>
+          </div>
           <div className="absolute top-2 right-2 z-10">
             <span className="badge bg-background/80 backdrop-blur-sm text-primary px-2 py-1 flex items-center gap-1 shadow">
               <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
@@ -280,7 +280,7 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
             )}
           </div>
           <h6 className="flex items-center text-xl font-bold font-headline mt-2">
-            <Link href="#">{doctor.name}</Link>
+            <span>{doctor.name}</span>
             {doctor.isVerified && <CheckCircle className="w-4 h-4 text-green-500 ms-2" />}
           </h6>
           <p className="text-sm text-muted-foreground mt-2">{getDegree(doctor.education)}</p>
@@ -326,8 +326,9 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
 }
 
 export function DoctorCard({ doctor, viewMode = 'list' }: DoctorCardProps) {
-  const [isFavorited, setIsFavorited] = useState(!!doctor.isFavorited);
+  const [isFavorited, setIsFavorited] = useState(doctor.isFavorited || false);
   const { openBookingModal } = useBookingStore();
+  const router = useRouter();
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -339,9 +340,23 @@ export function DoctorCard({ doctor, viewMode = 'list' }: DoctorCardProps) {
     openBookingModal(doctor);
   };
 
-  if (viewMode === 'grid') {
-    return <GridViewCard doctor={doctor} isFavorited={isFavorited} handleFavoriteClick={handleFavoriteClick} handleBookNow={handleBookNow} />;
-  }
-  
-  return <ListViewCard doctor={doctor} isFavorited={isFavorited} handleFavoriteClick={handleFavoriteClick} handleBookNow={handleBookNow} />;
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only navigate if the click is not on a button or link
+    const target = e.target as HTMLElement;
+    if (target.tagName !== 'BUTTON' && target.tagName !== 'A' && !target.closest('button') && !target.closest('a')) {
+      router.push(`/doctor/${doctor.id}`);
+    }
+  };
+
+  const CardComponent = viewMode === 'grid' ? GridViewCard : ListViewCard;
+  return (
+    <div onClick={handleCardClick} className="cursor-pointer">
+      <CardComponent 
+        doctor={doctor} 
+        handleFavoriteClick={handleFavoriteClick} 
+        isFavorited={isFavorited} 
+        handleBookNow={handleBookNow} 
+      />
+    </div>
+  );
 }
