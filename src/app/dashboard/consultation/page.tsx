@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Bot, User, Send, Loader2, Mic, AlertTriangle, Search, PhoneOff, Wand2, StopCircle, VideoIcon, MicIcon, Play, Link as LinkIcon, Download, MoreHorizontal, MessageSquare, Users, Sparkles, Folder, Settings, LogOut, ChevronDown, VideoOff } from 'lucide-react';
+import { Bot, User, Send, Loader2, Mic, AlertTriangle, Search, PhoneOff, Wand2, StopCircle, VideoIcon, MicIcon, Play, Link as LinkIcon, Download, MoreHorizontal, MessageSquare, Users, Sparkles, Folder, Settings, LogOut, ChevronDown, VideoOff, MicOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { consultationFlow, ConsultationTurn } from '@/ai/flows/consultation-flow';
 import { ttsFlow } from '@/ai/flows/tts-flow';
@@ -19,14 +19,12 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
-// Add a global reference to the SpeechRecognition object
-let recognition: any = null;
-if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-  recognition = new SpeechRecognition();
-  recognition.continuous = true;
-  recognition.lang = 'en-US';
-}
+// Mock participant data - in a real app, this would be fetched from Firestore
+const mockParticipants = [
+    { id: 1, name: 'Malvis Barry', avatar: 'https://placehold.co/40x40.png', avatarHint: 'person friendly', isMuted: false, isCameraOff: false },
+    { id: 2, name: 'Cindy Marlina', avatar: 'https://placehold.co/40x40.png', avatarHint: 'woman professional', isMuted: true, isCameraOff: false },
+    { id: 3, name: 'Dimas Ramadhan', avatar: 'https://placehold.co/40x40.png', avatarHint: 'person professional', isMuted: false, isCameraOff: true },
+];
 
 export default function ConsultationPage() {
     const { user } = useAuth();
@@ -44,7 +42,10 @@ export default function ConsultationPage() {
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
+    const recognitionRef = useRef<any>(null);
     const { toast } = useToast();
+    
+    const [participants, setParticipants] = useState(mockParticipants);
 
     // Webcam Access
     useEffect(() => {
@@ -136,64 +137,65 @@ export default function ConsultationPage() {
     };
     
     const handleToggleRecording = () => {
-      if (!recognition) {
+      if (!recognitionRef.current) {
         toast({ title: 'Speech Recognition Not Available', description: 'Your browser does not support this feature.', variant: 'destructive' });
         return;
       }
 
       if (isRecording) {
-        recognition.stop();
+        recognitionRef.current.stop();
         setIsRecording(false);
       } else {
-        recognition.start();
+        recognitionRef.current.start();
         setIsRecording(true);
       }
     };
     
     useEffect(() => {
-        if (!recognition) return;
+        if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            recognitionRef.current = new SpeechRecognition();
+            const recognition = recognitionRef.current;
+            recognition.continuous = true;
+            recognition.lang = 'en-US';
 
-        recognition.onstart = () => {
-            setIsRecording(true);
-            toast({ title: 'Recording Started...', description: 'Live transcription is active.' });
-        };
-    
-        recognition.onend = () => {
-            setIsRecording(false);
-            if(recognition.error !== 'aborted') {
-                toast({ title: 'Recording Stopped' });
-            }
-        };
-    
-        recognition.onerror = (event: any) => {
-            if (event.error === 'aborted' || event.error === 'no-speech') {
-                return;
-            }
-            console.error('Speech recognition error:', event.error);
-            toast({ title: 'Transcription Error', description: event.error, variant: 'destructive' });
-            setIsRecording(false);
-        };
-    
-        recognition.onresult = (event: any) => {
-            let finalTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
+            recognition.onstart = () => {
+                setIsRecording(true);
+                toast({ title: 'Recording Started...', description: 'Live transcription is active.' });
+            };
+        
+            recognition.onend = () => {
+                setIsRecording(false);
+                if (recognition.error !== 'aborted') {
+                    toast({ title: 'Recording Stopped' });
                 }
-            }
-            if (finalTranscript) {
-                 setCurrentMessage(prev => (prev + ' ' + finalTranscript).trim());
-            }
-        };
+            };
+        
+            recognition.onerror = (event: any) => {
+                if (event.error !== 'aborted') {
+                  console.error('Speech recognition error:', event.error);
+                  toast({ title: 'Transcription Error', description: event.error, variant: 'destructive' });
+                }
+                setIsRecording(false);
+            };
+        
+            recognition.onresult = (event: any) => {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    }
+                }
+                if (finalTranscript) {
+                     setCurrentMessage(prev => (prev + ' ' + finalTranscript).trim());
+                }
+            };
 
-        return () => {
-          if (recognition) {
-            recognition.abort();
-            recognition.onstart = null;
-            recognition.onend = null;
-            recognition.onerror = null;
-            recognition.onresult = null;
-          }
+            return () => {
+              if (recognition) {
+                recognition.abort();
+              }
+            }
         }
     }, [toast]);
     
@@ -222,6 +224,14 @@ export default function ConsultationPage() {
                     <div className="col-span-2 flex flex-col gap-4">
                         <div className="relative rounded-lg overflow-hidden flex-grow bg-card">
                             <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                            {isCameraOff && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/80">
+                                    <Avatar className="w-24 h-24">
+                                        <AvatarImage src={user?.photoURL || undefined} />
+                                        <AvatarFallback className="text-3xl">{user?.displayName?.[0]}</AvatarFallback>
+                                    </Avatar>
+                                </div>
+                            )}
                             {!hasCameraPermission && (
                                 <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                                     <Alert variant="destructive" className="w-4/5">
@@ -333,31 +343,25 @@ export default function ConsultationPage() {
                     <div className="col-span-1 flex flex-col gap-4">
                         <Card className="flex-1 flex flex-col">
                              <CardHeader className="flex-row items-center justify-between">
-                                <CardTitle className="text-base">Participants (3)</CardTitle>
+                                <CardTitle className="text-base">Participants ({participants.length})</CardTitle>
                                 <Button variant="link" size="sm" className="p-0">View All</Button>
                             </CardHeader>
                             <CardContent className="flex-1 overflow-y-auto space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Avatar className="h-8 w-8"><AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person friendly"/><AvatarFallback>MB</AvatarFallback></Avatar>
-                                        <p className="text-sm font-medium">Malvis Barry</p>
+                                {participants.map((p) => (
+                                    <div key={p.id} className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src={p.avatar} data-ai-hint={p.avatarHint} />
+                                                <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <p className="text-sm font-medium">{p.name}</p>
+                                        </div>
+                                        <div className="flex gap-2 text-muted-foreground">
+                                            {p.isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                                            {p.isCameraOff ? <VideoOff className="w-4 h-4" /> : <VideoIcon className="w-4 h-4" />}
+                                        </div>
                                     </div>
-                                    <div className="flex gap-2 text-muted-foreground"><Mic className="w-4 h-4"/><VideoIcon className="w-4 h-4"/></div>
-                                </div>
-                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Avatar className="h-8 w-8"><AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="woman professional"/><AvatarFallback>CM</AvatarFallback></Avatar>
-                                        <p className="text-sm font-medium">Cindy Marlina</p>
-                                    </div>
-                                    <div className="flex gap-2 text-muted-foreground"><Mic className="w-4 h-4"/><VideoIcon className="w-4 h-4"/></div>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Avatar className="h-8 w-8"><AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person professional"/><AvatarFallback>DR</AvatarFallback></Avatar>
-                                        <p className="text-sm font-medium">Dimas Ramadhan</p>
-                                    </div>
-                                    <div className="flex gap-2 text-muted-foreground"><Mic className="w-4 h-4"/><VideoIcon className="w-4 h-4"/></div>
-                                </div>
+                                ))}
                             </CardContent>
                         </Card>
                         <Card className="flex-1 flex flex-col">
@@ -397,25 +401,3 @@ export default function ConsultationPage() {
         </div>
     );
 }
-
-// Add MicOff icon
-const MicOff = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="1" y1="1" x2="23" y2="23" />
-    <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" />
-    <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23" />
-    <line x1="12" y1="19" x2="12" y2="23" />
-    <line x1="8" y1="23" x2="16" y2="23" />
-  </svg>
-);
