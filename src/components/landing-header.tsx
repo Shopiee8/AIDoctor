@@ -20,6 +20,7 @@ import {
   User,
   LayoutDashboard,
   LogOut,
+  Settings,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";

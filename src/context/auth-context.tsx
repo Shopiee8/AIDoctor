@@ -81,38 +81,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
+      let role = null;
       if (currentUser) {
-        const role = await getUserRole(currentUser.uid);
+        setUser(currentUser);
+        role = await getUserRole(currentUser.uid);
         setUserRole(role);
-        
-        const loginPages = ['/login', '/register', '/admin/login'];
-        const isRegistrationFlow = pathname.startsWith('/patient-register') || pathname.startsWith('/doctor-register') || pathname.startsWith('/ai-provider-register');
-        
-        // Only redirect if on a login/register page and not in a registration flow
-        if (loginPages.includes(pathname) && !isRegistrationFlow) {
-            switch (role) {
-                case 'Patient':
-                    router.push('/dashboard');
-                    break;
-                case 'Doctor':
-                    router.push('/doctor/dashboard');
-                    break;
-                case 'AI Provider':
-                    router.push('/ai-provider/dashboard');
-                    break;
-                case 'Admin':
-                    router.push('/admin/dashboard');
-                    break;
-                default:
-                    // If no role, but logged in, maybe send to a default page or a role selection page
-                    router.push('/');
-            }
-        }
       } else {
+        setUser(null);
         setUserRole(null);
       }
       setLoading(false);
+
+      // --- Redirection Logic ---
+      // This logic now only triggers if the user is on a login/register page.
+      const loginPages = ['/login', '/register', '/admin/login'];
+      const isAuthPage = loginPages.includes(pathname) || 
+                         pathname.startsWith('/patient-register') || 
+                         pathname.startsWith('/doctor-register') || 
+                         pathname.startsWith('/ai-provider-register');
+
+      if (currentUser && isAuthPage) {
+        switch (role) {
+          case 'Patient':
+            router.push('/dashboard');
+            break;
+          case 'Doctor':
+            router.push('/doctor/dashboard');
+            break;
+          case 'AI Provider':
+            router.push('/ai-provider/dashboard');
+            break;
+          case 'Admin':
+            router.push('/admin/dashboard');
+            break;
+          default:
+            // If user is logged in but has no role or is in a registration flow,
+            // but not on the right page, send them to home.
+            // This case might need refinement based on business logic.
+            if (!pathname.startsWith('/patient-register') && !pathname.startsWith('/doctor-register') && !pathname.startsWith('/ai-provider-register')) {
+               router.push('/');
+            }
+        }
+      }
     });
     return () => unsubscribe();
   }, [pathname, router]);
