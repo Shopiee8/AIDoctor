@@ -91,8 +91,10 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
-                    <Button size="sm" className="w-full">
-                        <Video className="w-4 h-4 mr-2" /> Attend
+                    <Button size="sm" className="w-full" asChild>
+                        <Link href="/dashboard/consultation">
+                           <Video className="w-4 h-4 mr-2" /> Attend
+                        </Link>
                     </Button>
                 </div>
             )}
