@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export function Step6Confirmation() {
     const { doctor, appointmentDate, appointmentTime, clinic, appointmentType, bookingDetails, closeBookingModal } = useBookingStore();
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth(); // Get auth loading state
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(true);
     const [isBookingComplete, setIsBookingComplete] = useState(false);
@@ -27,12 +27,14 @@ export function Step6Confirmation() {
 
     useEffect(() => {
         const createAppointment = async () => {
-            if (hasBooked.current) return;
+            if (hasBooked.current || authLoading) return; // Wait for auth to finish loading
             hasBooked.current = true;
+            setIsLoading(true);
 
             if (!user || !doctor || !appointmentDate || !appointmentTime) {
-                toast({ title: "Error", description: "Missing booking information.", variant: "destructive" });
+                toast({ title: "Booking Failed", description: "Missing booking information or you are not logged in.", variant: "destructive" });
                 setIsLoading(false);
+                setIsBookingComplete(false); // Explicitly set booking as not complete
                 return;
             }
 
@@ -57,6 +59,7 @@ export function Step6Confirmation() {
                 };
 
                 const batch = writeBatch(db);
+                // Generate a new unique ID for the appointment
                 const newAppointmentRef = doc(collection(db, "users"));
                 const patientApptRef = doc(db, "users", user.uid, "appointments", newAppointmentRef.id);
                 batch.set(patientApptRef, newAppointment);
@@ -72,16 +75,19 @@ export function Step6Confirmation() {
             } catch (error) {
                 console.error("Error creating appointment:", error);
                 toast({ title: "Booking Failed", description: "Could not book the appointment. Please try again.", variant: "destructive" });
+                setIsBookingComplete(false);
             } finally {
                 setIsLoading(false);
             }
         };
 
-        createAppointment();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        // Only run createAppointment if auth is not loading.
+        if (!authLoading) {
+            createAppointment();
+        }
+    }, [user, authLoading, doctor, appointmentDate, appointmentTime, bookingDetails, appointmentType, clinic, toast]);
 
-    if (isLoading) {
+    if (isLoading || authLoading) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-center">
                 <Loader2 className="w-16 h-16 text-primary animate-spin mb-4" />

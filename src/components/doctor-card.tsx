@@ -16,6 +16,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { usePatientDataStore } from '@/store/patient-data-store';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 export interface Doctor {
   id: string;
@@ -116,7 +118,7 @@ function getAiMatch(aiMatchScore: any): string {
   return '';
 }
 
-function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow }: { doctor: Doctor, isFavorited: boolean, handleFavoriteClick: (e: React.MouseEvent) => void, handleBookNow: () => void }) {
+function GridViewCard({ doctor, isFavorited, handleFavoriteClick, handleBookNow, isAuthLoading, isAuthenticated }: { doctor: Doctor, isFavorited: boolean, handleFavoriteClick: (e: React.MouseEvent) => void, handleBookNow: () => void, isAuthLoading: boolean, isAuthenticated: boolean }) {
   const experienceText = typeof doctor.experience === 'string' ? doctor.experience : 'N/A';
   return (
     <div className={cn(
@@ -237,9 +239,9 @@ function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
             <Clock className="w-3 h-3 mr-1.5 text-primary" />
             Next available at {doctor.nextAvailable || 'N/A'}
           </div>
-          <Button size="sm" onClick={handleBookNow} className="mt-3">
+          <Button size="sm" onClick={handleBookNow} disabled={isAuthLoading || !isAuthenticated} className="mt-3">
             <Calendar className="w-4 h-4 mr-2" />
-            {doctor.type === 'AI' ? 'Consult Now' : 'Book'}
+            {isAuthLoading ? 'Loading...' : !isAuthenticated ? 'Login to Book' : (doctor.type === 'AI' ? 'Consult Now' : 'Book')}
           </Button>
         </div>
       </div>
@@ -247,7 +249,7 @@ function GridViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
   );
 }
 
-function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow }: { doctor: Doctor, isFavorited: boolean, handleFavoriteClick: (e: React.MouseEvent) => void, handleBookNow: () => void }) {
+function ListViewCard({ doctor, isFavorited, handleFavoriteClick, handleBookNow, isAuthLoading, isAuthenticated }: { doctor: Doctor, isFavorited: boolean, handleFavoriteClick: (e: React.MouseEvent) => void, handleBookNow: () => void, isAuthLoading: boolean, isAuthenticated: boolean }) {
   const experienceSummary = getExperienceSummary(doctor.experience);
 
   return (
@@ -330,9 +332,9 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
               <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> Next available at</p>
               <p className="text-sm font-semibold">{doctor.nextAvailable || 'N/A'}</p>
             </div>
-            <Button size="default" onClick={handleBookNow}>
+            <Button size="default" onClick={handleBookNow} disabled={isAuthLoading || !isAuthenticated}>
               <Calendar className="w-4 h-4 mr-2" />
-              {doctor.type === 'AI' ? 'Consult Now' : 'Book Appointment'}
+              {isAuthLoading ? 'Loading...' : !isAuthenticated ? 'Login to Book' : (doctor.type === 'AI' ? 'Consult Now' : 'Book Appointment')}
             </Button>
           </div>
         </div>
@@ -343,6 +345,8 @@ function ListViewCard({ doctor, handleFavoriteClick, isFavorited, handleBookNow 
 
 export function DoctorCard({ doctor, viewMode = 'list' }: DoctorCardProps) {
   const { favorites } = usePatientDataStore();
+  const { user, loading: isAuthLoading } = useAuth();
+  const router = useRouter();
   const [isFavorited, setIsFavorited] = useState(favorites.some(fav => fav.name === doctor.name));
 
   const { openBookingModal } = useBookingStore();
@@ -354,12 +358,16 @@ export function DoctorCard({ doctor, viewMode = 'list' }: DoctorCardProps) {
   };
 
   const handleBookNow = () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
     openBookingModal(doctor);
   };
 
   if (viewMode === 'grid') {
-    return <GridViewCard doctor={doctor} isFavorited={isFavorited} handleFavoriteClick={handleFavoriteClick} handleBookNow={handleBookNow} />;
+    return <GridViewCard doctor={doctor} isFavorited={isFavorited} handleFavoriteClick={handleFavoriteClick} handleBookNow={handleBookNow} isAuthLoading={isAuthLoading} isAuthenticated={!!user} />;
   }
   
-  return <ListViewCard doctor={doctor} isFavorited={isFavorited} handleFavoriteClick={handleFavoriteClick} handleBookNow={handleBookNow} />;
+  return <ListViewCard doctor={doctor} isFavorited={isFavorited} handleFavoriteClick={handleFavoriteClick} handleBookNow={handleBookNow} isAuthLoading={isAuthLoading} isAuthenticated={!!user} />;
 }
