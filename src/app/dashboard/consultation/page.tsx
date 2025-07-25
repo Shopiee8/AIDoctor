@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Bot, User, Send, Loader2, Mic, AlertTriangle, Search, PhoneOff, Wand2, StopCircle, VideoIcon, MicIcon, Play, Link as LinkIcon, Download, MoreHorizontal, MessageSquare, Users, Sparkles, Folder, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { consultationFlow, ConsultationTurn, scribe } from '@/ai/flows/consultation-flow';
+import { consultationFlow, ConsultationTurn } from '@/ai/flows/consultation-flow';
 import { ttsFlow } from '@/ai/flows/tts-flow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,11 +16,13 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Waveform } from '@/components/waveform';
 import { useAuth } from '@/hooks/use-auth';
 
-// Declare the SpeechRecognition interface for browser compatibility
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
+// Add a global reference to the SpeechRecognition object
+let recognition: any = null;
+if (typeof window !== 'undefined') {
+  recognition = new ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)();
+  if (recognition) {
+    recognition.continuous = true;
+    recognition.lang = 'en-US';
   }
 }
 
@@ -36,30 +38,24 @@ export default function ConsultationPage() {
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
-    const recognition = useRef<any>(null);
     const { toast } = useToast();
 
-    // Webcam and Mic Access
+    // Webcam Access
     useEffect(() => {
         const getCameraPermission = async () => {
           try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             if (videoRef.current) {
               videoRef.current.srcObject = stream;
             }
             setHasCameraPermission(true);
           } catch (error) {
-            console.error('Error accessing camera:', error);
+            console.error('Error accessing camera/mic:', error);
             setHasCameraPermission(false);
-            toast({
-                title: 'Camera Access Denied',
-                description: 'Please enable camera permissions in your browser settings.',
-                variant: 'destructive',
-            });
           }
         };
         getCameraPermission();
-      }, [toast]);
+      }, []);
     
     const handleSendMessage = async () => {
         if (!currentMessage.trim()) return;
@@ -100,61 +96,58 @@ export default function ConsultationPage() {
     };
     
     const handleToggleRecording = () => {
-        if (isRecording) {
-            recognition.current?.stop();
-            setIsRecording(false);
-            toast({ title: 'Recording Stopped' });
-        } else {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                toast({ title: 'Browser Not Supported', description: 'Speech recognition is not supported in this browser.', variant: 'destructive'});
-                return;
-            }
+      if (!recognition) {
+        toast({ title: 'Speech Recognition Not Available', description: 'Your browser does not support this feature.', variant: 'destructive' });
+        return;
+      }
 
-            recognition.current = new SpeechRecognition();
-            recognition.current.continuous = true;
-            recognition.current.interimResults = true;
-            recognition.current.lang = 'en-US';
-
-            recognition.current.onstart = () => {
-                setIsRecording(true);
-                setLiveTranscript('');
-                toast({ title: 'Recording Started', description: 'Live transcription is active.' });
-            };
-
-            recognition.current.onend = () => {
-                setIsRecording(false);
-                if (liveTranscript) {
-                    setCurrentMessage(prev => (prev + ' ' + liveTranscript).trim());
-                }
-                setLiveTranscript('');
-            };
-            
-            recognition.current.onerror = (event: any) => {
-                 console.error('Speech recognition error:', event.error);
-                 toast({ title: 'Recognition Error', description: event.error, variant: 'destructive'});
-                 setIsRecording(false);
-            };
-
-            recognition.current.onresult = (event: any) => {
-                let finalTranscript = '';
-                let interimTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
-                }
-                setLiveTranscript(interimTranscript);
-                if(finalTranscript){
-                    setCurrentMessage(prev => (prev + ' ' + finalTranscript).trim());
-                }
-            };
-            
-            recognition.current.start();
-        }
+      if (isRecording) {
+        recognition.stop();
+        setIsRecording(false);
+      } else {
+        setLiveTranscript('');
+        recognition.start();
+        setIsRecording(true);
+      }
     };
+    
+    useEffect(() => {
+        if (!recognition) return;
+
+        recognition.onstart = () => {
+            setIsRecording(true);
+            toast({ title: 'Recording Started...', description: 'Live transcription is active.' });
+        };
+    
+        recognition.onend = () => {
+            setIsRecording(false);
+            if (liveTranscript) {
+              setCurrentMessage(prev => (prev + ' ' + liveTranscript).trim());
+              setLiveTranscript('');
+            }
+            toast({ title: 'Recording Stopped' });
+        };
+    
+        recognition.onerror = (event: any) => {
+            console.error('Speech recognition error:', event.error);
+            toast({ title: 'Transcription Error', description: event.error, variant: 'destructive' });
+            setIsRecording(false);
+        };
+    
+        recognition.onresult = (event: any) => {
+            const transcript = Array.from(event.results)
+                .map((result: any) => result[0])
+                .map((result) => result.transcript)
+                .join('');
+            setLiveTranscript(transcript);
+        };
+
+        return () => {
+          if (recognition) {
+            recognition.abort();
+          }
+        }
+    }, [liveTranscript, toast]);
     
     return (
         <div className="flex h-screen bg-muted/30">
