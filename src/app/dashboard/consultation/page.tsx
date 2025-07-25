@@ -74,6 +74,14 @@ export default function ConsultationPage() {
             }
 
             setTranscript(responseHistory);
+            
+            if (aiTurn.isReferral) {
+                setSummary({
+                    soapNote: aiTurn.soapNote,
+                    assessmentAndPlan: aiTurn.assessmentAndPlan,
+                });
+            }
+
         } catch (e) {
             console.error(e);
             toast({ title: 'AI Error', description: 'Could not get response from AI.', variant: 'destructive' });
@@ -82,24 +90,6 @@ export default function ConsultationPage() {
         }
     };
     
-    const handleRecord = async () => {
-       setIsLoading(true);
-       setIsRecording(prev => !prev);
-       setTimeout(async () => {
-           const fullTranscript = transcript.map(t => `${t.role}: ${t.content}`).join('\n\n');
-           try {
-               const result = await scribe({ conversation: fullTranscript });
-               setSummary(result);
-           } catch(e) {
-               console.error(e);
-               toast({ title: 'AI Error', description: 'Could not generate summary.', variant: 'destructive' });
-           } finally {
-               setIsLoading(false);
-           }
-       }, 5000); // 5 second delay to simulate processing
-    };
-
-
     return (
         <div className="flex h-screen bg-muted/30">
             {/* Main Content */}
@@ -114,10 +104,6 @@ export default function ConsultationPage() {
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button onClick={handleRecord} variant={isRecording ? 'destructive' : 'default'}>
-                            {isRecording ? <StopCircle className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2"/>}
-                            {isRecording ? 'Stop Recording' : 'Start AI Scribe'}
-                        </Button>
                         <Button variant="ghost" size="icon"><Search className="w-5 h-5"/></Button>
                         <Avatar className="h-9 w-9">
                             <AvatarImage src={user?.photoURL || undefined} />
@@ -133,6 +119,17 @@ export default function ConsultationPage() {
                     <div className="col-span-2 flex flex-col gap-4">
                         <div className="relative rounded-lg overflow-hidden flex-grow bg-card">
                             <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                            {!hasCameraPermission && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                                    <Alert variant="destructive" className="w-4/5">
+                                        <AlertTriangle className="h-4 w-4" />
+                                        <AlertTitle>Camera Access Required</AlertTitle>
+                                        <AlertDescription>
+                                            Please allow camera access in your browser settings to use this feature.
+                                        </AlertDescription>
+                                    </Alert>
+                                </div>
+                            )}
                             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/50 backdrop-blur-sm p-2 rounded-full">
                                 <Button size="icon" variant="secondary" className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none"><MicIcon className="w-6 h-6"/></Button>
                                 <Button size="icon" variant="secondary" className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none"><VideoIcon className="w-6 h-6"/></Button>
@@ -148,10 +145,7 @@ export default function ConsultationPage() {
                         <div className="grid grid-cols-2 gap-4 h-2/5">
                             <Card className="flex flex-col">
                                 <CardHeader className="flex-row items-center justify-between pb-2">
-                                    <CardTitle className="text-base flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" />AI Tracker Notes</CardTitle>
-                                    <div className="flex items-center gap-2">
-                                        {isRecording && <Waveform />}
-                                    </div>
+                                    <CardTitle className="text-base flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" />Live Transcript</CardTitle>
                                 </CardHeader>
                                 <CardContent className="flex-1 overflow-y-auto p-4">
                                      <ScrollArea className="h-full">
@@ -167,24 +161,28 @@ export default function ConsultationPage() {
                                                     </div>
                                                 </div>
                                             ))}
+                                            {transcript.length === 0 && !isLoading && (
+                                                <div className="text-center text-muted-foreground pt-8">Conversation will appear here...</div>
+                                            )}
+                                            {isLoading && <div className="text-center text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin inline mr-2"/>AI is thinking...</div>}
                                         </div>
                                     </ScrollArea>
                                 </CardContent>
                             </Card>
                              <Card className="flex flex-col">
                                 <CardHeader className="flex-row items-center justify-between pb-2">
-                                    <CardTitle className="text-base flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary"/>AI Summarize</CardTitle>
+                                    <CardTitle className="text-base flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary"/>AI Referral Summary</CardTitle>
                                 </CardHeader>
                                 <CardContent className="flex-1 overflow-y-auto p-4">
-                                   {isLoading && !summary ? <div className="text-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin inline mr-2"/>Generating...</div> : null}
                                    {summary ? (
                                     <div className="prose prose-sm max-w-none">
-                                        <h4>Subjective</h4>
-                                        <p>{summary.subjective}</p>
-                                        <h4>Assessment</h4>
-                                        <p>{summary.assessment}</p>
+                                        <h4>SOAP Note</h4>
+                                        <p><strong>Subjective:</strong> {summary.soapNote.subjective}</p>
+                                        <p><strong>Objective:</strong> {summary.soapNote.objective}</p>
+                                        <p><strong>Assessment:</strong> {summary.soapNote.assessment}</p>
+                                        <p><strong>Plan:</strong> {summary.soapNote.plan}</p>
                                     </div>
-                                   ) : !isLoading ? <div className="text-center text-muted-foreground">Summary will appear here after clicking "Start AI Scribe".</div> : null}
+                                   ) : <div className="text-center text-muted-foreground pt-8">Referral summary will appear here if required.</div>}
                                 </CardContent>
                             </Card>
                         </div>
@@ -224,12 +222,18 @@ export default function ConsultationPage() {
                         </Card>
                         <Card className="flex-1 flex flex-col">
                              <CardHeader className="flex-row items-center justify-between">
-                                <CardTitle className="text-base">Chat</CardTitle>
+                                <CardTitle className="text-base">Chat with AI Doctor</CardTitle>
                             </CardHeader>
-                            <CardContent className="flex-1 flex flex-col items-center justify-center text-center">
-                               <Image src="https://placehold.co/150x120.png" width={150} height={120} alt="No chat" data-ai-hint="mailbox empty" />
-                               <p className="text-sm font-semibold mt-4">No chat yet</p>
-                               <p className="text-xs text-muted-foreground">Type a message to start</p>
+                             <CardContent className="flex-1 overflow-y-auto p-4">
+                                <div className="space-y-4 text-sm">
+                                    {/* Chat messages will be mirrored in transcript section */}
+                                     {transcript.length === 0 && !isLoading && (
+                                        <div className="text-center text-muted-foreground pt-8">
+                                            <MessageSquare className="w-12 h-12 mx-auto mb-2" />
+                                            <p>Type a message below to start your AI consultation.</p>
+                                        </div>
+                                    )}
+                                </div>
                             </CardContent>
                              <div className="p-4 border-t">
                                 <div className="relative">
@@ -239,8 +243,9 @@ export default function ConsultationPage() {
                                       value={currentMessage}
                                       onChange={(e) => setCurrentMessage(e.target.value)}
                                       onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                                      disabled={isLoading}
                                     />
-                                    <Button size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8" onClick={handleSendMessage} disabled={isLoading}>
+                                    <Button size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8" onClick={handleSendMessage} disabled={isLoading || !currentMessage}>
                                         <Send className="w-4 h-4" />
                                     </Button>
                                 </div>
