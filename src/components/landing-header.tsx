@@ -18,20 +18,34 @@ import {
   Linkedin,
   Bot,
   User,
+  LayoutDashboard,
+  LogOut,
+  Settings,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Input } from "./ui/input";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const navLinks = [
-  { href: "#solution", label: "Our Solution" },
-  { href: "#features", label: "How It Works" },
-  { href: "#doctors", label: "Find a Doctor" },
-  { href: "#faq", label: "FAQs" },
+  { href: "/#solution", label: "Our Solution" },
+  { href: "/#features", label: "How It Works" },
+  { href: "/search", label: "Find a Doctor" },
+  { href: "/#faq", label: "FAQs" },
 ];
 
 export function LandingHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const { user, userRole, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -42,6 +56,21 @@ export function LandingHeader() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  const getDashboardHref = () => {
+    switch (userRole) {
+      case 'Patient':
+        return '/dashboard';
+      case 'Doctor':
+        return '/doctor/dashboard';
+      case 'Admin':
+        return '/admin/dashboard';
+      case 'AI Provider':
+        return '/ai-provider/dashboard';
+      default:
+        return '/';
+    }
+  }
 
   return (
     <header
@@ -93,13 +122,44 @@ export function LandingHeader() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-2">
-            <div className="hidden lg:flex items-center gap-2">
-                <Button asChild variant="outline">
-                    <Link href="/login"><LogIn className="mr-2 h-4 w-4" />Login</Link>
-                </Button>
-                <Button asChild>
-                    <Link href="/register"><UserPlus className="mr-2 h-4 w-4" />Sign Up</Link>
-                </Button>
+             <div className="hidden lg:flex items-center gap-2">
+              {user ? (
+                 <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2">
+                       <Avatar className="h-8 w-8">
+                         <AvatarImage src={user.photoURL || undefined} />
+                         <AvatarFallback>{user.displayName?.[0] || user.email?.[0]}</AvatarFallback>
+                       </Avatar>
+                       {user.displayName || user.email}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href={getDashboardHref()}><LayoutDashboard className="mr-2 h-4 w-4" />Dashboard</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/settings"><Settings className="mr-2 h-4 w-4" />Settings</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={signOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  <Button asChild variant="outline">
+                      <Link href="/login"><LogIn className="mr-2 h-4 w-4" />Login</Link>
+                  </Button>
+                  <Button asChild>
+                      <Link href="/register"><UserPlus className="mr-2 h-4 w-4" />Sign Up</Link>
+                  </Button>
+                </>
+              )}
             </div>
             <Sheet>
               <SheetTrigger asChild>
@@ -133,12 +193,25 @@ export function LandingHeader() {
                     ))}
                   </nav>
                    <div className="flex flex-col gap-2 mt-4">
-                     <Button asChild>
-                       <Link href="/login">Login</Link>
-                     </Button>
-                     <Button asChild variant="outline">
-                       <Link href="/register">Sign Up</Link>
-                     </Button>
+                     {user ? (
+                       <>
+                         <Button asChild>
+                           <Link href={getDashboardHref()}>Dashboard</Link>
+                         </Button>
+                         <Button asChild variant="outline" onClick={signOut}>
+                           <p>Logout</p>
+                         </Button>
+                       </>
+                     ) : (
+                       <>
+                         <Button asChild>
+                           <Link href="/login">Login</Link>
+                         </Button>
+                         <Button asChild variant="outline">
+                           <Link href="/register">Sign Up</Link>
+                         </Button>
+                       </>
+                     )}
                   </div>
                 </div>
               </SheetContent>

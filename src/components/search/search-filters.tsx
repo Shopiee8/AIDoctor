@@ -12,21 +12,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { clinicalSpecialties } from '@/lib/specialties';
 
 import { SlidersHorizontal, Search, Star, ChevronDown, AlertTriangle, Clock, Languages, DollarSign } from 'lucide-react';
 
-const specialists = [
-    { id: "urology", label: "Urology", count: 21 },
-    { id: "neurology", label: "Neurology", count: 18 },
-    { id: "dentist", label: "Dentist", count: 15 },
-    { id: "orthopedic", label: "Orthopedic", count: 12 },
-    { id: "cardiologist", label: "Cardiologist", count: 10 },
-    { id: "pulmonology", label: "Pulmonology", count: 8 },
-];
-const moreSpecialists = [
-    { id: "ent", label: "ENT", count: 5 },
-    { id: "dermatology", label: "Dermatology", count: 9 },
-];
 const consultationTypes = [
     { id: "video", label: "Video Call" },
     { id: "audio", label: "Audio Call" },
@@ -76,11 +65,11 @@ export function SearchFilters() {
     console.log("Searching with AI matching parameters:", searchParams.toString());
   };
 
-  const handleSpecialtyChange = (specialtyId: string, checked: boolean) => {
+  const handleSpecialtyChange = (specialtyName: string, checked: boolean) => {
     if (checked) {
-      setSelectedSpecialties(prev => [...prev, specialtyId]);
+      setSelectedSpecialties(prev => [...prev, specialtyName]);
     } else {
-      setSelectedSpecialties(prev => prev.filter(id => id !== specialtyId));
+      setSelectedSpecialties(prev => prev.filter(name => name !== specialtyName));
     }
   };
 
@@ -91,6 +80,9 @@ export function SearchFilters() {
       setSelectedConsultationTypes(prev => prev.filter(id => id !== typeId));
     }
   };
+  
+  const displayedSpecialties = clinicalSpecialties.slice(0, 6);
+  const moreSpecialties = clinicalSpecialties.slice(6);
 
   return (
     <Card>
@@ -153,33 +145,31 @@ export function SearchFilters() {
                 <AccordionTrigger>Specialties</AccordionTrigger>
                 <AccordionContent>
                     <div className="space-y-2">
-                         {specialists.map((item) => (
-                            <div key={item.id} className="flex items-center justify-between">
+                         {displayedSpecialties.map((item) => (
+                            <div key={item.name} className="flex items-center justify-between">
                                 <div className="flex items-center space-x-2">
                                     <Checkbox 
-                                        id={`spec-${item.id}`}
-                                        checked={selectedSpecialties.includes(item.id)}
-                                        onCheckedChange={(checked) => handleSpecialtyChange(item.id, !!checked)}
+                                        id={`spec-${item.name}`}
+                                        checked={selectedSpecialties.includes(item.name)}
+                                        onCheckedChange={(checked) => handleSpecialtyChange(item.name, !!checked)}
                                     />
-                                    <Label htmlFor={`spec-${item.id}`} className="font-normal">{item.label}</Label>
+                                    <Label htmlFor={`spec-${item.name}`} className="font-normal">{item.name}</Label>
                                 </div>
-                                <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm">{item.count}</span>
                             </div>
                         ))}
                         
                         <Collapsible>
                             <CollapsibleContent className="space-y-2">
-                               {moreSpecialists.map((item) => (
-                                    <div key={item.id} className="flex items-center justify-between">
+                               {moreSpecialties.map((item) => (
+                                    <div key={item.name} className="flex items-center justify-between">
                                         <div className="flex items-center space-x-2">
                                             <Checkbox 
-                                                id={`spec-${item.id}`}
-                                                checked={selectedSpecialties.includes(item.id)}
-                                                onCheckedChange={(checked) => handleSpecialtyChange(item.id, !!checked)}
+                                                id={`spec-${item.name}`}
+                                                checked={selectedSpecialties.includes(item.name)}
+                                                onCheckedChange={(checked) => handleSpecialtyChange(item.name, !!checked)}
                                             />
-                                            <Label htmlFor={`spec-${item.id}`} className="font-normal">{item.label}</Label>
+                                            <Label htmlFor={`spec-${item.name}`} className="font-normal">{item.name}</Label>
                                         </div>
-                                        <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm">{item.count}</span>
                                     </div>
                                 ))}
                             </CollapsibleContent>

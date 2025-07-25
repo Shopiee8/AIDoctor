@@ -1,11 +1,10 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth';
-import { useRouter } from 'next/navigation';
-import { DashboardHeader } from './dashboard-header';
-import { SidebarProvider, Sidebar } from '@/components/ui/sidebar';
-import PatientSidebar from '@/components/patient-sidebar';
+import { RoleGuard } from "@/components/role-guard";
+import { DoctorSidebar } from "@/components/doctor/doctor-sidebar";
+import { DashboardHeader } from "@/components/dashboard-header";
+import PatientSidebar from "./patient-sidebar";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -13,58 +12,48 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
-  const { user, userRole: actualUserRole, validateUserRole } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-    if (!validateUserRole(userRole)) {
-      switch (actualUserRole) {
-        case 'Patient':
-          router.push('/dashboard');
-          break;
-        case 'Doctor':
-          router.push('/doctor/dashboard');
-          break;
-        case 'AI Provider':
-          router.push('/ai-provider/dashboard');
-          break;
-        case 'Admin':
-          router.push('/admin/dashboard');
-          break;
-        default:
-          router.push('/login');
-      }
-      return;
-    }
-  }, [user, userRole, actualUserRole, validateUserRole, router]);
-
-  if (!user || !actualUserRole || !validateUserRole(userRole)) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Validating access...</p>
-        </div>
-      </div>
-    );
+  
+  if (userRole === 'Patient') {
+     return (
+        <RoleGuard allowedRoles={['Patient']}>
+            <div className="flex min-h-screen">
+                <PatientSidebar />
+                <div className="flex flex-col flex-1 lg:ml-64 md:ml-20">
+                    <DashboardHeader />
+                    <main className="flex-1 p-6 bg-muted/30">{children}</main>
+                </div>
+            </div>
+        </RoleGuard>
+     )
   }
 
+  if (userRole === 'Doctor') {
+    return (
+       <RoleGuard allowedRoles={['Doctor']}>
+          <div className="flex min-h-screen">
+              <DoctorSidebar />
+              <div className="flex-1 flex flex-col md:ml-20">
+                  <DashboardHeader />
+                  <main className="flex-1 p-6 bg-muted/30">
+                      {children}
+                  </main>
+              </div>
+          </div>
+      </RoleGuard>
+    )
+  }
+
+  // Fallback for other roles or if role is not provided
   return (
-    <SidebarProvider>
-      <div className="min-h-screen w-full bg-background">
-        {/* Sidebar is fixed at w-64 (16rem) on desktop, so main content needs ml-64 */}
-        {userRole === 'Patient' ? <PatientSidebar /> : <Sidebar />}
-        <div className="flex flex-col min-h-screen w-full md:ml-64">
-          <DashboardHeader />
-          <main className="flex-1 w-full p-6 pt-20 flex flex-col">
-            {children}
-          </main>
+    <RoleGuard allowedRoles={[userRole]}>
+        <div className="flex min-h-screen">
+            <div className="flex-1 flex flex-col">
+                <DashboardHeader />
+                <main className="flex-1 p-6 bg-muted/30">
+                    {children}
+                </main>
+            </div>
         </div>
-      </div>
-    </SidebarProvider>
+    </RoleGuard>
   );
 }

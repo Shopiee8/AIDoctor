@@ -18,10 +18,21 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        body: ["Inter", "sans-serif"],
-        headline: ["Space Grotesk", "sans-serif"],
-        code: ['monospace'],
+        sans: ["Plus Jakarta Sans", "sans-serif"],
+        serif: ["Lora", "serif"],
+        body: ["Plus Jakarta Sans", "sans-serif"],
+        headline: ["Plus Jakarta Sans", "sans-serif"],
+        mono: ["Roboto Mono", "monospace"],
+      },
+      boxShadow: {
+        '2xs': '2px 2px 10px 4px hsl(240 4% 60% / 0.09)',
+        'xs': '2px 2px 10px 4px hsl(240 4% 60% / 0.09)',
+        'sm': '2px 2px 10px 4px hsl(240 4% 60% / 0.18), 2px 1px 2px 3px hsl(240 4% 60% / 0.18)',
+        'DEFAULT': '2px 2px 10px 4px hsl(240 4% 60% / 0.18), 2px 1px 2px 3px hsl(240 4% 60% / 0.18)',
+        'md': '2px 2px 10px 4px hsl(240 4% 60% / 0.18), 2px 2px 4px 3px hsl(240 4% 60% / 0.18)',
+        'lg': '2px 2px 10px 4px hsl(240 4% 60% / 0.18), 2px 4px 6px 3px hsl(240 4% 60% / 0.18)',
+        'xl': '2px 2px 10px 4px hsl(240 4% 60% / 0.18), 2px 8px 10px 3px hsl(240 4% 60% / 0.18)',
+        '2xl': '2px 2px 10px 4px hsl(240 4% 60% / 0.45)',
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -56,16 +67,6 @@ export default {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
-        },
-        sidebar: {
-          DEFAULT: 'hsl(var(--sidebar-background))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          primary: 'hsl(var(--sidebar-primary))',
-          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))',
         },
         'chart-1': 'hsl(var(--chart-1))',
         'chart-2': 'hsl(var(--chart-2))',
@@ -103,12 +104,17 @@ export default {
           '0%': { transform: 'scale(0.9)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },
         },
+        'waveform': {
+          'from': { transform: 'scaleY(0.3)' },
+          'to': { transform: 'scaleY(1)' },
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'float': 'float 6s ease-in-out infinite',
         'pop-in': 'pop-in 0.5s ease-out forwards',
+        'waveform': 'waveform 1s ease-in-out infinite alternate',
       },
     },
   },

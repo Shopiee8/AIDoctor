@@ -25,12 +25,13 @@ const statusConfig = {
     Upcoming: { color: 'bg-yellow-400', icon: Clock },
     Completed: { color: 'bg-green-500', icon: CheckCircle },
     Cancelled: { color: 'bg-red-500', icon: XCircle },
+    Accepted: { color: 'bg-green-500', icon: CheckCircle }, // Added for doctor view
 };
 
 export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps) {
-    const TypeIcon = appointmentTypeIcons[appointment.appointmentType];
-    const StatusIcon = statusConfig[appointment.status].icon;
-    const statusColor = statusConfig[appointment.status].color;
+    // Fallback to Hospital icon if type is unknown
+    const TypeIcon = appointmentTypeIcons[appointment.appointmentType] || Hospital;
+    const statusInfo = statusConfig[appointment.status] || statusConfig['Upcoming'];
 
     return (
         <div className="block border rounded-lg p-4 flex flex-col gap-4 shadow-sm hover:shadow-md hover:border-primary transition-all group">
@@ -46,8 +47,8 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                             <p className="text-sm text-muted-foreground">{appointment.doctorSpecialty}</p>
                         </div>
                     </div>
-                    <div className={`flex items-center justify-center h-8 w-8 rounded-full text-white ${statusColor}`}>
-                        <StatusIcon className="h-5 w-5" />
+                    <div className={`flex items-center justify-center h-8 w-8 rounded-full text-white ${statusInfo.color}`}>
+                        <statusInfo.icon className="h-5 w-5" />
                     </div>
                 </div>
             
@@ -90,8 +91,10 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
-                    <Button size="sm" className="w-full">
-                        <Video className="w-4 h-4 mr-2" /> Attend
+                    <Button size="sm" className="w-full" asChild>
+                        <Link href="/dashboard/consultation">
+                           <Video className="w-4 h-4 mr-2" /> Attend
+                        </Link>
                     </Button>
                 </div>
             )}
