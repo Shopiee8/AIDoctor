@@ -22,14 +22,20 @@ export function Step6Confirmation() {
     const [isLoading, setIsLoading] = useState(true);
     const [isBookingComplete, setIsBookingComplete] = useState(false);
     const [appointmentId, setAppointmentId] = useState<string | null>(null);
+    
+    // useRef to prevent multiple booking attempts
     const hasBooked = useRef(false);
 
     useEffect(() => {
         const createAppointment = async () => {
-            if (hasBooked.current || !user || !doctor || !appointmentDate || !appointmentTime) return;
+            if (!user || !doctor || !appointmentDate || !appointmentTime) {
+                toast({ title: "Error", description: "Missing booking information.", variant: "destructive" });
+                setIsLoading(false);
+                return;
+            }
 
+            if (hasBooked.current) return;
             hasBooked.current = true;
-            setIsLoading(true);
 
             try {
                 const newAppointment = {
@@ -45,8 +51,8 @@ export function Step6Confirmation() {
                     visitType: 'Consultation', // Example value
                     purpose: bookingDetails.symptoms || 'Consultation',
                     appointmentType: appointmentType as 'Video' | 'Audio' | 'Chat' | 'In-person',
-                    clinicName: clinic ? (doctor.clinics?.find(c => c.id === clinic)?.name || '') : '',
-                    clinicLocation: clinic ? (doctor.clinics?.find(c => c.id === clinic)?.location || '') : '',
+                    clinicName: clinic ? (doctor.clinics?.find((c: any) => c.id === clinic)?.name || '') : '',
+                    clinicLocation: clinic ? (doctor.clinics?.find((c: any) => c.id === clinic)?.location || '') : '',
                     amount: 200, // Example value
                     createdAt: serverTimestamp()
                 };
@@ -63,7 +69,6 @@ export function Step6Confirmation() {
                 // Add to doctor's appointments
                 const doctorApptRef = doc(db, "doctors", doctor.id, "appointments", newAppointmentRef.id);
                 batch.set(doctorApptRef, newAppointment);
-
 
                 await batch.commit();
 
@@ -82,12 +87,22 @@ export function Step6Confirmation() {
         createAppointment();
     }, [user, doctor, appointmentDate, appointmentTime, clinic, appointmentType, bookingDetails, toast]);
 
-    if (!isBookingComplete) {
+    if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-center">
                 <Loader2 className="w-16 h-16 text-primary animate-spin mb-4" />
                 <h3 className="text-2xl font-bold font-headline mb-2">Confirming your appointment...</h3>
                 <p className="text-muted-foreground max-w-md mx-auto">Please wait while we finalize the details with {doctor?.name}.</p>
+            </div>
+        );
+    }
+    
+    if (!isBookingComplete) {
+         return (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+                <h3 className="text-2xl font-bold font-headline mb-2 text-destructive">Booking Failed</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">Something went wrong. Please try again.</p>
+                 <Button onClick={closeBookingModal} className="mt-4">Close</Button>
             </div>
         );
     }
@@ -137,7 +152,7 @@ export function Step6Confirmation() {
                                     {clinic && (
                                         <div className="space-y-1">
                                             <p className="text-sm text-muted-foreground">Clinic</p>
-                                            <p className="font-medium">{doctor?.clinics?.find(c => c.id === clinic)?.name || 'N/A'}</p>
+                                            <p className="font-medium">{doctor?.clinics?.find((c:any) => c.id === clinic)?.name || 'N/A'}</p>
                                         </div>
                                     )}
                                 </div>
