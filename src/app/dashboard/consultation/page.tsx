@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Bot, User, Send, Loader2, Mic, AlertTriangle, Search, PhoneOff, Wand2, StopCircle, VideoIcon, MicIcon, Play, Link as LinkIcon, Download, MoreHorizontal, MessageSquare, Users, Sparkles, Folder, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Bot, User, Send, Loader2, Mic, AlertTriangle, Search, PhoneOff, Wand2, StopCircle, VideoIcon, MicIcon, Play, Link as LinkIcon, Download, MoreHorizontal, MessageSquare, Users, Sparkles, Folder, Settings, LogOut, ChevronDown, VideoOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { consultationFlow, ConsultationTurn } from '@/ai/flows/consultation-flow';
 import { ttsFlow } from '@/ai/flows/tts-flow';
@@ -16,6 +16,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Waveform } from '@/components/waveform';
 import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 // Add a global reference to the SpeechRecognition object
 let recognition: any = null;
@@ -28,6 +30,7 @@ if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSp
 
 export default function ConsultationPage() {
     const { user } = useAuth();
+    const router = useRouter();
     const [transcript, setTranscript] = useState<ConsultationTurn[]>([]);
     const [summary, setSummary] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -35,8 +38,12 @@ export default function ConsultationPage() {
     const [currentMessage, setCurrentMessage] = useState("");
     const [isRecording, setIsRecording] = useState(false);
     
+    const [isMuted, setIsMuted] = useState(false);
+    const [isCameraOff, setIsCameraOff] = useState(false);
+    
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
+    const streamRef = useRef<MediaStream | null>(null);
     const { toast } = useToast();
 
     // Webcam Access
@@ -44,6 +51,7 @@ export default function ConsultationPage() {
         const getCameraPermission = async () => {
           try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            streamRef.current = stream;
             if (videoRef.current) {
               videoRef.current.srcObject = stream;
             }
@@ -59,7 +67,35 @@ export default function ConsultationPage() {
           }
         };
         getCameraPermission();
+        
+        // Cleanup stream on component unmount
+        return () => {
+            streamRef.current?.getTracks().forEach(track => track.stop());
+        }
       }, [toast]);
+      
+    const handleToggleMic = () => {
+        if (streamRef.current) {
+            streamRef.current.getAudioTracks().forEach(track => {
+                track.enabled = !track.enabled;
+            });
+            setIsMuted(prev => !prev);
+        }
+    };
+    
+    const handleToggleCamera = () => {
+        if (streamRef.current) {
+            streamRef.current.getVideoTracks().forEach(track => {
+                track.enabled = !track.enabled;
+            });
+            setIsCameraOff(prev => !prev);
+        }
+    };
+
+    const handleEndCall = () => {
+        streamRef.current?.getTracks().forEach(track => track.stop());
+        router.push('/dashboard');
+    };
     
     const handleSendMessage = async () => {
         if (!currentMessage.trim()) return;
@@ -124,12 +160,13 @@ export default function ConsultationPage() {
     
         recognition.onend = () => {
             setIsRecording(false);
-            toast({ title: 'Recording Stopped' });
+            if(recognition.error !== 'aborted') {
+                toast({ title: 'Recording Stopped' });
+            }
         };
     
         recognition.onerror = (event: any) => {
-            // "aborted" error is common when a user stops talking, so we can ignore it.
-            if (event.error === 'aborted') {
+            if (event.error === 'aborted' || event.error === 'no-speech') {
                 return;
             }
             console.error('Speech recognition error:', event.error);
@@ -149,24 +186,20 @@ export default function ConsultationPage() {
             }
         };
 
-        // This cleanup function will only run when the component unmounts.
         return () => {
           if (recognition) {
             recognition.abort();
-            // Remove all listeners to prevent memory leaks
             recognition.onstart = null;
             recognition.onend = null;
             recognition.onerror = null;
             recognition.onresult = null;
           }
         }
-    }, [toast]); // The hook only depends on `toast` which is stable.
+    }, [toast]);
     
     return (
         <div className="flex h-screen bg-muted/30">
-            {/* Main Content */}
             <main className="flex-1 flex flex-col p-4 gap-4">
-                {/* Header */}
                 <div className="flex justify-between items-center flex-shrink-0">
                     <div>
                         <h1 className="text-xl font-bold font-headline">AI Consultation</h1>
@@ -185,9 +218,7 @@ export default function ConsultationPage() {
                     </div>
                 </div>
 
-                {/* Video & AI Panels */}
                 <div className="grid grid-cols-3 gap-4 flex-grow">
-                    {/* Left Column (Video + Transcript) */}
                     <div className="col-span-2 flex flex-col gap-4">
                         <div className="relative rounded-lg overflow-hidden flex-grow bg-card">
                             <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
@@ -203,12 +234,48 @@ export default function ConsultationPage() {
                                 </div>
                             )}
                             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/50 backdrop-blur-sm p-2 rounded-full">
-                                <Button size="icon" variant={isRecording ? "destructive" : "secondary"} className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none" onClick={handleToggleRecording}>
-                                    {isRecording ? <StopCircle className="w-6 h-6"/> : <MicIcon className="w-6 h-6"/>}
-                                </Button>
-                                <Button size="icon" variant="secondary" className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none"><VideoIcon className="w-6 h-6"/></Button>
-                                <Button size="icon" variant="destructive" className="rounded-full w-12 h-12"><PhoneOff className="w-6 h-6"/></Button>
-                                <Button size="icon" variant="secondary" className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none"><Wand2 className="w-6 h-6"/></Button>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button size="icon" variant={isMuted ? "destructive" : "secondary"} className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none" onClick={handleToggleMic}>
+                                                {isMuted ? <MicOff className="w-6 h-6"/> : <MicIcon className="w-6 h-6"/>}
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>{isMuted ? 'Unmute' : 'Mute'}</TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button size="icon" variant={isCameraOff ? "destructive" : "secondary"} className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none" onClick={handleToggleCamera}>
+                                                {isCameraOff ? <VideoOff className="w-6 h-6"/> : <VideoIcon className="w-6 h-6"/>}
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>{isCameraOff ? 'Turn Camera On' : 'Turn Camera Off'}</TooltipContent>
+                                    </Tooltip>
+                                     <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button size="icon" variant={isRecording ? "destructive" : "secondary"} className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none" onClick={handleToggleRecording}>
+                                                {isRecording ? <StopCircle className="w-6 h-6"/> : <MicIcon className="w-6 h-6"/>}
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>{isRecording ? 'Stop Transcription' : 'Start Transcription'}</TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button size="icon" variant="destructive" className="rounded-full w-12 h-12" onClick={handleEndCall}>
+                                                <PhoneOff className="w-6 h-6"/>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>End Call</TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button size="icon" variant="secondary" className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none" onClick={() => toast({ title: 'Coming Soon!', description: 'AI effects will be available in a future update.'})}>
+                                                <Wand2 className="w-6 h-6"/>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>AI Effects</TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </div>
                             <div className="absolute top-4 right-4 flex flex-col gap-3">
                                 <Image src="https://placehold.co/180x135.png" width={180} height={135} alt="Tasya" className="rounded-lg" data-ai-hint="person happy" />
@@ -263,7 +330,6 @@ export default function ConsultationPage() {
                         </div>
                     </div>
 
-                    {/* Right Column (Participants & Chat) */}
                     <div className="col-span-1 flex flex-col gap-4">
                         <Card className="flex-1 flex flex-col">
                              <CardHeader className="flex-row items-center justify-between">
@@ -271,7 +337,6 @@ export default function ConsultationPage() {
                                 <Button variant="link" size="sm" className="p-0">View All</Button>
                             </CardHeader>
                             <CardContent className="flex-1 overflow-y-auto space-y-3">
-                                {/* Mock participants */}
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <Avatar className="h-8 w-8"><AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person friendly"/><AvatarFallback>MB</AvatarFallback></Avatar>
@@ -301,7 +366,6 @@ export default function ConsultationPage() {
                             </CardHeader>
                              <CardContent className="flex-1 overflow-y-auto p-4">
                                 <div className="space-y-4 text-sm">
-                                    {/* Chat messages will be mirrored in transcript section */}
                                      {transcript.length === 0 && !isLoading && (
                                         <div className="text-center text-muted-foreground pt-8">
                                             <MessageSquare className="w-12 h-12 mx-auto mb-2" />
@@ -333,3 +397,25 @@ export default function ConsultationPage() {
         </div>
     );
 }
+
+// Add MicOff icon
+const MicOff = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="1" y1="1" x2="23" y2="23" />
+    <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" />
+    <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23" />
+    <line x1="12" y1="19" x2="12" y2="23" />
+    <line x1="8" y1="23" x2="16" y2="23" />
+  </svg>
+);
