@@ -4,7 +4,7 @@ import * as React from "react"
 import { cva } from "class-variance-authority"
 import { motion, useAnimation } from "framer-motion"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { IconLayoutSidebarLeftCollapse, IconLayoutSidebarRightCollapse } from "@tabler/icons-react"
+import { IconLayoutSidebarLeftCollapse, IconLayoutSidebarRightCollapse, IconDots, IconGripVertical } from "@tabler/icons-react"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip"
 import { Stethoscope } from "lucide-react"
@@ -15,6 +15,7 @@ type SidebarContextProps = {
   isInside?: boolean
   isMobile?: boolean
   isCollapsible?: boolean
+  setCollapsed?: (value: boolean) => void
 }
 
 const SidebarContext = React.createContext<SidebarContextProps | undefined>(
@@ -107,18 +108,24 @@ const Sidebar = React.forwardRef<
         setIsCollapsed(false)
       }
     }, [isMobile, controls])
+    
+    const setCollapsed = (value: boolean) => {
+      if (isMobile) return
+      setIsCollapsed(value)
+      controls.start(value ? "hidden" : "visible")
+    }
 
     const handleMouseEnter = () => {
-      if (!isMobile) {
-        setIsCollapsed(false)
-        controls.start("visible")
+      if (!isMobile && isCollapsed) {
+        // setIsCollapsed(false)
+        // controls.start("visible")
       }
     }
 
     const handleMouseLeave = () => {
-      if (!isMobile) {
-        setIsCollapsed(true)
-        controls.start("hidden")
+      if (!isMobile && !isCollapsed) {
+        // setIsCollapsed(true)
+        // controls.start("hidden")
       }
     }
 
@@ -131,6 +138,7 @@ const Sidebar = React.forwardRef<
           isInside: true,
           isMobile: isMobile,
           isCollapsible,
+          setCollapsed,
         }}
       >
         <motion.aside
@@ -243,9 +251,7 @@ const SidebarGroup = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
-  return (
-    <div ref={ref} className={cn("flex flex-col", className)} {...props} />
-  )
+  return <div ref={ref} className={cn("flex flex-col", className)} {...props} />
 })
 SidebarGroup.displayName = "SidebarGroup"
 
@@ -398,6 +404,29 @@ const SidebarGroupContent = React.forwardRef<
 })
 SidebarGroupContent.displayName = "SidebarGroupContent"
 
+const SidebarTrigger = React.forwardRef<
+  HTMLButtonElement,
+  React.HTMLAttributes<HTMLButtonElement>
+>(({ className, ...props }, ref) => {
+  const { isCollapsed, setCollapsed } = useSidebar();
+  if (setCollapsed === undefined) return null
+  return (
+    <button
+      ref={ref}
+      className={cn("text-muted-foreground", className)}
+      onClick={() => setCollapsed(!isCollapsed)}
+      {...props}
+    >
+      {isCollapsed ? (
+        <IconLayoutSidebarRightCollapse />
+      ) : (
+        <IconLayoutSidebarLeftCollapse />
+      )}
+    </button>
+  )
+})
+SidebarTrigger.displayName = "SidebarTrigger"
+
 
 export {
   useSidebar,
@@ -416,5 +445,6 @@ export {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenuAction,
+  SidebarTrigger,
 }
 export type { SidebarContextProps }
