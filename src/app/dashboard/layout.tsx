@@ -7,7 +7,7 @@ import { usePatientDataStore } from "@/store/patient-data-store";
 import { RoleGuard } from "@/components/role-guard";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
 
 export default function PatientDashboardLayout({
   children,
@@ -34,21 +34,16 @@ export default function PatientDashboardLayout({
 
   return (
     <RoleGuard allowedRoles={['Patient']}>
-      <SidebarProvider
-        style={
-            {
-            "--sidebar-width": "calc(var(--spacing) * 72)",
-            "--header-height": "calc(var(--spacing) * 12)",
-            } as React.CSSProperties
-        }
-      >
-        <AppSidebar />
-        <SidebarInset>
-            <main className="flex-1 w-full flex flex-col">
+      <SidebarProvider>
+        <div className="flex min-h-screen">
+            <AppSidebar />
+            <div className="flex flex-col flex-1">
                 <SiteHeader />
-                <div className="flex-1 p-6">{children}</div>
-            </main>
-        </SidebarInset>
+                <main className="flex-1 p-6">
+                    {children}
+                </main>
+            </div>
+        </div>
       </SidebarProvider>
     </RoleGuard>
   );

@@ -68,12 +68,30 @@ const SidebarProvider = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
+  const isMobile = useIsMobile()
+  const [isCollapsed, setIsCollapsed] = React.useState(isMobile)
+
+  React.useEffect(() => {
+    setIsCollapsed(isMobile)
+  }, [isMobile])
+
   return (
-    <div
-      ref={ref}
-      className={cn(SIDEBAR_STYLES, "flex min-h-screen", className)}
-      {...props}
-    />
+    <SidebarContext.Provider
+      value={{
+        isCollapsed,
+        isInside: true,
+        isMobile: isMobile,
+        isCollapsible: true,
+        setCollapsed: setIsCollapsed,
+      }}
+    >
+        <div
+            ref={ref}
+            data-collapsible={isCollapsed ? "icon" : "full"}
+            className={cn("flex min-h-screen group/sidebar-wrapper", className)}
+            {...props}
+        />
+    </SidebarContext.Provider>
   )
 })
 SidebarProvider.displayName = "SidebarProvider"
@@ -95,63 +113,18 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const isMobile = useIsMobile()
-    const controls = useAnimation()
-    const [isCollapsed, setIsCollapsed] = React.useState(false)
-
-    React.useEffect(() => {
-      if (isMobile) {
-        controls.start("hidden")
-        setIsCollapsed(true)
-      } else {
-        controls.start("visible")
-        setIsCollapsed(false)
-      }
-    }, [isMobile, controls])
+    const { isCollapsed, isMobile } = useSidebar()
     
-    const setCollapsed = (value: boolean) => {
-      if (isMobile) return
-      setIsCollapsed(value)
-      controls.start(value ? "hidden" : "visible")
-    }
-
-    const handleMouseEnter = () => {
-      if (!isMobile && isCollapsed) {
-        // setIsCollapsed(false)
-        // controls.start("visible")
-      }
-    }
-
-    const handleMouseLeave = () => {
-      if (!isMobile && !isCollapsed) {
-        // setIsCollapsed(true)
-        // controls.start("hidden")
-      }
-    }
-
-    const isCollapsible = collapsible !== "offcanvas"
-
     return (
-      <SidebarContext.Provider
-        value={{
-          isCollapsed,
-          isInside: true,
-          isMobile: isMobile,
-          isCollapsible,
-          setCollapsed,
-        }}
-      >
         <motion.aside
           ref={ref}
-          initial={isMobile ? "hidden" : "visible"}
-          animate={controls}
-          data-collapsible={isCollapsible ? (isCollapsed ? "icon" : "full") : "none"}
+          data-collapsible={isCollapsed ? "icon" : "full"}
           variants={{
             visible: { width: "var(--sidebar-width)", transition: { type: "spring", stiffness: 300, damping: 30 } },
             hidden: { width: "calc(var(--spacing) * 14)", transition: { type: "spring", stiffness: 300, damping: 30 } },
           }}
-          onMouseEnter={isCollapsible ? handleMouseEnter : undefined}
-          onMouseLeave={isCollapsible ? handleMouseLeave : undefined}
+          initial={isCollapsed ? "hidden" : "visible"}
+          animate={isCollapsed ? "hidden" : "visible"}
           className={cn(
             "group relative flex h-screen flex-col border-r bg-[var(--sidebar-bg)] text-[var(--sidebar-fg)] [border-color:var(--sidebar-border)]",
             variant === "inset" &&
@@ -162,7 +135,6 @@ const Sidebar = React.forwardRef<
         >
           {children}
         </motion.aside>
-      </SidebarContext.Provider>
     )
   }
 )
@@ -170,7 +142,7 @@ Sidebar.displayName = "Sidebar"
 
 const SidebarHeader = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<"div">
+  React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
   return (
     <div
