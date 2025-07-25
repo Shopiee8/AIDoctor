@@ -7,6 +7,8 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { IconLayoutSidebarLeftCollapse, IconLayoutSidebarRightCollapse } from "@tabler/icons-react"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip"
+import { Stethoscope } from "lucide-react"
+import Link from "next/link"
 
 type SidebarContextProps = {
   isCollapsed?: boolean
@@ -46,10 +48,15 @@ const SessionNavBar = React.forwardRef<
   return (
      <aside
       ref={ref}
-      className={cn("w-20 flex-col border-r bg-background text-foreground", className)}
+      className={cn(SIDEBAR_STYLES, "group fixed left-0 top-0 z-50 flex h-screen w-20 flex-col border-r bg-background text-foreground", className)}
       {...props}
     >
-      {children}
+      <div className="flex h-[65px] items-center justify-center border-b border-border">
+          <Link href="/doctor/dashboard">
+              <Stethoscope className="h-7 w-7 text-primary" />
+          </Link>
+      </div>
+      <nav className="flex flex-col items-center gap-4 px-2 py-4">{children}</nav>
     </aside>
   );
 });
@@ -270,7 +277,7 @@ const SidebarMenuItem = React.forwardRef<
 })
 SidebarMenuItem.displayName = "SidebarMenuItem"
 
-const buttonVariants = cva("flex items-center justify-start gap-4 p-2", {
+const buttonVariants = cva("flex items-center justify-start gap-4", {
   variants: {
     variant: {
       default:
@@ -278,9 +285,14 @@ const buttonVariants = cva("flex items-center justify-start gap-4 p-2", {
       active:
         "rounded-lg bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-fg)]",
     },
+    size: {
+      default: "p-2",
+      lg: "p-2",
+    },
   },
   defaultVariants: {
     variant: "default",
+    size: "default",
   },
 })
 
@@ -290,8 +302,9 @@ const SidebarMenuButton = React.forwardRef<
     asChild?: boolean
     isActive?: boolean
     tooltip?: string
+    size?: "default" | "lg"
   }
->(({ className, isActive, asChild, tooltip, ...props }, ref) => {
+>(({ className, isActive, asChild, tooltip, size, ...props }, ref) => {
   const { isCollapsed } = useSidebar()
   const Comp = asChild ? "div" : "button"
 
@@ -300,7 +313,7 @@ const SidebarMenuButton = React.forwardRef<
       data-slot="sidebar-menu-button"
       ref={ref}
       className={cn(
-        buttonVariants({ variant: isActive ? "active" : "default" }),
+        buttonVariants({ variant: isActive ? "active" : "default", size }),
         "w-full flex-1",
         isCollapsed && "justify-center",
         className
