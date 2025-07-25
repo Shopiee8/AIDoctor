@@ -1,11 +1,10 @@
 
-
 'use client';
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/lib/firebase";
-import { collection, onSnapshot, query, orderBy, limit } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, limit, where } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { User, Calendar, Check, X, Eye, Video, Bell, Star, CalendarDays, DollarSign, Activity, Users, Clock } from "lucide-react";
