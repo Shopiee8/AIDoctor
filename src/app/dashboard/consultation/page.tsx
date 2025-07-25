@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Bot, User, Send, Loader2, Mic, AlertTriangle, Search, PhoneOff, Wand2, StopCircle, VideoIcon, MicIcon, Play, Link as LinkIcon, Download, MoreHorizontal, MessageSquare, Users, Sparkles, Folder, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { consultationFlow, ConsultationTurn, scribe } from '@/ai/flows/consultation-flow';
@@ -18,26 +17,17 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Waveform } from '@/components/waveform';
 import { useAuth } from '@/hooks/use-auth';
 
-// Check for SpeechRecognition API
-const SpeechRecognition =
-  (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition));
-
-const initialTranscript = [
-    { time: "00.15", speaker: "Client", text: "Hi [User], I hope you're doing well. I wanted to check in on the project timeline. Do we have an estimated completion date?" },
-    { time: "00.20", speaker: "User", text: "Hi [Client], thanks for reaching out! Yes, based on the current progress, we're aiming to complete the project by [date]. Let me know if you have any specific deadlines or adjustments in mind." },
-    { time: "01.25", speaker: "Client", text: "That sounds good. Let me know what you need" },
-];
-
 export default function ConsultationPage() {
     const { user } = useAuth();
-    const [transcript, setTranscript] = useState(initialTranscript);
+    const [transcript, setTranscript] = useState<ConsultationTurn[]>([]);
     const [summary, setSummary] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [hasCameraPermission, setHasCameraPermission] = useState(true);
+    const [currentMessage, setCurrentMessage] = useState("");
 
     const videoRef = useRef<HTMLVideoElement>(null);
-    const recognitionRef = useRef<any>(null);
+    const audioRef = useRef<HTMLAudioElement>(null);
     const { toast } = useToast();
 
     // Webcam Access
@@ -62,65 +52,51 @@ export default function ConsultationPage() {
         getCameraPermission();
       }, [toast]);
     
-    // Speech Recognition Setup
-    useEffect(() => {
-        if (!SpeechRecognition) {
-            console.warn("Speech Recognition API not supported.");
-            return;
-        }
+    const handleSendMessage = async () => {
+        if (!currentMessage.trim()) return;
 
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        
-        recognition.onresult = (event) => {
-            let finalTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
+        const userTurn: ConsultationTurn = { role: 'user', content: currentMessage };
+        const newHistory = [...transcript, userTurn];
+        setTranscript(newHistory);
+        setCurrentMessage("");
+        setIsLoading(true);
+
+        try {
+            const responseHistory = await consultationFlow(newHistory);
+            const aiTurn = responseHistory[responseHistory.length - 1];
+
+            if (aiTurn.role === 'model' && aiTurn.content) {
+                const { media } = await ttsFlow(aiTurn.content);
+                if (media && audioRef.current) {
+                    audioRef.current.src = media;
+                    audioRef.current.play();
                 }
             }
-            if (finalTranscript) {
-                setTranscript(prev => [...prev, { time: new Date().toLocaleTimeString([], {minute: '2-digit', second: '2-digit'}), speaker: "User", text: finalTranscript }]);
-            }
-        };
-        
-        recognition.onerror = (event) => {
-            console.error("Speech recognition error", event.error);
-            toast({ title: 'Speech Recognition Error', description: event.error, variant: 'destructive' });
-        };
-        
-        recognitionRef.current = recognition;
 
-    }, [toast]);
-
+            setTranscript(responseHistory);
+        } catch (e) {
+            console.error(e);
+            toast({ title: 'AI Error', description: 'Could not get response from AI.', variant: 'destructive' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
     const handleRecord = async () => {
-        if (isRecording) {
-            recognitionRef.current?.stop();
-            setIsRecording(false);
-        } else {
-            if (!SpeechRecognition) {
-                toast({ title: 'Feature Not Supported', description: 'Speech recognition is not available in your browser.', variant: 'destructive' });
-                return;
-            }
-            recognitionRef.current?.start();
-            setIsRecording(true);
-
-            // Generate summary after a delay to simulate live processing
-            setIsLoading(true);
-            setTimeout(async () => {
-                const fullTranscript = transcript.map(t => `${t.speaker}: ${t.text}`).join('\n\n');
-                try {
-                    const result = await scribe({ conversation: fullTranscript });
-                    setSummary(result);
-                } catch(e) {
-                    console.error(e);
-                    toast({ title: 'AI Error', description: 'Could not generate summary.', variant: 'destructive' });
-                } finally {
-                    setIsLoading(false);
-                }
-            }, 5000); // 5 second delay
-        }
+       setIsLoading(true);
+       setIsRecording(prev => !prev);
+       setTimeout(async () => {
+           const fullTranscript = transcript.map(t => `${t.role}: ${t.content}`).join('\n\n');
+           try {
+               const result = await scribe({ conversation: fullTranscript });
+               setSummary(result);
+           } catch(e) {
+               console.error(e);
+               toast({ title: 'AI Error', description: 'Could not generate summary.', variant: 'destructive' });
+           } finally {
+               setIsLoading(false);
+           }
+       }, 5000); // 5 second delay to simulate processing
     };
 
 
@@ -140,10 +116,9 @@ export default function ConsultationPage() {
                     <div className="flex items-center gap-2">
                         <Button onClick={handleRecord} variant={isRecording ? 'destructive' : 'default'}>
                             {isRecording ? <StopCircle className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2"/>}
-                            {isRecording ? 'Stop Recording' : 'Start Record AI'}
+                            {isRecording ? 'Stop Recording' : 'Start AI Scribe'}
                         </Button>
                         <Button variant="ghost" size="icon"><Search className="w-5 h-5"/></Button>
-                        <Button variant="ghost" size="icon"><Bell className="w-5 h-5"/></Button>
                         <Avatar className="h-9 w-9">
                             <AvatarImage src={user?.photoURL || undefined} />
                             <AvatarFallback>{user?.displayName?.[0]}</AvatarFallback>
@@ -176,7 +151,6 @@ export default function ConsultationPage() {
                                     <CardTitle className="text-base flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" />AI Tracker Notes</CardTitle>
                                     <div className="flex items-center gap-2">
                                         {isRecording && <Waveform />}
-                                        <span className="text-sm text-muted-foreground">00:41</span>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="flex-1 overflow-y-auto p-4">
@@ -184,10 +158,12 @@ export default function ConsultationPage() {
                                         <div className="space-y-4 text-sm">
                                             {transcript.map((item, index) => (
                                                 <div key={index} className="flex gap-3">
-                                                    <p className="font-mono text-muted-foreground text-xs pt-1">{item.time}</p>
+                                                    <Avatar className="h-6 w-6">
+                                                      <AvatarFallback>{item.role === 'model' ? 'AI' : 'U'}</AvatarFallback>
+                                                    </Avatar>
                                                     <div className="flex-1">
-                                                        <p className="font-semibold">{item.speaker}</p>
-                                                        <p className="text-muted-foreground">{item.text}</p>
+                                                        <p className="font-semibold">{item.role === 'model' ? 'AI Doctor' : 'You'}</p>
+                                                        <p className="text-muted-foreground">{item.content}</p>
                                                     </div>
                                                 </div>
                                             ))}
@@ -198,10 +174,9 @@ export default function ConsultationPage() {
                              <Card className="flex flex-col">
                                 <CardHeader className="flex-row items-center justify-between pb-2">
                                     <CardTitle className="text-base flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary"/>AI Summarize</CardTitle>
-                                    <Button variant="link" size="sm" className="p-0">View All</Button>
                                 </CardHeader>
                                 <CardContent className="flex-1 overflow-y-auto p-4">
-                                   {isLoading ? <div className="text-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin inline mr-2"/>Generating...</div> : null}
+                                   {isLoading && !summary ? <div className="text-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin inline mr-2"/>Generating...</div> : null}
                                    {summary ? (
                                     <div className="prose prose-sm max-w-none">
                                         <h4>Subjective</h4>
@@ -209,7 +184,7 @@ export default function ConsultationPage() {
                                         <h4>Assessment</h4>
                                         <p>{summary.assessment}</p>
                                     </div>
-                                   ) : !isLoading ? <div className="text-center text-muted-foreground">Summary will appear here.</div> : null}
+                                   ) : !isLoading ? <div className="text-center text-muted-foreground">Summary will appear here after clicking "Start AI Scribe".</div> : null}
                                 </CardContent>
                             </Card>
                         </div>
@@ -250,7 +225,6 @@ export default function ConsultationPage() {
                         <Card className="flex-1 flex flex-col">
                              <CardHeader className="flex-row items-center justify-between">
                                 <CardTitle className="text-base">Chat</CardTitle>
-                                <Button variant="link" size="sm" className="p-0">View All</Button>
                             </CardHeader>
                             <CardContent className="flex-1 flex flex-col items-center justify-center text-center">
                                <Image src="https://placehold.co/150x120.png" width={150} height={120} alt="No chat" data-ai-hint="mailbox empty" />
@@ -259,8 +233,14 @@ export default function ConsultationPage() {
                             </CardContent>
                              <div className="p-4 border-t">
                                 <div className="relative">
-                                    <Input placeholder="Reply or @mention someone" className="pr-10"/>
-                                    <Button size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8">
+                                    <Input 
+                                      placeholder="Reply or @mention someone" 
+                                      className="pr-10"
+                                      value={currentMessage}
+                                      onChange={(e) => setCurrentMessage(e.target.value)}
+                                      onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                                    />
+                                    <Button size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8" onClick={handleSendMessage} disabled={isLoading}>
                                         <Send className="w-4 h-4" />
                                     </Button>
                                 </div>
@@ -268,10 +248,8 @@ export default function ConsultationPage() {
                         </Card>
                     </div>
                 </div>
-
+                <audio ref={audioRef} className="hidden" />
             </main>
         </div>
     );
 }
-
-const Bell = (props: React.SVGProps<SVGSVGElement>) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>;
