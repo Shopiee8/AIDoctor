@@ -2,6 +2,9 @@
 'use server';
 /**
  * @fileOverview A flow for real-time speech-to-text transcription using Speechmatics.
+ *
+ * This file sets up a server-side placeholder. The primary client-side logic for connecting
+ * to the Speechmatics WebSocket API will be implemented on the consultation page.
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
@@ -31,7 +34,7 @@ export const transcribeStream = ai.defineFlow(
     // In a real implementation, you would handle the streaming input here.
     // For now, we simulate what the client-side will do based on Speechmatics docs.
     // The client will need to establish a WebSocket connection and stream audio.
-    // This flow serves as a placeholder for where server-side logic would go if needed.
+    // This flow serves as a placeholder for where server-side logic would go if needed for auth or other reasons.
     
     // The actual implementation will be on the client side for direct browser-to-Speechmatics streaming.
     // This server-side flow is a conceptual placeholder. The real logic will be added to the consultation page.
@@ -43,4 +46,6 @@ export const transcribeStream = ai.defineFlow(
       stream.chunk(word + ' ');
     }
 
-    return "Final
+    return "Final Transcript.";
+  }
+);
