@@ -16,6 +16,14 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Waveform } from '@/components/waveform';
 import { useAuth } from '@/hooks/use-auth';
 
+// Declare the SpeechRecognition interface for browser compatibility
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
 export default function ConsultationPage() {
     const { user } = useAuth();
     const [transcript, setTranscript] = useState<ConsultationTurn[]>([]);
@@ -26,16 +34,16 @@ export default function ConsultationPage() {
     const [isRecording, setIsRecording] = useState(false);
     const [liveTranscript, setLiveTranscript] = useState("");
 
-
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
+    const recognition = useRef<any>(null);
     const { toast } = useToast();
 
-    // Webcam Access
+    // Webcam and Mic Access
     useEffect(() => {
         const getCameraPermission = async () => {
           try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             if (videoRef.current) {
               videoRef.current.srcObject = stream;
             }
@@ -44,8 +52,8 @@ export default function ConsultationPage() {
             console.error('Error accessing camera:', error);
             setHasCameraPermission(false);
             toast({
-                title: 'Camera & Mic Access Denied',
-                description: 'Please enable camera and microphone permissions in your browser settings.',
+                title: 'Camera Access Denied',
+                description: 'Please enable camera permissions in your browser settings.',
                 variant: 'destructive',
             });
           }
@@ -91,19 +99,60 @@ export default function ConsultationPage() {
         }
     };
     
-    // Placeholder for Speechmatics logic
     const handleToggleRecording = () => {
         if (isRecording) {
-            // Stop recording logic here
+            recognition.current?.stop();
             setIsRecording(false);
-            // On stop, append the live transcript to the main chat input
-            setCurrentMessage(prev => prev + liveTranscript);
-            setLiveTranscript("");
+            toast({ title: 'Recording Stopped' });
         } else {
-            // Start recording logic here
-            // This would involve setting up the WebSocket to Speechmatics
-            setIsRecording(true);
-            toast({ title: 'Recording Started', description: 'Live transcription is active.' });
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                toast({ title: 'Browser Not Supported', description: 'Speech recognition is not supported in this browser.', variant: 'destructive'});
+                return;
+            }
+
+            recognition.current = new SpeechRecognition();
+            recognition.current.continuous = true;
+            recognition.current.interimResults = true;
+            recognition.current.lang = 'en-US';
+
+            recognition.current.onstart = () => {
+                setIsRecording(true);
+                setLiveTranscript('');
+                toast({ title: 'Recording Started', description: 'Live transcription is active.' });
+            };
+
+            recognition.current.onend = () => {
+                setIsRecording(false);
+                if (liveTranscript) {
+                    setCurrentMessage(prev => (prev + ' ' + liveTranscript).trim());
+                }
+                setLiveTranscript('');
+            };
+            
+            recognition.current.onerror = (event: any) => {
+                 console.error('Speech recognition error:', event.error);
+                 toast({ title: 'Recognition Error', description: event.error, variant: 'destructive'});
+                 setIsRecording(false);
+            };
+
+            recognition.current.onresult = (event: any) => {
+                let finalTranscript = '';
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                setLiveTranscript(interimTranscript);
+                if(finalTranscript){
+                    setCurrentMessage(prev => (prev + ' ' + finalTranscript).trim());
+                }
+            };
+            
+            recognition.current.start();
         }
     };
     
