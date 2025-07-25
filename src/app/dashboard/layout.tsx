@@ -7,6 +7,7 @@ import { usePatientDataStore } from "@/store/patient-data-store";
 import { RoleGuard } from "@/components/role-guard";
 import PatientSidebar from "@/components/patient-sidebar";
 import { DashboardHeader } from "@/components/dashboard-header";
+import { usePathname } from "next/navigation";
 
 export default function PatientDashboardLayout({
   children,
@@ -15,6 +16,7 @@ export default function PatientDashboardLayout({
 }) {
   const { user } = useAuth();
   const { fetchPatientData, clearPatientData } = usePatientDataStore();
+  const pathname = usePathname();
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -30,6 +32,11 @@ export default function PatientDashboardLayout({
       }
     };
   }, [user, fetchPatientData, clearPatientData]);
+  
+  // If on consultation page, render children without the layout for a full-screen experience
+  if (pathname === '/dashboard/consultation') {
+    return <>{children}</>;
+  }
 
   return (
     <RoleGuard allowedRoles={['Patient']}>

@@ -32,6 +32,12 @@ const AssessmentAndPlanSchema = z.object({
     conclusion: z.string().describe("A concluding paragraph summarizing the workup plan."),
 });
 
+const SOAPNoteSchema = z.object({
+  subjective: z.string().describe("The patient's subjective complaints, including their main symptoms, history of the present illness, and any relevant personal or family medical history mentioned. This should be a direct summary of what the patient reported."),
+  objective: z.string().describe("The clinician's objective findings from any physical examinations, lab results, or other diagnostic data mentioned in the conversation. If no objective data is mentioned, state 'No objective findings were mentioned in the transcript.'"),
+  assessment: z.string().describe("The clinician's differential diagnosis or final assessment of the patient's condition based on the subjective and objective information. This section synthesizes the information into a clinical conclusion."),
+  plan: z.string().describe("The treatment plan, including any prescriptions, lifestyle changes, recommended follow-ups, or further tests. This should outline the next steps for the patient's care."),
+});
 
 // Define the structure for a single turn in the conversation
 const ConsultationTurnSchema = z.object({
@@ -40,12 +46,7 @@ const ConsultationTurnSchema = z.object({
   isReferral: z.boolean().optional().describe('Set to true if this is a referral message.'),
   referralReason: z.string().optional().describe('A short, clinical reason for the referral.'),
   consultationSummary: z.string().optional().describe("A detailed summary for the patient explaining the situation and recommendation."),
-  soapNote: z.object({
-      subjective: z.string(),
-      objective: z.string(),
-      assessment: z.string(),
-      plan: z.string(),
-  }).optional().describe("A detailed SOAP note (Subjective, Objective, Assessment, Plan) for a physician to review."),
+  soapNote: SOAPNoteSchema.optional().describe("A detailed SOAP note (Subjective, Objective, Assessment, Plan) for a physician to review."),
   assessmentAndPlan: AssessmentAndPlanSchema.optional().describe("A detailed assessment and plan for the patient view."),
   retrievalSource: z.string().optional().describe('The source of the retrieved knowledge, if any.'),
 });
@@ -151,5 +152,38 @@ export const consultationFlow = ai.defineFlow(
 
     // Fallback if the AI fails to generate a response
     return [...history, { role: 'model', content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment." }];
+  }
+);
+
+
+// Define the scribe flow
+export const scribe = ai.defineFlow(
+  {
+    name: 'scribeFlow',
+    inputSchema: z.object({ conversation: z.string() }),
+    outputSchema: SOAPNoteSchema,
+  },
+  async (input) => {
+    const prompt = `You are an expert AI medical scribe. Analyze the following conversation transcript and generate a structured, accurate clinical note in the SOAP format.
+    
+    Transcript:
+    ${input.conversation}
+    
+    Please extract the relevant information and structure it into the four SOAP categories:
+    - Subjective: Capture what the patient says about the problem.
+    - Objective: Detail the clinician's observations. If none, state 'No objective findings were mentioned.'
+    - Assessment: Provide the diagnosis or differential diagnoses.
+    - Plan: Outline the treatment plan.`;
+    
+    const { output } = await ai.generate({
+      prompt,
+      output: { schema: SOAPNoteSchema },
+    });
+    
+    if (!output) {
+      throw new Error("Failed to generate a valid SOAP note.");
+    }
+    
+    return output;
   }
 );

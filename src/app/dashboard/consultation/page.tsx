@@ -1,68 +1,43 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Bot, User, Send, Loader2, Mic, AlertTriangle, Search, PhoneOff, Wand2, StopCircle, VideoIcon, MicIcon } from 'lucide-react';
+import { Bot, User, Send, Loader2, Mic, AlertTriangle, Search, PhoneOff, Wand2, StopCircle, VideoIcon, MicIcon, Play, Link as LinkIcon, Download, MoreHorizontal, MessageSquare, Users, Sparkles, Folder, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { consultationFlow, ConsultationTurn } from '@/ai/flows/consultation-flow';
+import { consultationFlow, ConsultationTurn, scribe } from '@/ai/flows/consultation-flow';
 import { ttsFlow } from '@/ai/flows/tts-flow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import Link from 'next/link';
-import { HumanDoctorPromoModal } from '@/components/human-doctor-promo-modal';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Waveform } from '@/components/waveform';
+import { useAuth } from '@/hooks/use-auth';
 
 // Check for SpeechRecognition API
 const SpeechRecognition =
   (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition));
 
+const initialTranscript = [
+    { time: "00.15", speaker: "Client", text: "Hi [User], I hope you're doing well. I wanted to check in on the project timeline. Do we have an estimated completion date?" },
+    { time: "00.20", speaker: "User", text: "Hi [Client], thanks for reaching out! Yes, based on the current progress, we're aiming to complete the project by [date]. Let me know if you have any specific deadlines or adjustments in mind." },
+    { time: "01.25", speaker: "Client", text: "That sounds good. Let me know what you need" },
+];
 
 export default function ConsultationPage() {
-    const [history, setHistory] = useState<ConsultationTurn[]>([]);
-    const [userInput, setUserInput] = useState('');
+    const { user } = useAuth();
+    const [transcript, setTranscript] = useState(initialTranscript);
+    const [summary, setSummary] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [audioUrl, setAudioUrl] = useState<string | null>(null);
-    const [isReferral, setIsReferral] = useState(false);
-    const [referralInfo, setReferralInfo] = useState<ConsultationTurn | null>(null);
-    const [showPromoModal, setShowPromoModal] = useState(false);
-    const [hasCameraPermission, setHasCameraPermission] = useState(true); // Assume true initially
     const [isRecording, setIsRecording] = useState(false);
+    const [hasCameraPermission, setHasCameraPermission] = useState(true);
 
     const videoRef = useRef<HTMLVideoElement>(null);
-    const audioRef = useRef<HTMLAudioElement>(null);
-    const chatContainerRef = useRef<HTMLDivElement>(null);
     const recognitionRef = useRef<any>(null);
     const { toast } = useToast();
-
-    // Initial greeting from the AI
-    useEffect(() => {
-        const startConsultation = async () => {
-            setIsLoading(true);
-            try {
-                const initialHistory = await consultationFlow([]);
-                setHistory(initialHistory);
-                const greeting = initialHistory[0].content;
-                const { media } = await ttsFlow(greeting);
-                setAudioUrl(media);
-            } catch (error) {
-                console.error("Error starting consultation:", error);
-                toast({ title: "Error", description: "Could not start the consultation.", variant: "destructive" });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        startConsultation();
-    }, [toast]);
 
     // Webcam Access
     useEffect(() => {
@@ -76,30 +51,36 @@ export default function ConsultationPage() {
           } catch (error) {
             console.error('Error accessing camera:', error);
             setHasCameraPermission(false);
+            toast({
+                title: 'Camera Access Denied',
+                description: 'Please enable camera permissions in your browser settings.',
+                variant: 'destructive',
+            });
           }
         };
         getCameraPermission();
-      }, []);
+      }, [toast]);
     
     // Speech Recognition Setup
     useEffect(() => {
         if (!SpeechRecognition) {
-            console.warn("Speech Recognition API not supported in this browser.");
+            console.warn("Speech Recognition API not supported.");
             return;
         }
 
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-
+        
         recognition.onresult = (event) => {
-            let interimTranscript = '';
+            let finalTranscript = '';
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
-                    setUserInput(prev => prev + event.results[i][0].transcript);
-                } else {
-                    interimTranscript += event.results[i][0].transcript;
+                    finalTranscript += event.results[i][0].transcript;
                 }
+            }
+            if (finalTranscript) {
+                setTranscript(prev => [...prev, { time: new Date().toLocaleTimeString([], {minute: '2-digit', second: '2-digit'}), speaker: "User", text: finalTranscript }]);
             }
         };
         
@@ -112,8 +93,7 @@ export default function ConsultationPage() {
 
     }, [toast]);
 
-
-    const toggleRecording = () => {
+    const handleRecord = async () => {
         if (isRecording) {
             recognitionRef.current?.stop();
             setIsRecording(false);
@@ -124,197 +104,173 @@ export default function ConsultationPage() {
             }
             recognitionRef.current?.start();
             setIsRecording(true);
+
+            // Generate summary after a delay to simulate live processing
+            setIsLoading(true);
+            setTimeout(async () => {
+                const fullTranscript = transcript.map(t => `${t.speaker}: ${t.text}`).join('\n\n');
+                try {
+                    const result = await scribe({ conversation: fullTranscript });
+                    setSummary(result);
+                } catch(e) {
+                    console.error(e);
+                    toast({ title: 'AI Error', description: 'Could not generate summary.', variant: 'destructive' });
+                } finally {
+                    setIsLoading(false);
+                }
+            }, 5000); // 5 second delay
         }
     };
 
-    // Autoplay audio when URL changes
-    useEffect(() => {
-        if (audioUrl && audioRef.current) {
-            audioRef.current.play().catch(e => console.error("Audio autoplay failed:", e));
-        }
-    }, [audioUrl]);
-
-    // Scroll to bottom of chat
-    useEffect(() => {
-        if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-        }
-    }, [history]);
-
-    const handleSendMessage = async () => {
-        if (!userInput.trim()) return;
-
-        const newUserTurn: ConsultationTurn = { role: 'user', content: userInput.trim() };
-        const newHistory = [...history, newUserTurn];
-        setHistory(newHistory);
-        setUserInput('');
-        setIsLoading(true);
-        setAudioUrl(null);
-        if (isRecording) {
-            toggleRecording();
-        }
-
-        try {
-            const updatedHistory = await consultationFlow(newHistory);
-            const aiResponse = updatedHistory[updatedHistory.length - 1];
-            setHistory(updatedHistory);
-
-            if (aiResponse?.isReferral) {
-                setIsReferral(true);
-                setReferralInfo(aiResponse);
-                setShowPromoModal(true);
-            }
-            
-            if (aiResponse?.content) {
-                const { media } = await ttsFlow(aiResponse.content);
-                setAudioUrl(media);
-            }
-
-        } catch (error) {
-            console.error("Error with consultation flow:", error);
-            toast({ title: "Error", description: "The AI is unable to respond right now.", variant: "destructive" });
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     return (
-        <div className="flex h-[calc(100vh-8rem)] p-4 gap-4">
-            {/* Left Column - Video and Chat */}
-            <main className="flex-1 flex flex-col gap-4">
-                <Card className="flex-grow flex flex-col">
-                    <CardHeader>
-                        <CardTitle>AI Consultation Room</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex-grow relative">
-                         <video ref={videoRef} className="w-full h-full object-cover rounded-md bg-muted" autoPlay muted playsInline />
-                         {!hasCameraPermission && (
-                            <Alert variant="destructive" className="absolute bottom-4 left-4 right-4">
-                                <AlertTriangle className="h-4 w-4" />
-                                <AlertTitle>Camera Access Required</AlertTitle>
-                                <AlertDescription>
-                                    Please allow camera access in your browser to use this feature.
-                                </AlertDescription>
-                            </Alert>
-                        )}
-                    </CardContent>
-                    <CardFooter className="flex-wrap justify-center gap-2 border-t pt-4">
-                        <Button size="icon" variant="secondary" className="rounded-full w-12 h-12"><MicIcon className="w-6 h-6"/></Button>
-                        <Button size="icon" variant="secondary" className="rounded-full w-12 h-12"><VideoIcon className="w-6 h-6"/></Button>
-                        <Button size="icon" variant="destructive" className="rounded-full w-12 h-12"><PhoneOff className="w-6 h-6"/></Button>
-                        <Button size="icon" variant="secondary" className="rounded-full w-12 h-12"><Wand2 className="w-6 h-6"/></Button>
-                    </CardFooter>
-                </Card>
-            </main>
+        <div className="flex h-screen bg-muted/30">
+            {/* Main Content */}
+            <main className="flex-1 flex flex-col p-4 gap-4">
+                {/* Header */}
+                <div className="flex justify-between items-center flex-shrink-0">
+                    <div>
+                        <h1 className="text-xl font-bold font-headline">AI Consultation</h1>
+                        <p className="text-sm text-muted-foreground flex items-center gap-2">
+                            <LinkIcon className="w-4 h-4"/>
+                            Confidential & Secure Meeting
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button onClick={handleRecord} variant={isRecording ? 'destructive' : 'default'}>
+                            {isRecording ? <StopCircle className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2"/>}
+                            {isRecording ? 'Stop Recording' : 'Start Record AI'}
+                        </Button>
+                        <Button variant="ghost" size="icon"><Search className="w-5 h-5"/></Button>
+                        <Button variant="ghost" size="icon"><Bell className="w-5 h-5"/></Button>
+                        <Avatar className="h-9 w-9">
+                            <AvatarImage src={user?.photoURL || undefined} />
+                            <AvatarFallback>{user?.displayName?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                </div>
 
-            {/* Right Column - Chat & Referral */}
-            <aside className="w-full lg:w-1/3 flex flex-col gap-4">
-               <Card className="flex-1 flex flex-col">
-                    <CardHeader className="flex flex-row items-center justify-between border-b">
-                        <CardTitle className="text-lg flex items-center gap-2"><Bot className="text-primary"/> AI Doctor</CardTitle>
-                         {audioUrl && <audio ref={audioRef} src={audioUrl} />}
-                         {isLoading && <Loader2 className="w-5 h-5 animate-spin"/>}
-                    </CardHeader>
-
-                     <ScrollArea className="flex-grow p-4" ref={chatContainerRef}>
-                        <div className="space-y-4">
-                            {history.map((turn, index) => (
-                                <div key={index} className={cn("flex items-start gap-3", turn.role === 'user' && 'justify-end')}>
-                                     {turn.role === 'model' && (
-                                        <Avatar className="w-8 h-8 border">
-                                            <AvatarFallback><Bot /></AvatarFallback>
-                                        </Avatar>
-                                    )}
-                                    <div className={cn(
-                                        "max-w-xs p-3 rounded-lg text-sm", 
-                                        turn.role === 'model' ? "bg-muted" : "bg-primary text-primary-foreground"
-                                    )}>
-                                        <p>{turn.content}</p>
-                                    </div>
-                                    {turn.role === 'user' && (
-                                        <Avatar className="w-8 h-8">
-                                            <AvatarFallback><User /></AvatarFallback>
-                                        </Avatar>
-                                    )}
-                                </div>
-                            ))}
+                {/* Video & AI Panels */}
+                <div className="grid grid-cols-3 gap-4 flex-grow">
+                    {/* Left Column (Video + Transcript) */}
+                    <div className="col-span-2 flex flex-col gap-4">
+                        <div className="relative rounded-lg overflow-hidden flex-grow bg-card">
+                            <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/50 backdrop-blur-sm p-2 rounded-full">
+                                <Button size="icon" variant="secondary" className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none"><MicIcon className="w-6 h-6"/></Button>
+                                <Button size="icon" variant="secondary" className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none"><VideoIcon className="w-6 h-6"/></Button>
+                                <Button size="icon" variant="destructive" className="rounded-full w-12 h-12"><PhoneOff className="w-6 h-6"/></Button>
+                                <Button size="icon" variant="secondary" className="rounded-full w-12 h-12 bg-white/20 hover:bg-white/30 text-white border-none"><Wand2 className="w-6 h-6"/></Button>
+                            </div>
+                            <div className="absolute top-4 right-4 flex flex-col gap-3">
+                                <Image src="https://placehold.co/180x135.png" width={180} height={135} alt="Tasya" className="rounded-lg" data-ai-hint="person happy" />
+                                <Image src="https://placehold.co/180x135.png" width={180} height={135} alt="Malvis" className="rounded-lg" data-ai-hint="person professional"/>
+                            </div>
                         </div>
-                    </ScrollArea>
-                    
-                     <CardFooter className="p-4 border-t">
-                         <div className="relative w-full flex items-center gap-2">
-                            <Textarea
-                                placeholder={isRecording ? "Listening..." : "Type or speak your message..."}
-                                className="pr-10"
-                                value={userInput}
-                                onChange={(e) => setUserInput(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
-                                disabled={isLoading}
-                                rows={1}
-                            />
-                             <Button size="icon" variant={isRecording ? "destructive" : "outline"} className="shrink-0" onClick={toggleRecording} disabled={isLoading}>
-                                {isRecording ? <StopCircle className="w-5 h-5"/> : <Mic className="w-5 h-5"/>}
-                            </Button>
-                            <Button size="icon" className="shrink-0" onClick={handleSendMessage} disabled={isLoading || !userInput.trim()}>
-                                <Send className="w-5 h-5"/>
-                            </Button>
-                         </div>
-                    </CardFooter>
-               </Card>
 
-                {isReferral && referralInfo && (
-                    <Card className="flex-1 flex flex-col">
-                        <CardHeader className="border-b">
-                            <CardTitle className="flex items-center gap-2 text-lg"><AlertTriangle className="text-destructive"/> Referral Required</CardTitle>
-                        </CardHeader>
-                        <ScrollArea className="flex-grow p-4">
-                           <Accordion type="single" collapsible defaultValue="summary" className="w-full">
-                                <AccordionItem value="summary">
-                                    <AccordionTrigger>Consultation Summary</AccordionTrigger>
-                                    <AccordionContent className="text-sm text-muted-foreground">{referralInfo.consultationSummary}</AccordionContent>
-                                </AccordionItem>
-                                 <AccordionItem value="soap-note">
-                                    <AccordionTrigger>SOAP Note</AccordionTrigger>
-                                    <AccordionContent className="prose prose-sm max-w-none">
-                                        <h4>Subjective</h4>
-                                        <p>{referralInfo.soapNote?.subjective}</p>
-                                        <h4>Objective</h4>
-                                        <p>{referralInfo.soapNote?.objective}</p>
-                                        <h4>Assessment</h4>
-                                        <p>{referralInfo.soapNote?.assessment}</p>
-                                        <h4>Plan</h4>
-                                        <p>{referralInfo.soapNote?.plan}</p>
-                                    </AccordionContent>
-                                </AccordionItem>
-                                 <AccordionItem value="plan">
-                                    <AccordionTrigger>Assessment & Plan</AccordionTrigger>
-                                    <AccordionContent>
-                                        <h4 className="font-semibold">Overview</h4>
-                                        <p className="text-sm text-muted-foreground mb-2">{referralInfo.assessmentAndPlan?.overview}</p>
-                                        
-                                        <h4 className="font-semibold">Differential Diagnosis</h4>
-                                        <ul className="list-disc pl-5 text-sm text-muted-foreground mb-2">
-                                            {referralInfo.assessmentAndPlan?.differentialDiagnosis.map((dx, i) => (
-                                                <li key={i}><strong>{dx.diagnosis}</strong> ({dx.likelihood}): {dx.rationale}</li>
+                        <div className="grid grid-cols-2 gap-4 h-2/5">
+                            <Card className="flex flex-col">
+                                <CardHeader className="flex-row items-center justify-between pb-2">
+                                    <CardTitle className="text-base flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" />AI Tracker Notes</CardTitle>
+                                    <div className="flex items-center gap-2">
+                                        {isRecording && <Waveform />}
+                                        <span className="text-sm text-muted-foreground">00:41</span>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="flex-1 overflow-y-auto p-4">
+                                     <ScrollArea className="h-full">
+                                        <div className="space-y-4 text-sm">
+                                            {transcript.map((item, index) => (
+                                                <div key={index} className="flex gap-3">
+                                                    <p className="font-mono text-muted-foreground text-xs pt-1">{item.time}</p>
+                                                    <div className="flex-1">
+                                                        <p className="font-semibold">{item.speaker}</p>
+                                                        <p className="text-muted-foreground">{item.text}</p>
+                                                    </div>
+                                                </div>
                                             ))}
-                                        </ul>
-                                        
-                                        <h4 className="font-semibold">Plan of Action</h4>
-                                         <p className="text-sm text-muted-foreground">{referralInfo.assessmentAndPlan?.planOfAction.laboratoryTests}</p>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            </Accordion>
-                        </ScrollArea>
-                         <CardFooter className="p-4 border-t">
-                            <Button className="w-full" asChild>
-                                <Link href="/search"><Search className="mr-2 h-4 w-4"/> Find a Human Doctor</Link>
-                            </Button>
-                         </CardFooter>
-                    </Card>
-                )}
-            </aside>
-             <HumanDoctorPromoModal isOpen={showPromoModal} onOpenChange={setShowPromoModal} />
+                                        </div>
+                                    </ScrollArea>
+                                </CardContent>
+                            </Card>
+                             <Card className="flex flex-col">
+                                <CardHeader className="flex-row items-center justify-between pb-2">
+                                    <CardTitle className="text-base flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary"/>AI Summarize</CardTitle>
+                                    <Button variant="link" size="sm" className="p-0">View All</Button>
+                                </CardHeader>
+                                <CardContent className="flex-1 overflow-y-auto p-4">
+                                   {isLoading ? <div className="text-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin inline mr-2"/>Generating...</div> : null}
+                                   {summary ? (
+                                    <div className="prose prose-sm max-w-none">
+                                        <h4>Subjective</h4>
+                                        <p>{summary.subjective}</p>
+                                        <h4>Assessment</h4>
+                                        <p>{summary.assessment}</p>
+                                    </div>
+                                   ) : !isLoading ? <div className="text-center text-muted-foreground">Summary will appear here.</div> : null}
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+
+                    {/* Right Column (Participants & Chat) */}
+                    <div className="col-span-1 flex flex-col gap-4">
+                        <Card className="flex-1 flex flex-col">
+                             <CardHeader className="flex-row items-center justify-between">
+                                <CardTitle className="text-base">Participants (3)</CardTitle>
+                                <Button variant="link" size="sm" className="p-0">View All</Button>
+                            </CardHeader>
+                            <CardContent className="flex-1 overflow-y-auto space-y-3">
+                                {/* Mock participants */}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Avatar className="h-8 w-8"><AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person friendly"/><AvatarFallback>MB</AvatarFallback></Avatar>
+                                        <p className="text-sm font-medium">Malvis Barry</p>
+                                    </div>
+                                    <div className="flex gap-2 text-muted-foreground"><Mic className="w-4 h-4"/><VideoIcon className="w-4 h-4"/></div>
+                                </div>
+                                 <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Avatar className="h-8 w-8"><AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="woman professional"/><AvatarFallback>CM</AvatarFallback></Avatar>
+                                        <p className="text-sm font-medium">Cindy Marlina</p>
+                                    </div>
+                                    <div className="flex gap-2 text-muted-foreground"><Mic className="w-4 h-4"/><VideoIcon className="w-4 h-4"/></div>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Avatar className="h-8 w-8"><AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person professional"/><AvatarFallback>DR</AvatarFallback></Avatar>
+                                        <p className="text-sm font-medium">Dimas Ramadhan</p>
+                                    </div>
+                                    <div className="flex gap-2 text-muted-foreground"><Mic className="w-4 h-4"/><VideoIcon className="w-4 h-4"/></div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="flex-1 flex flex-col">
+                             <CardHeader className="flex-row items-center justify-between">
+                                <CardTitle className="text-base">Chat</CardTitle>
+                                <Button variant="link" size="sm" className="p-0">View All</Button>
+                            </CardHeader>
+                            <CardContent className="flex-1 flex flex-col items-center justify-center text-center">
+                               <Image src="https://placehold.co/150x120.png" width={150} height={120} alt="No chat" data-ai-hint="mailbox empty" />
+                               <p className="text-sm font-semibold mt-4">No chat yet</p>
+                               <p className="text-xs text-muted-foreground">Type a message to start</p>
+                            </CardContent>
+                             <div className="p-4 border-t">
+                                <div className="relative">
+                                    <Input placeholder="Reply or @mention someone" className="pr-10"/>
+                                    <Button size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8">
+                                        <Send className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+                </div>
+
+            </main>
         </div>
     );
+}
 
-    
+const Bell = (props: React.SVGProps<SVGSVGElement>) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>;
