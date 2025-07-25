@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Bot, User, Send, Loader2, Mic, AlertTriangle, BookCheck, Stethoscope, FileText, Download, Sparkles, Video, File, ListChecks, Activity, BrainCircuit, Play, Pause, VideoIcon, MicIcon, PhoneOff, Wand2, Grid, Folder, Calendar, Settings, LogOut, Search, Bell, ChevronDown, Paperclip, DownloadCloud, CopyIcon } from 'lucide-react';
+import { Bot, User, Send, Loader2, Mic, AlertTriangle, BookCheck, Stethoscope, FileText, Download, Sparkles, Video, File, ListChecks, Activity, BrainCircuit, Play, Pause, VideoIcon, MicIcon, PhoneOff, Wand2, Grid, Folder, Calendar, Settings, LogOut, Search, Bell, ChevronDown, Paperclip, DownloadCloud, CopyIcon, StopCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { consultationFlow, ConsultationTurn } from '@/ai/flows/consultation-flow';
 import { ttsFlow } from '@/ai/flows/tts-flow';
@@ -25,6 +25,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
+// Check for SpeechRecognition API
+const SpeechRecognition =
+  (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition));
+
+
 export default function ConsultationPage() {
     const [history, setHistory] = useState<ConsultationTurn[]>([]);
     const [userInput, setUserInput] = useState('');
@@ -34,10 +39,12 @@ export default function ConsultationPage() {
     const [referralInfo, setReferralInfo] = useState<ConsultationTurn | null>(null);
     const [showPromoModal, setShowPromoModal] = useState(false);
     const [hasCameraPermission, setHasCameraPermission] = useState(true); // Assume true initially
+    const [isRecording, setIsRecording] = useState(false);
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
     const chatContainerRef = useRef<HTMLDivElement>(null);
+    const recognitionRef = useRef<any>(null);
     const { toast } = useToast();
 
     // Initial greeting from the AI
@@ -76,6 +83,52 @@ export default function ConsultationPage() {
         };
         getCameraPermission();
       }, []);
+    
+    // Speech Recognition Setup
+    useEffect(() => {
+        if (!SpeechRecognition) {
+            console.warn("Speech Recognition API not supported in this browser.");
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    setUserInput(prev => prev + event.results[i][0].transcript);
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+        };
+        
+        recognition.onerror = (event) => {
+            console.error("Speech recognition error", event.error);
+            toast({ title: 'Speech Recognition Error', description: event.error, variant: 'destructive' });
+        };
+        
+        recognitionRef.current = recognition;
+
+    }, [toast]);
+
+
+    const toggleRecording = () => {
+        if (isRecording) {
+            recognitionRef.current?.stop();
+            setIsRecording(false);
+        } else {
+            if (!SpeechRecognition) {
+                toast({ title: 'Feature Not Supported', description: 'Speech recognition is not available in your browser.', variant: 'destructive' });
+                return;
+            }
+            recognitionRef.current?.start();
+            setIsRecording(true);
+        }
+    };
 
     // Autoplay audio when URL changes
     useEffect(() => {
@@ -100,6 +153,9 @@ export default function ConsultationPage() {
         setUserInput('');
         setIsLoading(true);
         setAudioUrl(null);
+        if (isRecording) {
+            toggleRecording();
+        }
 
         try {
             const updatedHistory = await consultationFlow(newHistory);
@@ -192,16 +248,20 @@ export default function ConsultationPage() {
                         </ScrollArea>
                         
                          <CardFooter className="p-4 border-t">
-                             <div className="relative w-full">
+                             <div className="relative w-full flex items-center gap-2">
                                 <Textarea
-                                    placeholder="Type your message..."
-                                    className="pr-16"
+                                    placeholder={isRecording ? "Listening..." : "Type or speak your message..."}
+                                    className="pr-10"
                                     value={userInput}
                                     onChange={(e) => setUserInput(e.target.value)}
                                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
                                     disabled={isLoading}
+                                    rows={1}
                                 />
-                                <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10" onClick={handleSendMessage} disabled={isLoading || !userInput.trim()}>
+                                 <Button size="icon" variant={isRecording ? "destructive" : "outline"} className="shrink-0" onClick={toggleRecording} disabled={isLoading}>
+                                    {isRecording ? <StopCircle className="w-5 h-5"/> : <Mic className="w-5 h-5"/>}
+                                </Button>
+                                <Button size="icon" className="shrink-0" onClick={handleSendMessage} disabled={isLoading || !userInput.trim()}>
                                     <Send className="w-5 h-5"/>
                                 </Button>
                              </div>

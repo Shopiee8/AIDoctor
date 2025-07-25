@@ -14,16 +14,16 @@ import { z } from 'zod';
 
 // Define the input schema for the scribe flow
 const ScribeInputSchema = z.object({
-  conversation: z.string().describe('The full transcript of the conversation between a doctor and a patient.'),
+  conversation: z.string().describe('The full transcript of the conversation between a clinician and a patient.'),
 });
 export type ScribeInput = z.infer<typeof ScribeInputSchema>;
 
 // Define the output schema for the SOAP note
 const ScribeOutputSchema = z.object({
-  subjective: z.string().describe("The patient's subjective complaints, including their main symptoms, history of the present illness, and any relevant personal or family medical history mentioned."),
-  objective: z.string().describe("The doctor's objective findings from any physical examinations, lab results, or other diagnostic data mentioned in the conversation."),
-  assessment: z.string().describe("The doctor's diagnosis or assessment of the patient's condition based on the subjective and objective information."),
-  plan: z.string().describe("The treatment plan, including any prescriptions, lifestyle changes, recommended follow-ups, or further tests."),
+  subjective: z.string().describe("The patient's subjective complaints, including their main symptoms, history of the present illness, and any relevant personal or family medical history mentioned. This should be a direct summary of what the patient reported."),
+  objective: z.string().describe("The clinician's objective findings from any physical examinations, lab results, or other diagnostic data mentioned in the conversation. If no objective data is mentioned, state 'No objective findings were mentioned in the transcript.'"),
+  assessment: z.string().describe("The clinician's differential diagnosis or final assessment of the patient's condition based on the subjective and objective information. This section synthesizes the information into a clinical conclusion."),
+  plan: z.string().describe("The treatment plan, including any prescriptions, lifestyle changes, recommended follow-ups, or further tests. This should outline the next steps for the patient's care."),
 });
 export type ScribeOutput = z.infer<typeof ScribeOutputSchema>;
 
@@ -45,12 +45,12 @@ const scribePrompt = ai.definePrompt({
   {{{conversation}}}
   
   Please extract the relevant information and structure it into the four SOAP categories:
-  - Subjective: What the patient says about the problem, including the chief complaint and history.
-  - Objective: The doctor's observations and examination findings, lab results, and other measurable data.
-  - Assessment: The diagnosis or differential diagnoses.
-  - Plan: What the healthcare provider will do to treat the patient's concerns.
+  - Subjective: Capture what the patient says about the problem. This includes the chief complaint, history of present illness, and relevant past medical, social, or family history. Quote the patient where appropriate but keep it concise.
+  - Objective: Detail the clinician's observations, physical exam findings, lab results, and any other measurable data mentioned. If none are explicitly stated, write 'No objective findings were mentioned in the transcript.'
+  - Assessment: Provide the diagnosis or differential diagnoses. This is the clinician's professional judgment based on the gathered information.
+  - Plan: Outline the treatment plan. This includes prescriptions (medication, dose, frequency), recommended tests, referrals, patient education, and follow-up instructions.
 
-  Ensure the output is concise, clinically accurate, and written in professional medical language.
+  Ensure the output is clinically precise, well-organized, and uses professional medical language suitable for an electronic health record (EHR).
   `,
 });
 
