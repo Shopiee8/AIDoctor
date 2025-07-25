@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Bot, User, Send, Loader2, Mic, AlertTriangle, BookCheck, Stethoscope, FileText, Download, Sparkles, Video, File, ListChecks, Activity, BrainCircuit, Play, Pause, VideoIcon, MicIcon, PhoneOff, Wand2, Grid, Folder, Calendar, Settings, LogOut, Search, Bell, ChevronDown, Paperclip, DownloadCloud, CopyIcon } from 'lucide-react';
+import { Bot, User, Send, Loader2, Mic, AlertTriangle, BookCheck, Stethoscope, FileText, Download, Sparkles, Video, File, ListChecks, Activity, BrainCircuit, Play, Pause, VideoIcon, MicIcon, PhoneOff, Wand2, Grid, Folder, Calendar, Settings, LogOut, Search, Bell, ChevronDown, Paperclip, DownloadCloud, CopyIcon, Link as LinkIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { consultationFlow, ConsultationTurn } from '@/ai/flows/consultation-flow';
 import { ttsFlow } from '@/ai/flows/tts-flow';
