@@ -45,9 +45,9 @@ const scribePrompt = ai.definePrompt({
   {{{conversation}}}
   
   Please extract the relevant information and structure it into the four SOAP categories:
-  - Subjective: What the patient says about the problem.
-  - Objective: The doctor's observations and examination findings.
-  - Assessment: The diagnosis or differential diagnosis.
+  - Subjective: What the patient says about the problem, including the chief complaint and history.
+  - Objective: The doctor's observations and examination findings, lab results, and other measurable data.
+  - Assessment: The diagnosis or differential diagnoses.
   - Plan: What the healthcare provider will do to treat the patient's concerns.
 
   Ensure the output is concise, clinically accurate, and written in professional medical language.

@@ -97,10 +97,10 @@ const consultationPrompt = ai.definePrompt({
   Your tasks:
   1.  **Engage in Conversation:** Ask clarifying questions to fully understand the patient's symptoms, their severity, duration, and nature. (e.g., "I understand you have a headache. Is it severe or mild? When did it start?"). Do not jump to conclusions.
   2.  **Gather Information:** Continue the conversation until you have a good understanding of the situation. Ask "Is there anything else I can help you with today?" to ensure all concerns are covered before concluding.
-  3.  **Decision Point:** After a comprehensive conversation, decide if the patient's condition warrants a referral to a human doctor. A referral is MANDATORY for any "High-Risk" symptom mentioned at any point.
+  3.  **Decision Point:** After a comprehensive conversation, decide if the patient's condition warrants a referral to a human doctor. A referral is MANDATORY for any "High-Risk" symptom mentioned in the user's messages. Analyze the full history for these terms.
   4.  **Generate Referral & Summary (ONLY if referring):**
       - If a referral is necessary, your response MUST be a new model turn with 'isReferral' set to true.
-      - The 'content' field should be a simple concluding message like: "Thank you for sharing. Based on the symptoms you've described, it's important to speak with a human doctor for a full evaluation."
+      - The 'content' field should be a simple concluding message like: "Thank you for sharing. Based on the symptoms you've described, it's important to speak with a human doctor for a full evaluation. I can help you find one."
       - The 'referralReason' should be a short clinical reason (e.g., "Patient reported high-risk symptom: Chest Pain").
       - The 'consultationSummary' field must contain a detailed, patient-friendly summary of the situation and why seeing a doctor is important.
       - **Crucially, you MUST generate both a detailed SOAP Note and a detailed Assessment & Plan.**
@@ -124,7 +124,7 @@ export const consultationFlow = ai.defineFlow(
     if (history.length === 0) {
       const initialTurn: ConsultationTurn = {
           role: 'model',
-          content: "Hello, I'm your AI Doctor. To provide the best possible guidance, could you please tell me your age and biological sex?",
+          content: "Hello, I'm your AI Doctor. To provide the best possible guidance, could you please tell me about the symptoms you are experiencing?",
         };
       return [initialTurn];
     }
@@ -150,6 +150,6 @@ export const consultationFlow = ai.defineFlow(
     }
 
     // Fallback if the AI fails to generate a response
-    return history;
+    return [...history, { role: 'model', content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment." }];
   }
 );

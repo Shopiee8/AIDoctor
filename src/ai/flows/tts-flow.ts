@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -47,6 +48,11 @@ export const ttsFlow = ai.defineFlow(
     outputSchema: TtsOutputSchema,
   },
   async (query) => {
+    // Return empty media if the query is empty or just whitespace
+    if (!query || !query.trim()) {
+      return { media: '' };
+    }
+
     const { media } = await ai.generate({
       model: googleAI.model('gemini-2.5-flash-preview-tts'),
       config: {
