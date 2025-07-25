@@ -35,6 +35,7 @@ export default function ConsultationPage() {
     const [hasCameraPermission, setHasCameraPermission] = useState(true);
     const [currentMessage, setCurrentMessage] = useState("");
     const [isRecording, setIsRecording] = useState(false);
+    const [liveTranscript, setLiveTranscript] = useState('');
     
     const [isMuted, setIsMuted] = useState(false);
     const [isCameraOff, setIsCameraOff] = useState(false);
@@ -157,6 +158,7 @@ export default function ConsultationPage() {
             recognitionRef.current = new SpeechRecognition();
             const recognition = recognitionRef.current;
             recognition.continuous = true;
+            recognition.interimResults = true;
             recognition.lang = 'en-US';
 
             recognition.onstart = () => {
@@ -166,34 +168,42 @@ export default function ConsultationPage() {
         
             recognition.onend = () => {
                 setIsRecording(false);
-                if (recognition.error !== 'aborted') {
+                 if (recognition.error !== 'aborted') {
                     toast({ title: 'Recording Stopped' });
                 }
             };
         
             recognition.onerror = (event: any) => {
-                if (event.error !== 'aborted') {
-                  console.error('Speech recognition error:', event.error);
-                  toast({ title: 'Transcription Error', description: event.error, variant: 'destructive' });
+                 if (event.error !== 'aborted') {
+                    console.error('Speech recognition error:', event.error);
+                    toast({ title: 'Transcription Error', description: event.error, variant: 'destructive' });
                 }
                 setIsRecording(false);
             };
         
             recognition.onresult = (event: any) => {
+                let interimTranscript = '';
                 let finalTranscript = '';
+
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
                         finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
                     }
                 }
+                
+                setLiveTranscript(interimTranscript);
+
                 if (finalTranscript) {
                      setCurrentMessage(prev => (prev + ' ' + finalTranscript).trim());
+                     setLiveTranscript('');
                 }
             };
-
+            
             return () => {
-              if (recognition) {
-                recognition.abort();
+              if (recognitionRef.current) {
+                recognitionRef.current.abort();
               }
             }
         }
@@ -313,6 +323,17 @@ export default function ConsultationPage() {
                                                     </div>
                                                 </div>
                                             ))}
+                                             {liveTranscript && (
+                                                <div className="flex gap-3">
+                                                    <Avatar className="h-6 w-6">
+                                                        <AvatarFallback>U</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1">
+                                                        <p className="font-semibold">You</p>
+                                                        <p className="text-primary">{liveTranscript}</p>
+                                                    </div>
+                                                </div>
+                                            )}
                                             {transcript.length === 0 && !isLoading && !isRecording &&(
                                                 <div className="text-center text-muted-foreground pt-8">Conversation will appear here...</div>
                                             )}
