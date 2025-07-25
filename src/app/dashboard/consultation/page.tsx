@@ -19,13 +19,6 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
-// Mock participant data - in a real app, this would be fetched from Firestore
-const mockParticipants = [
-    { id: 1, name: 'Malvis Barry', avatar: 'https://placehold.co/40x40.png', avatarHint: 'person friendly', isMuted: false, isCameraOff: false },
-    { id: 2, name: 'Cindy Marlina', avatar: 'https://placehold.co/40x40.png', avatarHint: 'woman professional', isMuted: true, isCameraOff: false },
-    { id: 3, name: 'Dimas Ramadhan', avatar: 'https://placehold.co/40x40.png', avatarHint: 'person professional', isMuted: false, isCameraOff: true },
-];
-
 export default function ConsultationPage() {
     const { user } = useAuth();
     const router = useRouter();
@@ -46,7 +39,11 @@ export default function ConsultationPage() {
     const recognitionRef = useRef<any>(null);
     const { toast } = useToast();
     
-    const [participants, setParticipants] = useState(mockParticipants);
+    const [participants, setParticipants] = useState([
+        { id: 1, name: 'Malvis Barry', avatar: 'https://placehold.co/40x40.png', avatarHint: 'person friendly', isMuted: false, isCameraOff: false },
+        { id: 2, name: 'Cindy Marlina', avatar: 'https://placehold.co/40x40.png', avatarHint: 'woman professional', isMuted: true, isCameraOff: false },
+        { id: 3, name: 'Dimas Ramadhan', avatar: 'https://placehold.co/40x40.png', avatarHint: 'person professional', isMuted: false, isCameraOff: true },
+    ]);
 
     // Webcam Access
     useEffect(() => {
