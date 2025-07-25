@@ -23,25 +23,24 @@ export function Step6Confirmation() {
     const [isBookingComplete, setIsBookingComplete] = useState(false);
     const [appointmentId, setAppointmentId] = useState<string | null>(null);
     
-    // useRef to prevent multiple booking attempts
     const hasBooked = useRef(false);
 
     useEffect(() => {
         const createAppointment = async () => {
+            if (hasBooked.current) return;
+            hasBooked.current = true;
+
             if (!user || !doctor || !appointmentDate || !appointmentTime) {
                 toast({ title: "Error", description: "Missing booking information.", variant: "destructive" });
                 setIsLoading(false);
                 return;
             }
 
-            if (hasBooked.current) return;
-            hasBooked.current = true;
-
             try {
                 const newAppointment = {
                     patientId: user.uid,
                     patientName: user.displayName || `${bookingDetails.firstName} ${bookingDetails.lastName}`,
-                    patientImage: user.photoURL,
+                    patientImage: user.photoURL || '',
                     doctorId: doctor.id,
                     doctorName: doctor.name,
                     doctorSpecialty: doctor.specialty,
@@ -58,15 +57,9 @@ export function Step6Confirmation() {
                 };
 
                 const batch = writeBatch(db);
-
-                // Create a single document reference for both collections
                 const newAppointmentRef = doc(collection(db, "users"));
-
-                // Add to patient's appointments
                 const patientApptRef = doc(db, "users", user.uid, "appointments", newAppointmentRef.id);
                 batch.set(patientApptRef, newAppointment);
-
-                // Add to doctor's appointments
                 const doctorApptRef = doc(db, "doctors", doctor.id, "appointments", newAppointmentRef.id);
                 batch.set(doctorApptRef, newAppointment);
 
@@ -85,7 +78,8 @@ export function Step6Confirmation() {
         };
 
         createAppointment();
-    }, [user, doctor, appointmentDate, appointmentTime, clinic, appointmentType, bookingDetails, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     if (isLoading) {
         return (
