@@ -5,9 +5,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
 import { usePatientDataStore } from "@/store/patient-data-store";
 import { RoleGuard } from "@/components/role-guard";
-import { AppSidebar } from "@/components/app-sidebar";
-import { SiteHeader } from "@/components/site-header";
-import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
+import PatientSidebar from "@/components/patient-sidebar";
+import { DashboardHeader } from "@/components/dashboard-header";
 
 export default function PatientDashboardLayout({
   children,
@@ -34,17 +33,15 @@ export default function PatientDashboardLayout({
 
   return (
     <RoleGuard allowedRoles={['Patient']}>
-      <SidebarProvider>
-        <div className="flex min-h-screen">
-            <AppSidebar />
-            <div className="flex flex-col flex-1">
-                <SiteHeader />
-                <main className="flex-1 p-6">
-                    {children}
-                </main>
-            </div>
-        </div>
-      </SidebarProvider>
+       <div className="flex min-h-screen">
+          <PatientSidebar />
+          <div className="flex flex-col flex-1 md:ml-20 lg:ml-64">
+              <DashboardHeader />
+              <main className="flex-1 p-6 bg-muted/30">
+                  {children}
+              </main>
+          </div>
+      </div>
     </RoleGuard>
   );
 }

@@ -3,7 +3,6 @@
 
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { motion } from "framer-motion";
 import {
   LogOut,
   Calendar,
@@ -22,7 +21,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -37,51 +35,29 @@ const menuItems = [
   { label: 'Messages', icon: MessageCircle, path: '/dashboard/messages' },
   { label: 'My Favorites', icon: Star, path: '/dashboard/favourites' },
   { label: 'Wallet', icon: Wallet, path: '/dashboard/wallet' },
-  { label: 'Settings', icon: Settings, path: '/dashboard/settings' },
 ];
-
-const sidebarVariants = {
-  open: { width: "16rem" },
-  closed: { width: "5rem" },
-};
-
-const textVariants = {
-  open: { opacity: 1, x: 0, display: 'inline-block' },
-  closed: { opacity: 0, x: -10, display: 'none' },
-};
-
-const navLinkTransition = { type: "tween", ease: "easeOut", duration: 0.2 };
 
 export default function PatientSidebar() {
   const { user, signOut } = useAuth();
-  const [isCollapsed, setIsCollapsed] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
   
   const fallbackInitial = user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'P';
 
   return (
-    <motion.div
-      variants={sidebarVariants}
-      initial={isCollapsed ? "closed" : "open"}
-      animate={isCollapsed ? "closed" : "open"}
-      transition={navLinkTransition}
+    <div
       className={cn(
-        "fixed left-0 top-0 h-full z-40 hidden md:flex flex-col bg-[--sidebar] text-[--sidebar-foreground] border-r border-[--sidebar-border]"
+        "fixed left-0 top-0 h-full z-40 hidden md:flex flex-col bg-card text-card-foreground border-r transition-all duration-300 w-20 lg:w-64"
       )}
-      onMouseEnter={() => setIsCollapsed(false)}
-      onMouseLeave={() => setIsCollapsed(true)}
     >
-      <div className="flex-shrink-0 p-4 h-[65px] border-b border-[--sidebar-border] flex items-center justify-center">
-             <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden">
+      <div className="flex-shrink-0 p-4 h-[65px] border-b flex items-center justify-center lg:justify-start overflow-hidden">
+             <Link href="/dashboard" className="flex items-center gap-2">
                 <Stethoscope className="h-7 w-7 text-primary flex-shrink-0" />
-                <motion.span 
-                    variants={textVariants} 
-                    transition={navLinkTransition}
-                    className="font-bold text-lg whitespace-nowrap"
+                <span 
+                    className="font-bold text-lg whitespace-nowrap hidden lg:inline"
                 >
                     AIDoctor
-                </motion.span>
+                </span>
              </Link>
       </div>
         
@@ -93,36 +69,39 @@ export default function PatientSidebar() {
               variant={pathname === item.path ? "secondary" : "ghost"}
               className="w-full justify-start gap-3 h-10 text-base"
               onClick={() => router.push(item.path)}
+              title={item.label}
             >
               <item.icon className="h-5 w-5 flex-shrink-0" />
-              <motion.span 
-                  variants={textVariants} 
-                  transition={navLinkTransition}
-                  className="whitespace-nowrap"
-              >
+              <span className="whitespace-nowrap hidden lg:inline">
                   {item.label}
-              </motion.span>
+              </span>
             </Button>
           ))}
          </nav>
       </ScrollArea>
         
-      <div className="flex-shrink-0 p-3 border-t border-[--sidebar-border]">
+      <div className="flex-shrink-0 p-3 border-t">
+        <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 h-10 text-base"
+            onClick={() => router.push('/dashboard/settings')}
+            title="Settings"
+            >
+            <Settings className="h-5 w-5 flex-shrink-0" />
+            <span className="whitespace-nowrap hidden lg:inline">Settings</span>
+        </Button>
         <Button
           variant="ghost"
           className="w-full justify-start gap-3 h-10 text-base"
           onClick={signOut}
+          title="Logout"
         >
           <LogOut className="h-5 w-5 text-destructive" />
-          <motion.span 
-              variants={textVariants}
-              transition={navLinkTransition}
-              className="whitespace-nowrap text-destructive"
-          >
+          <span className="whitespace-nowrap text-destructive hidden lg:inline">
               Logout
-          </motion.span>
+          </span>
         </Button>
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -1,13 +1,10 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth';
-import { useRouter } from 'next/navigation';
-import { DashboardHeader } from './dashboard-header';
-import { SessionNavBar, SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { AppSidebar } from './app-sidebar';
-import { cn } from '@/lib/utils';
+import { RoleGuard } from "@/components/role-guard";
+import { DoctorSidebar } from "@/components/doctor/doctor-sidebar";
+import { DashboardHeader } from "@/components/dashboard-header";
+import PatientSidebar from "./patient-sidebar";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -15,76 +12,48 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
-  const { user, userRole: actualUserRole, validateUserRole } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-    if (!validateUserRole(userRole)) {
-      switch (actualUserRole) {
-        case 'Patient':
-          router.push('/dashboard');
-          break;
-        case 'Doctor':
-          router.push('/doctor/dashboard');
-          break;
-        case 'AI Provider':
-          router.push('/ai-provider/dashboard');
-          break;
-        case 'Admin':
-          router.push('/admin/dashboard');
-          break;
-        default:
-          router.push('/login');
-      }
-      return;
-    }
-  }, [user, userRole, actualUserRole, validateUserRole, router]);
-
-  if (!user || !actualUserRole || !validateUserRole(userRole)) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Validating access...</p>
-        </div>
-      </div>
-    );
-  }
   
   if (userRole === 'Patient') {
      return (
-        <SidebarProvider
-            style={
-                {
-                "--sidebar-width": "calc(var(--spacing) * 72)",
-                "--header-height": "calc(var(--spacing) * 12)",
-                } as React.CSSProperties
-            }
-        >
-            <AppSidebar />
-            <SidebarInset>
-                <main className="flex-1 w-full flex flex-col">
+        <RoleGuard allowedRoles={['Patient']}>
+            <div className="flex min-h-screen">
+                <PatientSidebar />
+                <div className="flex flex-col flex-1 lg:ml-64 md:ml-20">
                     <DashboardHeader />
-                    <div className="flex-1 p-6">{children}</div>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+                    <main className="flex-1 p-6 bg-muted/30">{children}</main>
+                </div>
+            </div>
+        </RoleGuard>
      )
   }
 
+  if (userRole === 'Doctor') {
+    return (
+       <RoleGuard allowedRoles={['Doctor']}>
+          <div className="flex min-h-screen">
+              <DoctorSidebar />
+              <div className="flex-1 flex flex-col md:ml-20">
+                  <DashboardHeader />
+                  <main className="flex-1 p-6 bg-muted/30">
+                      {children}
+                  </main>
+              </div>
+          </div>
+      </RoleGuard>
+    )
+  }
+
+  // Fallback for other roles or if role is not provided
   return (
-    <div className="min-h-screen w-full bg-background flex">
-      <SessionNavBar />
-      <div className="flex flex-col flex-1 ml-20">
-        <DashboardHeader />
-        <main className="flex-1 w-full p-6">
-            {children}
-        </main>
-      </div>
-    </div>
+    <RoleGuard allowedRoles={[userRole]}>
+        <div className="flex min-h-screen">
+            <div className="flex-1 flex flex-col">
+                <DashboardHeader />
+                <main className="flex-1 p-6 bg-muted/30">
+                    {children}
+                </main>
+            </div>
+        </div>
+    </RoleGuard>
   );
 }

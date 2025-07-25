@@ -1,10 +1,11 @@
+
 "use client"
 
 import * as React from "react"
 import { cva } from "class-variance-authority"
-import { motion, useAnimation } from "framer-motion"
+import { motion } from "framer-motion"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { IconLayoutSidebarLeftCollapse, IconLayoutSidebarRightCollapse, IconDots, IconGripVertical } from "@tabler/icons-react"
+import { IconLayoutSidebarLeftCollapse, IconLayoutSidebarRightCollapse } from "@tabler/icons-react"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip"
 import { Stethoscope } from "lucide-react"
@@ -41,28 +42,6 @@ const SIDEBAR_STYLES = [
   "[--sidebar-accent-fg:theme(colors.accent.foreground)]",
   "[--sidebar-accent:theme(colors.accent)]",
 ]
-
-const SessionNavBar = React.forwardRef<
-  HTMLElement,
-  React.ComponentProps<"aside">
->(({ className, children, ...props }, ref) => {
-  return (
-     <aside
-      ref={ref}
-      className={cn(SIDEBAR_STYLES, "group fixed left-0 top-0 z-50 flex h-screen w-20 flex-col border-r bg-background text-foreground", className)}
-      {...props}
-    >
-      <div className="flex h-[65px] items-center justify-center border-b border-border">
-          <Link href="/doctor/dashboard">
-              <Stethoscope className="h-7 w-7 text-primary" />
-          </Link>
-      </div>
-      <nav className="flex flex-col items-center gap-4 px-2 py-4">{children}</nav>
-    </aside>
-  );
-});
-SessionNavBar.displayName = "SessionNavBar";
-
 
 const SidebarProvider = React.forwardRef<
   HTMLDivElement,
@@ -113,7 +92,7 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isCollapsed, isMobile } = useSidebar()
+    const { isCollapsed } = useSidebar()
     
     return (
         <motion.aside
@@ -412,7 +391,6 @@ export {
   SidebarMenuItem,
   SidebarProvider,
   SidebarCollapseButton,
-  SessionNavBar,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
