@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -18,12 +19,11 @@ import { useAuth } from '@/hooks/use-auth';
 
 // Add a global reference to the SpeechRecognition object
 let recognition: any = null;
-if (typeof window !== 'undefined') {
-  recognition = new ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)();
-  if (recognition) {
-    recognition.continuous = true;
-    recognition.lang = 'en-US';
-  }
+if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.lang = 'en-US';
 }
 
 export default function ConsultationPage() {
@@ -34,8 +34,7 @@ export default function ConsultationPage() {
     const [hasCameraPermission, setHasCameraPermission] = useState(true);
     const [currentMessage, setCurrentMessage] = useState("");
     const [isRecording, setIsRecording] = useState(false);
-    const [liveTranscript, setLiveTranscript] = useState("");
-
+    
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
     const { toast } = useToast();
@@ -52,10 +51,15 @@ export default function ConsultationPage() {
           } catch (error) {
             console.error('Error accessing camera/mic:', error);
             setHasCameraPermission(false);
+            toast({
+                title: 'Permission Denied',
+                description: 'Camera and microphone access is required for consultations.',
+                variant: 'destructive'
+            })
           }
         };
         getCameraPermission();
-      }, []);
+      }, [toast]);
     
     const handleSendMessage = async () => {
         if (!currentMessage.trim()) return;
@@ -105,7 +109,6 @@ export default function ConsultationPage() {
         recognition.stop();
         setIsRecording(false);
       } else {
-        setLiveTranscript('');
         recognition.start();
         setIsRecording(true);
       }
@@ -121,33 +124,43 @@ export default function ConsultationPage() {
     
         recognition.onend = () => {
             setIsRecording(false);
-            if (liveTranscript) {
-              setCurrentMessage(prev => (prev + ' ' + liveTranscript).trim());
-              setLiveTranscript('');
-            }
             toast({ title: 'Recording Stopped' });
         };
     
         recognition.onerror = (event: any) => {
+            // "aborted" error is common when a user stops talking, so we can ignore it.
+            if (event.error === 'aborted') {
+                return;
+            }
             console.error('Speech recognition error:', event.error);
             toast({ title: 'Transcription Error', description: event.error, variant: 'destructive' });
             setIsRecording(false);
         };
     
         recognition.onresult = (event: any) => {
-            const transcript = Array.from(event.results)
-                .map((result: any) => result[0])
-                .map((result) => result.transcript)
-                .join('');
-            setLiveTranscript(transcript);
+            let finalTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                }
+            }
+            if (finalTranscript) {
+                 setCurrentMessage(prev => (prev + ' ' + finalTranscript).trim());
+            }
         };
 
+        // This cleanup function will only run when the component unmounts.
         return () => {
           if (recognition) {
             recognition.abort();
+            // Remove all listeners to prevent memory leaks
+            recognition.onstart = null;
+            recognition.onend = null;
+            recognition.onerror = null;
+            recognition.onresult = null;
           }
         }
-    }, [liveTranscript, toast]);
+    }, [toast]); // The hook only depends on `toast` which is stable.
     
     return (
         <div className="flex h-screen bg-muted/30">
@@ -223,17 +236,6 @@ export default function ConsultationPage() {
                                                     </div>
                                                 </div>
                                             ))}
-                                            {liveTranscript && (
-                                                <div className="flex gap-3">
-                                                     <Avatar className="h-6 w-6">
-                                                      <AvatarFallback>U</AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="flex-1">
-                                                        <p className="font-semibold">You (speaking...)</p>
-                                                        <p className="text-muted-foreground italic">{liveTranscript}</p>
-                                                    </div>
-                                                </div>
-                                            )}
                                             {transcript.length === 0 && !isLoading && !isRecording &&(
                                                 <div className="text-center text-muted-foreground pt-8">Conversation will appear here...</div>
                                             )}
