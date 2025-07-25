@@ -22,7 +22,6 @@ export default function ConsultationPage() {
     const [transcript, setTranscript] = useState<ConsultationTurn[]>([]);
     const [summary, setSummary] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [isRecording, setIsRecording] = useState(false);
     const [hasCameraPermission, setHasCameraPermission] = useState(true);
     const [currentMessage, setCurrentMessage] = useState("");
 
