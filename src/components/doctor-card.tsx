@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, Star, MapPin, Calendar, CheckCircle, Clock, Languages, Award, ThumbsUp, Bot, User, Sparkles } from 'lucide-react';
@@ -326,13 +326,13 @@ function ListViewCard({ doctor, isFavorited, handleFavoriteClick, handleBookNow,
           <div className="flex items-center justify-between flex-wrap gap-2 mt-auto border-t pt-3">
             <div>
               <p className="text-sm text-muted-foreground">Fees</p>
-              <h3 className="text-lg font-bold text-primary">{doctor.fees || '$0'}</h3>
+              <h3 className="text-lg font-bold text-primary">{doctor.fees ? `$${doctor.fees}` : '$0'}</h3>
             </div>
             <div className="flex flex-col items-end gap-1">
               <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> Next available at</p>
               <p className="text-sm font-semibold">{doctor.nextAvailable || 'N/A'}</p>
             </div>
-            <Button size="default" onClick={handleBookNow} disabled={isAuthLoading || !isAuthenticated}>
+            <Button size="default" onClick={handleBookNow} disabled={isAuthLoading}>
               <Calendar className="w-4 h-4 mr-2" />
               {isAuthLoading ? 'Loading...' : !isAuthenticated ? 'Login to Book' : (doctor.type === 'AI' ? 'Consult Now' : 'Book Appointment')}
             </Button>

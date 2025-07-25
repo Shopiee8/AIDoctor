@@ -1,4 +1,3 @@
-
 // src/context/AuthContext.tsx
 'use client';
 
@@ -17,7 +16,6 @@ interface AuthContextType {
   googleSignIn: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
-  validateUserRole: (requiredRole: string) => boolean;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -55,37 +53,18 @@ async function seedDoctorsCollection() {
 // Function to get user role from Firestore
 async function getUserRole(userId: string): Promise<string | null> {
     try {
-        console.log('getUserRole: Checking role for user', userId);
-        
-        // Check if user is a doctor
         const doctorDoc = await getDoc(doc(db, 'doctors', userId));
-        if (doctorDoc.exists()) {
-            console.log('getUserRole: Found doctor role');
-            return 'Doctor';
-        }
+        if (doctorDoc.exists()) return 'Doctor';
 
-        // Check if user is an AI provider
         const aiProviderDoc = await getDoc(doc(db, 'ai-providers', userId));
-        if (aiProviderDoc.exists()) {
-            console.log('getUserRole: Found AI Provider role');
-            return 'AI Provider';
-        }
+        if (aiProviderDoc.exists()) return 'AI Provider';
 
-        // Check if user is an admin
         const adminDoc = await getDoc(doc(db, 'admins', userId));
-        if (adminDoc.exists()) {
-            console.log('getUserRole: Found Admin role');
-            return 'Admin';
-        }
+        if (adminDoc.exists()) return 'Admin';
 
-        // Check if user is a patient (has user document)
         const userDoc = await getDoc(doc(db, 'users', userId));
-        if (userDoc.exists()) {
-            console.log('getUserRole: Found Patient role');
-            return 'Patient';
-        }
+        if (userDoc.exists()) return 'Patient';
 
-        console.log('getUserRole: No role found for user', userId);
         return null;
     } catch (error) {
         console.error('Error getting user role:', error);
@@ -100,106 +79,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Function to validate user role
-  const validateUserRole = (requiredRole: string): boolean => {
-    return userRole === requiredRole;
-  };
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      console.log('AuthContext: onAuthStateChanged', { currentUser: !!currentUser, pathname });
       setUser(currentUser);
-      
-      // Detect if user is in registration flow
-      const isRegistrationFlow =
-        pathname.startsWith('/patient-register') ||
-        pathname.startsWith('/doctor-register') ||
-        pathname.startsWith('/ai-provider-register');
-      
       if (currentUser) {
-        try {
-          // Get user role from Firestore
-          let role = await getUserRole(currentUser.uid);
-          console.log('AuthContext: User role from Firestore', { role, userId: currentUser.uid });
-          
-          // If no role found, create a default Patient role
-          if (!role) {
-            console.log('AuthContext: No role found, creating default Patient role');
-            try {
-              const userDocRef = doc(db, 'users', currentUser.uid);
-              await setDoc(userDocRef, {
-                id: currentUser.uid,
-                email: currentUser.email,
-                name: currentUser.displayName || currentUser.email?.split('@')[0] || 'User',
-                role: 'Patient',
-                createdAt: new Date(),
-              });
-              role = 'Patient';
-              console.log('AuthContext: Created default Patient role');
-            } catch (error) {
-              console.error('Error creating default role:', error);
-            }
-          }
-          
-          setUserRole(role);
-          
-          // Only redirect if user is not on the correct path and not in registration flow
-          const currentPath = pathname;
-          const isOnCorrectPath = 
-            (role === 'Patient' && currentPath.startsWith('/dashboard')) ||
-            (role === 'Doctor' && currentPath.startsWith('/doctor/dashboard')) ||
-            (role === 'AI Provider' && currentPath.startsWith('/ai-provider/dashboard')) ||
-            (role === 'Admin' && currentPath.startsWith('/admin/dashboard'));
-
-          console.log('AuthContext: Path check', { currentPath, role, isOnCorrectPath, isRegistrationFlow });
-
-          if (!isOnCorrectPath && role && !isRegistrationFlow) {
-            console.log('AuthContext: Redirecting user to correct dashboard', { role });
+        const role = await getUserRole(currentUser.uid);
+        setUserRole(role);
+        
+        const loginPages = ['/login', '/register', '/admin/login'];
+        const isRegistrationFlow = pathname.startsWith('/patient-register') || pathname.startsWith('/doctor-register') || pathname.startsWith('/ai-provider-register');
+        
+        // Only redirect if on a login/register page and not in a registration flow
+        if (loginPages.includes(pathname) && !isRegistrationFlow) {
             switch (role) {
-              case 'Patient':
-                router.push('/dashboard');
-                break;
-              case 'Doctor':
-                router.push('/doctor/dashboard');
-                break;
-              case 'AI Provider':
-                router.push('/ai-provider/dashboard');
-                break;
-              case 'Admin':
-                router.push('/admin/dashboard');
-                break;
-              default:
-                // If no valid role found, don't redirect to avoid infinite loop
-                console.log('AuthContext: No valid role found, staying on current page');
+                case 'Patient':
+                    router.push('/dashboard');
+                    break;
+                case 'Doctor':
+                    router.push('/doctor/dashboard');
+                    break;
+                case 'AI Provider':
+                    router.push('/ai-provider/dashboard');
+                    break;
+                case 'Admin':
+                    router.push('/admin/dashboard');
+                    break;
+                default:
+                    // If no role, but logged in, maybe send to a default page or a role selection page
+                    router.push('/');
             }
-          } else if (!role) {
-            console.log('AuthContext: No role found for user, staying on current page');
-          }
-        } catch (error) {
-          console.error('Error getting user role:', error);
-          setUserRole(null);
         }
       } else {
-        console.log('AuthContext: No user, setting role to null');
         setUserRole(null);
-        // Only redirect if not on public routes
-        const publicRoutes = ['/login', '/register', '/', '/privacy', '/doctor-register', '/ai-provider-register', '/patient-register', '/admin/login'];
-        const isPublic = publicRoutes.some(route => pathname.startsWith(route));
-        
-        console.log('AuthContext: Public route check', { pathname, isPublic });
-        
-        if (!isPublic) {
-          if (pathname.startsWith('/admin')) {
-            router.push('/admin/login');
-          } else {
-            router.push('/login');
-          }
-        }
       }
-      
       setLoading(false);
     });
-
     return () => unsubscribe();
   }, [pathname, router]);
 
@@ -268,24 +182,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (wasAdmin) {
         router.push('/admin/login');
     } else {
-        router.push('/login');
+        // Go to home page after logout, not login page
+        router.push('/');
     }
   };
 
   const refreshUser = async () => {
     if (auth.currentUser) {
       await auth.currentUser.reload();
-      setUser({ ...auth.currentUser }); // force new object reference for reactivity
-      
-      // Refresh role as well
+      setUser({ ...auth.currentUser });
       const role = await getUserRole(auth.currentUser.uid);
       setUserRole(role);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, userRole, loading, signIn, signUp, googleSignIn, signOut, refreshUser, validateUserRole }}>
-      {loading ? <div>Loading...</div> : children}
+    <AuthContext.Provider value={{ user, userRole, loading, signIn, signUp, googleSignIn, signOut, refreshUser }}>
+      {children}
     </AuthContext.Provider>
   );
 };

@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AppointmentCard } from '@/components/appointment-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Appointment } from '@/types';
+import { Loader2 } from 'lucide-react';
 
 export default function AppointmentsPage() {
     const { user } = useAuth();
@@ -64,8 +65,8 @@ export default function AppointmentsPage() {
     const renderAppointmentList = (list: Appointment[], emptyMessage: string) => {
         if (isLoading) {
             return (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-64" />)}
+                 <div className="flex justify-center items-center py-10">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
             )
         }
