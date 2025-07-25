@@ -1,16 +1,26 @@
 
+
+'use client';
+
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { db } from "@/lib/firebase";
+import { collection, onSnapshot, query, orderBy, limit } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { User, Calendar, Check, X, Eye, Video, Bell, Star, CalendarDays, DollarSign, Activity, Users, Clock } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { format } from "date-fns";
 
-
-const todayAppointments = [
-    { id: 1, patient: 'Adrian Marshall', patientId: 'PT001', image: 'https://placehold.co/40x40.png', imageHint: 'person portrait', time: '10:45 AM', purpose: 'Video Consultation' },
-    { id: 2, patient: 'Kelly Stevens', patientId: 'PT002', image: 'https://placehold.co/40x40.png', imageHint: 'person portrait', time: '11:00 AM', purpose: 'Clinic Follow-up' },
-    { id: 3, patient: 'Samuel Anderson', patientId: 'PT003', image: 'https://placehold.co/40x40.png', imageHint: 'person portrait', time: '02:00 PM', purpose: 'General Checkup' },
-];
+interface Appointment {
+  id: string;
+  patientName: string;
+  patientId: string;
+  patientImage?: string;
+  dateTime: Date;
+  purpose: string;
+}
 
 const recentPatients = [
     { id: 1, patient: 'Gina Moore', patientId: 'PT006', image: 'https://placehold.co/40x40.png', imageHint: 'person portrait', lastVisit: '2 days ago', paid: 150 },
@@ -25,6 +35,48 @@ const notifications = [
 
 
 export default function DoctorDashboardPage() {
+    const { user } = useAuth();
+    const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (!user) {
+            setIsLoading(false);
+            return;
+        }
+
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
+
+        const q = query(
+            collection(db, `doctors/${user.uid}/appointments`), 
+            where('dateTime', '>=', todayStart),
+            where('dateTime', '<=', todayEnd),
+            orderBy('dateTime', 'asc'),
+            limit(5)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetchedAppointments = snapshot.docs.map(doc => {
+                 const data = doc.data();
+                 return {
+                    id: doc.id,
+                    ...data,
+                    dateTime: data.dateTime.toDate(),
+                 } as Appointment
+            });
+            setTodayAppointments(fetchedAppointments);
+            setIsLoading(false);
+        }, (error) => {
+            console.error("Error fetching today's appointments:", error);
+            setIsLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [user]);
+
   return (
     <div className="space-y-6">
         {/* Top Stat Cards */}
@@ -45,7 +97,7 @@ export default function DoctorDashboardPage() {
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">12</div>
+                    <div className="text-2xl font-bold">{todayAppointments.length}</div>
                     <p className="text-xs text-muted-foreground">+5 since yesterday</p>
                 </CardContent>
             </Card>
@@ -84,20 +136,21 @@ export default function DoctorDashboardPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {todayAppointments.map((appt) => (
+                        {isLoading ? <p>Loading...</p> : todayAppointments.length === 0 ? <p>No appointments today.</p> :
+                        todayAppointments.map((appt) => (
                             <div key={appt.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted">
                                 <div className="flex items-center gap-3">
                                     <Avatar className="h-10 w-10">
-                                        <AvatarImage src={appt.image} data-ai-hint={appt.imageHint} />
-                                        <AvatarFallback>{appt.patient.charAt(0)}</AvatarFallback>
+                                        <AvatarImage src={appt.patientImage} />
+                                        <AvatarFallback>{appt.patientName.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <p className="font-semibold">{appt.patient}</p>
-                                        <p className="text-xs text-muted-foreground">{appt.purpose}</p>
+                                        <p className="font-semibold">{appt.patientName}</p>
+                                        <p className="text-xs text-muted-foreground">{appt.purpose || 'Consultation'}</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-medium text-sm flex items-center gap-2"><Clock className="w-4 h-4 text-primary" />{appt.time}</p>
+                                    <p className="font-medium text-sm flex items-center gap-2"><Clock className="w-4 h-4 text-primary" />{format(appt.dateTime, 'p')}</p>
                                     <Button variant="link" size="sm" className="p-0 h-auto" asChild>
                                         <Link href={`/doctor/dashboard/my-patients/${appt.patientId}`}>View Patient</Link>
                                     </Button>

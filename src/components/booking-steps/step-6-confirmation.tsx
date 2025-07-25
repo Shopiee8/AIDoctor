@@ -4,15 +4,86 @@
 import { useBookingStore } from "@/store/booking-store";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { CheckCircle, Calendar, ArrowLeft, FileText, Plus } from "lucide-react";
+import { CheckCircle, Calendar, ArrowLeft, FileText, Plus, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, serverTimestamp, doc, writeBatch } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
 
 export function Step6Confirmation() {
-    const { doctor, appointmentDate, appointmentTime, clinic, appointmentType, resetBooking, closeBookingModal } = useBookingStore();
+    const { doctor, appointmentDate, appointmentTime, clinic, appointmentType, bookingDetails, services, closeBookingModal } = useBookingStore();
+    const { user } = useAuth();
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
+    const [isBookingComplete, setIsBookingComplete] = useState(false);
+    const [appointmentId, setAppointmentId] = useState<string | null>(null);
 
+    useEffect(() => {
+        const createAppointment = async () => {
+            if (isBookingComplete || isLoading || !user || !doctor || !appointmentDate || !appointmentTime) return;
+
+            setIsLoading(true);
+            try {
+                const newAppointment = {
+                    patientId: user.uid,
+                    patientName: user.displayName || `${bookingDetails.firstName} ${bookingDetails.lastName}`,
+                    patientImage: user.photoURL,
+                    doctorId: doctor.id,
+                    doctorName: doctor.name,
+                    doctorSpecialty: doctor.specialty,
+                    doctorImage: doctor.image,
+                    dateTime: new Date(`${appointmentDate.toDateString()} ${appointmentTime}`),
+                    status: 'Upcoming' as const,
+                    visitType: 'Consultation', // Example value
+                    appointmentType: appointmentType as 'Video' | 'Audio' | 'Chat' | 'In-person',
+                    clinicName: clinic ? (doctor.clinics?.find(c => c.id === clinic)?.name || '') : '',
+                    clinicLocation: clinic ? (doctor.clinics?.find(c => c.id === clinic)?.location || '') : '',
+                    amount: 200, // Example value
+                    createdAt: serverTimestamp()
+                };
+
+                const batch = writeBatch(db);
+
+                // Add to doctor's appointments
+                const doctorApptRef = doc(collection(db, "doctors", doctor.id, "appointments"));
+                batch.set(doctorApptRef, newAppointment);
+
+                // Add to patient's appointments
+                const patientApptRef = doc(collection(db, "users", user.uid, "appointments"));
+                batch.set(patientApptRef, newAppointment);
+
+                await batch.commit();
+
+                setAppointmentId(patientApptRef.id);
+                toast({ title: 'Appointment Booked!', description: 'Your appointment has been confirmed.' });
+                setIsBookingComplete(true);
+
+            } catch (error) {
+                console.error("Error creating appointment:", error);
+                toast({ title: "Booking Failed", description: "Could not book the appointment. Please try again.", variant: "destructive" });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        createAppointment();
+    }, [user, doctor, appointmentDate, appointmentTime, clinic, appointmentType, bookingDetails, isBookingComplete, isLoading, toast]);
+
+    if (isLoading || !isBookingComplete) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+                <Loader2 className="w-16 h-16 text-primary animate-spin mb-4" />
+                <h3 className="text-2xl font-bold font-headline mb-2">Confirming your appointment...</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">Please wait while we finalize the details with {doctor?.name}.</p>
+            </div>
+        );
+    }
+    
     return (
         <div className="flex flex-col h-full">
             <Card className="border-none shadow-none">
@@ -45,7 +116,7 @@ export function Step6Confirmation() {
                                 <div className="grid sm:grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <p className="text-sm text-muted-foreground">Booking Number</p>
-                                        <Badge variant="secondary">DCRA12565</Badge>
+                                        <Badge variant="secondary">{appointmentId?.slice(0, 8).toUpperCase()}</Badge>
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-sm text-muted-foreground">Appointment Type</p>
@@ -58,7 +129,7 @@ export function Step6Confirmation() {
                                     {clinic && (
                                         <div className="space-y-1">
                                             <p className="text-sm text-muted-foreground">Clinic</p>
-                                            <p className="font-medium">{clinic}</p>
+                                            <p className="font-medium">{doctor?.clinics?.find(c => c.id === clinic)?.name || 'N/A'}</p>
                                         </div>
                                     )}
                                 </div>
