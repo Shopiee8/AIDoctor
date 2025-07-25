@@ -9,25 +9,28 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, doc, writeBatch } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 
 export function Step6Confirmation() {
-    const { doctor, appointmentDate, appointmentTime, clinic, appointmentType, bookingDetails, services, closeBookingModal } = useBookingStore();
+    const { doctor, appointmentDate, appointmentTime, clinic, appointmentType, bookingDetails, closeBookingModal } = useBookingStore();
     const { user } = useAuth();
     const { toast } = useToast();
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [isBookingComplete, setIsBookingComplete] = useState(false);
     const [appointmentId, setAppointmentId] = useState<string | null>(null);
+    const hasBooked = useRef(false);
 
     useEffect(() => {
         const createAppointment = async () => {
-            if (isBookingComplete || isLoading || !user || !doctor || !appointmentDate || !appointmentTime) return;
+            if (hasBooked.current || !user || !doctor || !appointmentDate || !appointmentTime) return;
 
+            hasBooked.current = true;
             setIsLoading(true);
+
             try {
                 const newAppointment = {
                     patientId: user.uid,
@@ -40,6 +43,7 @@ export function Step6Confirmation() {
                     dateTime: new Date(`${appointmentDate.toDateString()} ${appointmentTime}`),
                     status: 'Upcoming' as const,
                     visitType: 'Consultation', // Example value
+                    purpose: bookingDetails.symptoms || 'Consultation',
                     appointmentType: appointmentType as 'Video' | 'Audio' | 'Chat' | 'In-person',
                     clinicName: clinic ? (doctor.clinics?.find(c => c.id === clinic)?.name || '') : '',
                     clinicLocation: clinic ? (doctor.clinics?.find(c => c.id === clinic)?.location || '') : '',
@@ -49,13 +53,17 @@ export function Step6Confirmation() {
 
                 const batch = writeBatch(db);
 
-                // Add to doctor's appointments
-                const doctorApptRef = doc(collection(db, "doctors", doctor.id, "appointments"));
-                batch.set(doctorApptRef, newAppointment);
+                // Create a single document reference for both collections
+                const newAppointmentRef = doc(collection(db, "users"));
 
                 // Add to patient's appointments
-                const patientApptRef = doc(collection(db, "users", user.uid, "appointments"));
+                const patientApptRef = doc(db, "users", user.uid, "appointments", newAppointmentRef.id);
                 batch.set(patientApptRef, newAppointment);
+
+                // Add to doctor's appointments
+                const doctorApptRef = doc(db, "doctors", doctor.id, "appointments", newAppointmentRef.id);
+                batch.set(doctorApptRef, newAppointment);
+
 
                 await batch.commit();
 
@@ -72,9 +80,9 @@ export function Step6Confirmation() {
         };
 
         createAppointment();
-    }, [user, doctor, appointmentDate, appointmentTime, clinic, appointmentType, bookingDetails, isBookingComplete, isLoading, toast]);
+    }, [user, doctor, appointmentDate, appointmentTime, clinic, appointmentType, bookingDetails, toast]);
 
-    if (isLoading || !isBookingComplete) {
+    if (!isBookingComplete) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-center">
                 <Loader2 className="w-16 h-16 text-primary animate-spin mb-4" />
