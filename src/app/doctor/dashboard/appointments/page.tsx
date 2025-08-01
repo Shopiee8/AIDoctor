@@ -4,13 +4,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, CheckCircle, XCircle, Clock, Video, MessageSquare, Phone, Calendar, List, LayoutGrid, Loader2 } from 'lucide-react';
+import { Video, Phone, MessageSquare, Calendar, CheckCircle, XCircle, Clock, List, LayoutGrid, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -38,7 +38,7 @@ const apptIcons = {
 
 type ViewMode = 'list' | 'grid';
 
-const AppointmentCard = ({ appt, onStatusChange }: { appt: Appointment; onStatusChange: (id: string, status: Appointment['status']) => void; }) => {
+const DoctorAppointmentCard = ({ appt, onStatusChange }: { appt: Appointment; onStatusChange: (id: string, status: Appointment['status']) => void; }) => {
     const ApptIcon = apptIcons[appt.appointmentType];
 
     return (
@@ -55,16 +55,15 @@ const AppointmentCard = ({ appt, onStatusChange }: { appt: Appointment; onStatus
                     </div>
                 </div>
                  <div className="flex flex-col items-end gap-1">
-                    <Badge variant={
-                        appt.status === 'Completed' ? 'default' :
-                        appt.status === 'Upcoming' || appt.status === 'Accepted' ? 'secondary' : 'destructive'
-                        } className="capitalize w-28 justify-center">
+                    <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors capitalize w-28 justify-center
+                        bg-secondary text-secondary-foreground hover:bg-secondary/80
+                    ">
                         {appt.status === 'Completed' && <CheckCircle className="mr-1 h-3 w-3" />}
                         {appt.status === 'Upcoming' && <Clock className="mr-1 h-3 w-3" />}
                         {appt.status === 'Accepted' && <CheckCircle className="mr-1 h-3 w-3 text-green-500" />}
                         {appt.status === 'Cancelled' && <XCircle className="mr-1 h-3 w-3" />}
                         {appt.status}
-                    </Badge>
+                    </div>
                  </div>
             </div>
 
@@ -75,7 +74,13 @@ const AppointmentCard = ({ appt, onStatusChange }: { appt: Appointment; onStatus
                 </div>
                 <div className="space-y-1">
                     <p className="text-xs">Appointment Type</p>
-                    <p className="font-medium text-foreground flex items-center gap-2"><ApptIcon className="w-4 h-4 text-primary"/>{appt.appointmentType}</p>
+                    <p className="font-medium text-foreground flex items-center gap-2">
+                        {appt.appointmentType === 'Video' && <Video className="w-4 h-4 text-primary" />}
+                        {appt.appointmentType === 'Audio' && <Phone className="w-4 h-4 text-primary" />}
+                        {appt.appointmentType === 'Chat' && <MessageSquare className="w-4 h-4 text-primary" />}
+                        {appt.appointmentType === 'In-person' && <Calendar className="w-4 h-4 text-primary" />}
+                        {appt.appointmentType}
+                    </p>
                 </div>
                 <div className="space-y-1">
                     <p className="text-xs">Purpose</p>
@@ -117,7 +122,7 @@ const AppointmentsList = ({ data, viewMode, onStatusChange }: { data: Appointmen
     return (
         <div className="space-y-4">
             {data.map((appt) => (
-                <AppointmentCard key={appt.id} appt={appt} onStatusChange={onStatusChange} />
+                <DoctorAppointmentCard key={appt.id} appt={appt} onStatusChange={onStatusChange} />
             ))}
         </div>
     );

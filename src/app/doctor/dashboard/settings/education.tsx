@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { LandingHeader } from "@/components/landing-header";
 import { LandingFooter } from "@/components/landing-footer";
-import { SessionNavBar as DoctorSidebar } from "@/components/ui/sidebar";
+import { DoctorSidebar } from "@/components/doctor/doctor-sidebar";
 import { DashboardHeader as SettingsHeader } from "@/components/dashboard-header";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";

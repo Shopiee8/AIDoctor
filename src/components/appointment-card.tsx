@@ -10,7 +10,7 @@ import { Button } from './ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface AppointmentCardProps {
-    appointment: Appointment;
+    appointment: Partial<Appointment> & { id: string };
     onCancel: (appointmentId: string) => void;
 }
 
@@ -30,8 +30,8 @@ const statusConfig = {
 
 export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps) {
     // Fallback to Hospital icon if type is unknown
-    const TypeIcon = appointmentTypeIcons[appointment.appointmentType] || Hospital;
-    const statusInfo = statusConfig[appointment.status] || statusConfig['Upcoming'];
+    const TypeIcon = appointmentTypeIcons[appointment.appointmentType as keyof typeof appointmentTypeIcons] || Hospital;
+    const statusInfo = statusConfig[appointment.status as keyof typeof statusConfig] || statusConfig['Upcoming'];
 
     return (
         <div className="block border rounded-lg p-4 flex flex-col gap-4 shadow-sm hover:shadow-md hover:border-primary transition-all group">
@@ -39,12 +39,12 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <Avatar className="h-12 w-12">
-                            <AvatarImage src={appointment.doctorImage} alt={appointment.doctorName} />
-                            <AvatarFallback>{appointment.doctorName.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={appointment.doctorImage} alt={appointment.doctorName || 'Doctor'} />
+                            <AvatarFallback>{(appointment.doctorName || 'D').charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
-                            <h4 className="font-bold group-hover:text-primary">{appointment.doctorName}</h4>
-                            <p className="text-sm text-muted-foreground">{appointment.doctorSpecialty}</p>
+                            <h4 className="font-bold group-hover:text-primary">{appointment.doctorName || 'Doctor'}</h4>
+                            <p className="text-sm text-muted-foreground">{appointment.doctorSpecialty || 'General Practitioner'}</p>
                         </div>
                     </div>
                     <div className={`flex items-center justify-center h-8 w-8 rounded-full text-white ${statusInfo.color}`}>
@@ -55,15 +55,15 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 <div className="border-t border-b py-3 text-sm text-muted-foreground space-y-2">
                     <div className="flex items-center gap-2">
                         <TypeIcon className="w-4 h-4 text-primary" />
-                        <span>{appointment.appointmentType} Consultation</span>
+                        <span>{(appointment.appointmentType || 'Consultation')} Consultation</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-primary" />
-                        <span>{format(appointment.dateTime, 'eeee, MMMM d, yyyy')}</span>
+                        <span>{appointment.dateTime ? format(appointment.dateTime, 'eeee, MMMM d, yyyy') : 'Date not set'}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-primary" />
-                        <span>{format(appointment.dateTime, 'p')}</span>
+                        <span>{appointment.dateTime ? format(appointment.dateTime, 'p') : 'Time not set'}</span>
                     </div>
                 </div>
             </Link>

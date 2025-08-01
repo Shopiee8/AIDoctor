@@ -40,12 +40,14 @@ export default function PatientDashboardLayout({
 
   return (
     <RoleGuard allowedRoles={['Patient']}>
-       <div className="flex min-h-screen">
+       <div className="flex min-h-screen w-full">
           <PatientSidebar />
-          <div className="flex flex-col flex-1 md:ml-20 lg:ml-64">
+          <div className="flex flex-col flex-1 overflow-x-hidden">
               <DashboardHeader />
-              <main className="flex-1 p-6 bg-muted/30">
-                  {children}
+              <main className="flex-1 w-full p-0 m-0">
+                  <div className="w-full max-w-none">
+                    {children}
+                  </div>
               </main>
           </div>
       </div>

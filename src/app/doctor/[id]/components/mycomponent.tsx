@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import dynamic from 'next/dynamic';
 
 // Import the gallery component with SSR disabled

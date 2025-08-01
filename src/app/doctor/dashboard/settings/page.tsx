@@ -377,82 +377,86 @@ export default function DoctorSettingsPage() {
           </Card>
         </TabsContent>
         
-        <TabsContent value="education">
-          <div className="mb-6 flex items-center justify-between">
-            <h3 className="text-xl font-bold">Education</h3>
-            <Button onClick={addEducation} className="btn btn-primary prime-btn">Add New Education</Button>
-          </div>
-          <div className="space-y-6">
-            {doctorData?.education?.map((edu: any, idx: number) => (
-              <div key={edu.id} className="bg-white rounded-xl shadow p-0 mb-4 border border-gray-200">
-                <div className="flex items-center justify-between px-6 py-4">
-                  <button
-                    type="button"
-                    className="flex-1 text-left focus:outline-none"
-                    onClick={() => toggleEducation(edu.id)}
-                  >
-                    <h4 className="font-semibold text-lg">{edu.institution || `Education ${idx + 1}`}</h4>
-                  </button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="ml-2"
-                    onClick={() => removeEducation(edu.id)}
-                  >
-                    Delete
+        <TabsContent value="education" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Education</CardTitle>
+              <CardDescription>Manage your educational background and qualifications</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Button onClick={addEducation} className="bg-primary hover:bg-primary/90">
+                    <Plus className="mr-2 h-4 w-4" /> Add New Education
                   </Button>
-                  <span className={`transition-transform ml-2 ${expandedEducation === edu.id ? 'rotate-90' : ''}`}>▶</span>
                 </div>
-                {expandedEducation === edu.id && (
-                  <div className="px-6 pb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <Label>Logo</Label>
-                        <div className="flex items-center gap-4 mt-1">
-                          {edu.logo && <img src={edu.logo} alt="Logo" className="w-16 h-16 rounded-full object-cover border" />}
-                          <input type="file" accept="image/*" onChange={e => handleEducationLogoUpload(e, edu.id)} className="block" />
-                        </div>
-                      </div>
-                      <div>
-                        <Label>Name of the institution</Label>
-                        <Input value={edu.institution || ''} onChange={e => updateEducationField(edu.id, 'institution', e.target.value)} className="mt-1" />
-                      </div>
-                      <div>
-                        <Label>Course</Label>
-                        <Input value={edu.course || ''} onChange={e => updateEducationField(edu.id, 'course', e.target.value)} className="mt-1" />
-                      </div>
-                      <div>
-                        <Label>Start Date</Label>
-                        <DatePicker
-                          className="form-control mt-1"
-                          selected={edu.startDate && !isNaN(Date.parse(edu.startDate)) ? new Date(edu.startDate) : null}
-                          onChange={(date: Date | null) => updateEducationField(edu.id, 'startDate', date ? date.toISOString() : '')}
-                          dateFormat="dd-MM-yyyy"
-                        />
-                      </div>
-                      <div>
-                        <Label>End Date</Label>
-                        <DatePicker
-                          className="form-control mt-1"
-                          selected={edu.endDate && !isNaN(Date.parse(edu.endDate)) ? new Date(edu.endDate) : null}
-                          onChange={(date: Date | null) => updateEducationField(edu.id, 'endDate', date ? date.toISOString() : '')}
-                          dateFormat="dd-MM-yyyy"
-                        />
-                      </div>
-                      <div>
-                        <Label>No of Years</Label>
-                        <Input value={edu.years || ''} onChange={e => updateEducationField(edu.id, 'years', e.target.value)} className="mt-1" />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label>Description</Label>
-                        <Textarea value={edu.description || ''} onChange={e => updateEducationField(edu.id, 'description', e.target.value)} rows={3} className="mt-1" />
+                {doctorData?.education?.map((edu: any, idx: number) => (
+                  <div key={edu.id} className="rounded-lg border bg-card text-card-foreground shadow-sm p-0 mb-4">
+                    <div
+                      className="w-full flex items-center justify-between px-6 py-4 focus:outline-none cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg"
+                      onClick={() => toggleEducation(edu.id)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') toggleEducation(edu.id); }}
+                    >
+                      <h4 className="font-semibold text-lg">{edu.institution || `Education ${idx + 1}`}</h4>
+                      <div className="flex items-center gap-2">
+                        <Button variant="destructive" size="sm" onClick={e => { e.stopPropagation(); removeEducation(edu.id); }}>Delete</Button>
+                        <span className={`transition-transform ${expandedEducation === edu.id ? 'rotate-90' : ''}`}>▶</span>
                       </div>
                     </div>
+                    {expandedEducation === edu.id && (
+                      <div className="px-6 pb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <Label>Logo</Label>
+                            <div className="flex items-center gap-4 mt-1">
+                              {edu.logo && <img src={edu.logo} alt="Logo" className="w-16 h-16 rounded-full object-cover border" />}
+                              <input type="file" accept="image/*" onChange={e => handleEducationLogoUpload(e, edu.id)} className="block" />
+                            </div>
+                          </div>
+                          <div>
+                            <Label>Name of the institution</Label>
+                            <Input value={edu.institution || ''} onChange={e => updateEducationField(edu.id, 'institution', e.target.value)} className="mt-1" />
+                          </div>
+                          <div>
+                            <Label>Course</Label>
+                            <Input value={edu.course || ''} onChange={e => updateEducationField(edu.id, 'course', e.target.value)} className="mt-1" />
+                          </div>
+                          <div>
+                            <Label>Start Date</Label>
+                            <DatePicker
+                              className="form-control mt-1"
+                              selected={edu.startDate && !isNaN(Date.parse(edu.startDate)) ? new Date(edu.startDate) : null}
+                              onChange={(date: Date | null) => updateEducationField(edu.id, 'startDate', date ? date.toISOString() : '')}
+                              dateFormat="dd-MM-yyyy"
+                            />
+                          </div>
+                          <div>
+                            <Label>End Date</Label>
+                            <DatePicker
+                              className="form-control mt-1"
+                              selected={edu.endDate && !isNaN(Date.parse(edu.endDate)) ? new Date(edu.endDate) : null}
+                              onChange={(date: Date | null) => updateEducationField(edu.id, 'endDate', date ? date.toISOString() : '')}
+                              dateFormat="dd-MM-yyyy"
+                            />
+                          </div>
+                          <div>
+                            <Label>No of Years</Label>
+                            <Input value={edu.years || ''} onChange={e => updateEducationField(edu.id, 'years', e.target.value)} className="mt-1" />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label>Description</Label>
+                            <Textarea value={edu.description || ''} onChange={e => updateEducationField(edu.id, 'description', e.target.value)} rows={3} className="mt-1" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="experience">
@@ -535,67 +539,76 @@ export default function DoctorSettingsPage() {
             </Card>
         </TabsContent>
         
-        <TabsContent value="clinic">
-          <div className="mb-6 flex items-center justify-between">
-            <h3 className="text-xl font-bold">Clinics</h3>
-            <Button onClick={addClinic} className="btn btn-primary prime-btn">Add New Clinic</Button>
-          </div>
-          <div className="space-y-6">
-            {doctorData?.clinics?.map((clinic: any, idx: number) => (
-              <div key={clinic.id} className="bg-white rounded-xl shadow p-0 mb-4 border border-gray-200">
-                <div
-                  className="w-full flex items-center justify-between px-6 py-4 focus:outline-none cursor-pointer"
-                  onClick={() => toggleClinic(clinic.id)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') toggleClinic(clinic.id); }}
-                >
-                  <h4 className="font-semibold text-lg">{clinic.name || `Clinic ${idx + 1}`}</h4>
-                  <div className="flex items-center gap-2">
-                    <Button variant="destructive" size="sm" onClick={e => { e.stopPropagation(); removeClinic(clinic.id); }}>Delete</Button>
-                    <span className={`transition-transform ${expandedClinic === clinic.id ? 'rotate-90' : ''}`}>▶</span>
-                  </div>
-                </div>
-                {expandedClinic === clinic.id && (
-                  <div className="px-6 pb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <Label>Logo</Label>
-                        <div className="flex items-center gap-4 mt-1">
-                          {clinic.logo && <img src={clinic.logo} alt="Clinic Logo" className="w-16 h-16 rounded-full object-cover border" />}
-                          <input type="file" accept="image/*" onChange={e => handleClinicLogoUpload(e, clinic.id)} className="block" />
-                        </div>
-                      </div>
-                      <div>
-                        <Label>Clinic Name</Label>
-                        <Input value={clinic.name || ''} onChange={e => updateClinicField(clinic.id, 'name', e.target.value)} className="mt-1" />
-                      </div>
-                      <div>
-                        <Label>Location</Label>
-                        <Input value={clinic.location || ''} onChange={e => updateClinicField(clinic.id, 'location', e.target.value)} className="mt-1" />
-                      </div>
-                      <div>
-                        <Label>Address</Label>
-                        <Input value={clinic.address || ''} onChange={e => updateClinicField(clinic.id, 'address', e.target.value)} className="mt-1" />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label>Gallery</Label>
-                        <input type="file" accept="image/*" multiple onChange={e => handleClinicGalleryUpload(e, clinic.id)} className="block mt-1" />
-                        <div className="flex gap-2 mt-2 flex-wrap">
-                          {clinic.gallery?.map((img: string, i: number) => (
-                            <div key={i} className="relative group">
-                              <img src={img} alt="Gallery" className="w-20 h-20 object-cover rounded border" />
-                              <Button size="icon" variant="destructive" className="absolute top-0 right-0 opacity-80 group-hover:opacity-100" onClick={() => removeClinicGalleryImage(clinic.id, img)}><span>&times;</span></Button>
-                            </div>
-                          ))}
-                        </div>
+        <TabsContent value="clinic" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Clinics</CardTitle>
+                <Button onClick={addClinic} className="bg-primary hover:bg-primary/90">
+                  <Plus className="mr-2 h-4 w-4" /> Add New Clinic
+                </Button>
+              </div>
+              <CardDescription>Manage your clinic locations and information</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {doctorData?.clinics?.map((clinic: any, idx: number) => (
+                  <div key={clinic.id} className="bg-white rounded-xl shadow p-0 mb-4 border border-gray-200">
+                    <div
+                      className="w-full flex items-center justify-between px-6 py-4 focus:outline-none cursor-pointer"
+                      onClick={() => toggleClinic(clinic.id)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') toggleClinic(clinic.id); }}
+                    >
+                      <h4 className="font-semibold text-lg">{clinic.name || `Clinic ${idx + 1}`}</h4>
+                      <div className="flex items-center gap-2">
+                        <Button variant="destructive" size="sm" onClick={e => { e.stopPropagation(); removeClinic(clinic.id); }}>Delete</Button>
+                        <span className={`transition-transform ${expandedClinic === clinic.id ? 'rotate-90' : ''}`}>▶</span>
                       </div>
                     </div>
+                    {expandedClinic === clinic.id && (
+                      <div className="px-6 pb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <Label>Logo</Label>
+                            <div className="flex items-center gap-4 mt-1">
+                              {clinic.logo && <img src={clinic.logo} alt="Clinic Logo" className="w-16 h-16 rounded-full object-cover border" />}
+                              <input type="file" accept="image/*" onChange={e => handleClinicLogoUpload(e, clinic.id)} className="block" />
+                            </div>
+                          </div>
+                          <div>
+                            <Label>Clinic Name</Label>
+                            <Input value={clinic.name || ''} onChange={e => updateClinicField(clinic.id, 'name', e.target.value)} className="mt-1" />
+                          </div>
+                          <div>
+                            <Label>Location</Label>
+                            <Input value={clinic.location || ''} onChange={e => updateClinicField(clinic.id, 'location', e.target.value)} className="mt-1" />
+                          </div>
+                          <div>
+                            <Label>Address</Label>
+                            <Input value={clinic.address || ''} onChange={e => updateClinicField(clinic.id, 'address', e.target.value)} className="mt-1" />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label>Gallery</Label>
+                            <input type="file" accept="image/*" multiple onChange={e => handleClinicGalleryUpload(e, clinic.id)} className="block mt-1" />
+                            <div className="flex gap-2 mt-2 flex-wrap">
+                              {clinic.gallery?.map((img: string, i: number) => (
+                                <div key={i} className="relative group">
+                                  <img src={img} alt="Gallery" className="w-20 h-20 object-cover rounded border" />
+                                  <Button size="icon" variant="destructive" className="absolute top-0 right-0 opacity-80 group-hover:opacity-100" onClick={() => removeClinicGalleryImage(clinic.id, img)}><span>&times;</span></Button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="services">
