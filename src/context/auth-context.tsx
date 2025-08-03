@@ -82,10 +82,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       let role = null;
+      let registrationComplete = false;
+      
       if (currentUser) {
         setUser(currentUser);
         role = await getUserRole(currentUser.uid);
         setUserRole(role);
+        
+        // Check if this is an AI Provider with incomplete registration
+        if (role === 'AI Provider') {
+          const tempAiProviderDoc = await getDoc(doc(db, 'temp-ai-providers', currentUser.uid));
+          if (tempAiProviderDoc.exists()) {
+            registrationComplete = tempAiProviderDoc.data()?.registrationComplete === true;
+          }
+        }
       } else {
         setUser(null);
         setUserRole(null);
@@ -93,7 +103,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
 
       // --- Redirection Logic ---
-      // This logic now only triggers if the user is on a login/register page.
+      // Only redirect if the user is on an auth page and has completed registration
       const loginPages = ['/login', '/register', '/admin/login'];
       const isAuthPage = loginPages.includes(pathname) || 
                          pathname.startsWith('/patient-register') || 
@@ -101,6 +111,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                          pathname.startsWith('/ai-provider-register');
 
       if (currentUser && isAuthPage) {
+        // If this is an AI Provider with incomplete registration, stay on the registration flow
+        if (role === 'AI Provider' && !registrationComplete) {
+          // Only redirect to step-1 if we're not already in the registration flow
+          if (!pathname.startsWith('/ai-provider-register')) {
+            router.push('/ai-provider-register/step-1');
+          }
+          return;
+        }
+
+        // Otherwise, proceed with normal redirection
         switch (role) {
           case 'Patient':
             router.push('/dashboard');
@@ -117,9 +137,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           default:
             // If user is logged in but has no role or is in a registration flow,
             // but not on the right page, send them to home.
-            // This case might need refinement based on business logic.
-            if (!pathname.startsWith('/patient-register') && !pathname.startsWith('/doctor-register') && !pathname.startsWith('/ai-provider-register')) {
-               router.push('/');
+            if (!pathname.startsWith('/patient-register') && 
+                !pathname.startsWith('/doctor-register') && 
+                !pathname.startsWith('/ai-provider-register')) {
+              router.push('/');
             }
         }
       }
@@ -132,51 +153,61 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return userCredential.user;
   };
   
-  const signUp = async (email: string, pass: string, role: string, additionalData?: { displayName?: string }) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-    const newUser = userCredential.user;
+  const signUp = async (email: string, password: string, role: string, additionalData: { displayName?: string } = {}): Promise<void> => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const { user } = userCredential;
 
-    if (additionalData?.displayName) {
-        await updateProfile(newUser, { displayName: additionalData.displayName });
-    }
+      // Set display name if provided
+      if (additionalData.displayName && user) {
+        try {
+          await updateProfile(user, { displayName: additionalData.displayName });
+          // Force token refresh to ensure the display name is updated
+          await user.getIdToken(true);
+        } catch (profileError) {
+          console.error('Error updating profile:', profileError);
+          // Don't throw the error, continue with registration
+        }
+      }
 
-    // Create role-specific document in Firestore
-    if (role === 'Doctor') {
-        const doctorDocRef = doc(db, 'doctors', newUser.uid);
-        await setDoc(doctorDocRef, {
-            id: newUser.uid,
-            name: additionalData?.displayName || 'Dr. ' + newUser.email?.split('@')[0],
-            email: newUser.email,
-            type: 'Human',
-            specialty: 'Not Specified',
-            location: 'Not Specified',
-            image: `https://placehold.co/200x200.png`,
-            imageHint: 'doctor portrait',
-            rating: 0,
-            available: true,
-            isVerified: false,
-            createdAt: new Date(),
+      // Create user document in the appropriate collection based on role
+      const userData = {
+        email: user.email,
+        displayName: additionalData.displayName || user.displayName || user.email?.split('@')[0],
+        photoURL: user.photoURL || null,
+        role,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Add to appropriate collection based on role
+      if (role === 'Doctor') {
+        await setDoc(doc(db, 'doctors', user.uid), userData);
+      } else if (role === 'AI Provider') {
+        // For AI providers, we'll mark registration as incomplete
+        // and store the initial data in a temporary collection
+        await setDoc(doc(db, 'temp-ai-providers', user.uid), {
+          ...userData,
+          registrationComplete: false,
+          registrationStep: 1,
+          createdAt: new Date().toISOString()
         });
-    } else if (role === 'AI Provider') {
-        const aiProviderDocRef = doc(db, 'ai-providers', newUser.uid);
-        await setDoc(aiProviderDocRef, {
-            id: newUser.uid,
-            email: newUser.email,
-            name: additionalData?.displayName || 'AI Provider',
-            createdAt: new Date(),
-        });
-    } else if (role === 'Patient') {
-        const userDocRef = doc(db, 'users', newUser.uid);
-        await setDoc(userDocRef, {
-            id: newUser.uid,
-            email: newUser.email,
-            name: additionalData?.displayName || newUser.email?.split('@')[0],
-            role: 'Patient',
-            createdAt: new Date(),
-        });
+      } else if (role === 'Admin') {
+        await setDoc(doc(db, 'admins', user.uid), userData);
+      } else {
+        // Default to patient
+        await setDoc(doc(db, 'users', user.uid), userData);
+      }
+
+      // Update local state
+      setUser(user);
+      setUserRole(role);
+      
+      // Seed doctors collection for new users
+      await seedDoctorsCollection();
+    } catch (error: any) {
+      console.error('Error signing up:', error);
+      throw error;
     }
-    
-    await seedDoctorsCollection();
   };
 
   const googleSignIn = async () => {

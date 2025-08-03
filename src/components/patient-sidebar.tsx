@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,7 +31,7 @@ import {
 
 const menuItems = [
   { label: "Dashboard", icon: Activity, path: "/dashboard" },
-  { label: "AI Consultation", icon: Bot, path: "/dashboard/consultation" },
+  { label: "AI Consultation", icon: Bot, path: "/dashboard/ai-consultation" },
   { label: "Appointments", icon: Calendar, path: "/dashboard/appointments" },
   { label: "Vitals", icon: Heart, path: "/dashboard/vitals" },
   { label: "My Dependents", icon: Users, path: "/dashboard/dependents" },
@@ -56,11 +56,14 @@ export default function PatientSidebar() {
   const [patient, setPatient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // Listen for auth state changes to get updated user data
   useEffect(() => {
     if (!user) {
       setLoading(false);
       return;
     }
+    
+    // Initial fetch
     const fetchPatient = async () => {
       try {
         const docRef = doc(db, "users", user.uid);
@@ -74,7 +77,20 @@ export default function PatientSidebar() {
         setLoading(false);
       }
     };
+    
+    // Subscribe to real-time updates
+    const userRef = doc(db, "users", user.uid);
+    const unsubscribe = onSnapshot(userRef, (doc) => {
+      if (doc.exists()) {
+        setPatient(doc.data());
+      }
+    });
+    
+    // Initial fetch
     fetchPatient();
+    
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, [user]);
 
   if (loading) {
@@ -89,7 +105,7 @@ export default function PatientSidebar() {
     "P";
 
   return (
-    <aside className="hidden md:flex flex-col min-h-screen w-72 bg-gradient-to-br from-[#1a233a] to-[#22304a] shadow-xl glassmorphism border-r border-blue-900/30">
+    <aside className="hidden md:flex flex-col min-h-screen w-72 bg-card shadow-xl border-r border-border">
       {/* App Logo/Name */}
       <div className="flex items-center gap-3 px-6 pt-8 pb-4">
         <img
@@ -97,24 +113,24 @@ export default function PatientSidebar() {
           alt="App Logo"
           className="w-8 h-8 rounded-full"
         />
-        <span className="font-bold text-xl tracking-tight text-white">
+        <span className="font-bold text-xl tracking-tight text-foreground">
           AI DOCTOR
         </span>
       </div>
 
       {/* User Profile */}
       <div className="flex flex-col items-center gap-2 px-6 pb-6">
-        <Avatar className="w-16 h-16 border-4 border-blue-500 shadow-lg">
+        <Avatar className="w-16 h-16 border-4 border-primary shadow-lg">
           <AvatarImage src={photoURL} alt={name} />
-          <AvatarFallback>{fallbackInitial}</AvatarFallback>
+          <AvatarFallback className="bg-primary text-primary-foreground">{fallbackInitial}</AvatarFallback>
         </Avatar>
-        <div className="text-lg font-semibold text-white">{name}</div>
-        <div className="text-xs text-blue-300">Checked in 12h</div>
+        <div className="text-lg font-semibold text-foreground">{name}</div>
+        <div className="text-xs text-muted-foreground">Checked in 12h</div>
       </div>
 
       {/* Main Menu */}
       <nav className="flex-1 px-4">
-        <div className="mb-2 text-xs text-blue-200 font-semibold px-2">
+        <div className="mb-2 text-xs text-muted-foreground font-semibold px-2">
           MAIN MENU
         </div>
         <ul className="space-y-1">
@@ -122,8 +138,10 @@ export default function PatientSidebar() {
             <li key={item.label}>
               <Button
                 variant={pathname === item.path ? "secondary" : "ghost"}
-                className={`w-full justify-start gap-3 rounded-lg px-3 py-2 text-white/90 ${
-                  pathname === item.path ? "bg-blue-700/80" : "hover:bg-blue-800/40"
+                className={`w-full justify-start gap-3 rounded-lg px-3 py-2.5 transition-all duration-200 ${
+                  pathname === item.path 
+                    ? "bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-medium border-l-4 border-primary shadow-sm" 
+                    : "text-foreground/90 hover:bg-accent/30 hover:translate-x-1"
                 }`}
                 onClick={() => router.push(item.path)}
                 title={item.label}
@@ -136,28 +154,28 @@ export default function PatientSidebar() {
         </ul>
 
         {/* Invite a member */}
-        <Button className="w-full mt-6 mb-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 font-semibold flex items-center gap-2">
+        <Button className="w-full mt-6 mb-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg py-2 font-semibold flex items-center gap-2">
           <UserPlus size={18} /> Invite a member
         </Button>
 
         {/* Emergency Contacts */}
-        <div className="mt-6 mb-2 text-xs text-blue-200 font-semibold px-2">
+        <div className="mt-6 mb-2 text-xs font-semibold px-2 text-destructive">
           EMERGENCY CONTACTS
         </div>
         <ul className="space-y-2">
           {emergencyContacts.map((c) => (
             <li
               key={c.name}
-              className="flex items-center justify-between bg-blue-900/40 rounded-lg px-3 py-2"
+              className="flex items-center justify-between bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2 hover:bg-destructive/15 transition-colors"
             >
-              <span className="text-white font-medium flex items-center gap-2">
+              <span className="text-destructive font-medium flex items-center gap-2">
                 {c.icon}
                 {c.name}
               </span>
               <Button
                 size="sm"
                 variant="secondary"
-                className="bg-blue-700 hover:bg-blue-800 text-white px-3 py-1 rounded"
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground px-3 py-1 rounded-md text-sm font-medium shadow-sm"
                 onClick={c.action}
               >
                 Call
@@ -167,12 +185,12 @@ export default function PatientSidebar() {
         </ul>
 
         {/* Devices */}
-        <div className="mt-6 mb-2 text-xs text-blue-200 font-semibold px-2">
+        <div className="mt-6 mb-2 text-xs text-muted-foreground font-semibold px-2">
           DEVICES
         </div>
-        <div className="flex items-center gap-3 bg-blue-900/40 rounded-lg px-3 py-2">
-          <Watch size={18} className="text-blue-400" />
-          <span className="text-white">Connect your Watch</span>
+        <div className="flex items-center gap-3 bg-accent/30 rounded-lg px-3 py-2">
+          <Watch size={18} className="text-muted-foreground" />
+          <span className="text-foreground">Connect your Watch</span>
         </div>
       </nav>
 
@@ -180,7 +198,7 @@ export default function PatientSidebar() {
       <div className="px-6 pb-8 mt-auto flex flex-col gap-2">
         <Button
           variant="ghost"
-          className="w-full justify-start gap-3 rounded-lg py-2 text-white"
+          className="w-full justify-start gap-3 rounded-lg py-2 text-foreground hover:bg-accent/50"
           onClick={() => router.push("/dashboard/settings")}
           title="Settings"
         >
@@ -189,7 +207,7 @@ export default function PatientSidebar() {
         </Button>
         <Button
           onClick={signOut}
-          className="w-full bg-blue-800 hover:bg-blue-900 text-white rounded-lg py-2 font-semibold flex items-center gap-2"
+          className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg py-2 font-semibold flex items-center gap-2"
           title="Logout"
         >
           <LogOut size={18} /> Logout

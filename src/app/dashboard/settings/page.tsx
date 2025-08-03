@@ -1,15 +1,16 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential, User as FirebaseUser } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '@/lib/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, storage, db } from '@/lib/firebase';
 import Image from 'next/image';
 import { format } from 'date-fns';
 
@@ -41,6 +42,20 @@ const profileFormSchema = z.object({
   pincode: z.string().optional(),
 });
 
+// Extend the Firebase User type to include our custom fields
+type AppUser = FirebaseUser & {
+  phone?: string;
+  dob?: string;
+  bloodGroup?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  pincode?: string;
+  updatedAt?: string;
+  createdAt?: string;
+};
+
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 const passwordFormSchema = z.object({
@@ -60,21 +75,88 @@ export default function SettingsPage() {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [userData, setUserData] = useState<AppUser | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [avatarUrl, setAvatarUrl] = useState(user?.photoURL || '');
+    const [avatarUrl, setAvatarUrl] = useState('');
+
+    // Fetch user data from Firestore
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (!user) return;
+            
+            try {
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (userDoc.exists()) {
+                    setUserData({
+                        ...user,
+                        ...userDoc.data()
+                    } as AppUser);
+                    setAvatarUrl(user.photoURL || '');
+                } else {
+                    setUserData(user as AppUser);
+                    setAvatarUrl(user.photoURL || '');
+                    // Create a basic user document if it doesn't exist
+                    await setDoc(doc(db, 'users', user.uid), {
+                        displayName: user.displayName,
+                        email: user.email,
+                        photoURL: user.photoURL || null,
+                        createdAt: new Date().toISOString()
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                toast({
+                    title: 'Error',
+                    description: 'Failed to load user data',
+                    variant: 'destructive'
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, [user]);
 
     const profileForm = useForm<ProfileFormValues>({
         resolver: zodResolver(profileFormSchema),
-        // This should be populated from user's Firestore data in a real app
-        values: {
-            displayName: user?.displayName || '',
-            email: user?.email || '',
-        },
+        defaultValues: {
+            displayName: userData?.displayName || '',
+            email: userData?.email || '',
+            phone: userData?.phone || '',
+            dob: userData?.dob ? new Date(userData.dob) : undefined,
+            bloodGroup: userData?.bloodGroup || '',
+            address: userData?.address || '',
+            city: userData?.city || '',
+            state: userData?.state || '',
+            country: userData?.country || '',
+            pincode: userData?.pincode || ''
+        }
     });
+
+    // Reset form when userData changes
+    useEffect(() => {
+        if (userData) {
+            profileForm.reset({
+                displayName: userData.displayName || '',
+                email: userData.email || '',
+                phone: userData.phone || '',
+                dob: userData.dob ? new Date(userData.dob) : undefined,
+                bloodGroup: userData.bloodGroup || '',
+                address: userData.address || '',
+                city: userData.city || '',
+                state: userData.state || '',
+                country: userData.country || '',
+                pincode: userData.pincode || ''
+            });
+            setAvatarUrl(userData.photoURL || '');
+        }
+    }, [userData]);
 
      const passwordForm = useForm<PasswordFormValues>({
         resolver: zodResolver(passwordFormSchema),
@@ -86,15 +168,60 @@ export default function SettingsPage() {
     });
 
     async function onProfileSubmit(data: ProfileFormValues) {
-        if (!user) return;
+        if (!user || !userData) return;
         setIsSubmitting(true);
+        
         try {
-            await updateProfile(user, { displayName: data.displayName });
-            // Here you would also save the other form data (data) to Firestore
-            toast({ title: "Profile Updated", description: "Your profile information has been updated." });
+            // Get current user from auth
+            const currentUser = auth.currentUser;
+            if (!currentUser) throw new Error('No authenticated user');
+
+            // Update authentication profile
+            if (data.displayName !== user.displayName) {
+                await updateProfile(currentUser, { 
+                    displayName: data.displayName
+                });
+            }
+
+            // Prepare user data for Firestore
+            const userUpdate: Partial<AppUser> = {
+                displayName: data.displayName,
+                phone: data.phone || undefined,
+                dob: data.dob ? data.dob.toISOString() : undefined,
+                bloodGroup: data.bloodGroup || undefined,
+                address: data.address || undefined,
+                city: data.city || undefined,
+                state: data.state || undefined,
+                country: data.country || undefined,
+                pincode: data.pincode || undefined,
+                updatedAt: new Date().toISOString()
+            };
+
+            // Update user document in Firestore
+            const userRef = doc(db, 'users', user.uid);
+            await setDoc(userRef, userUpdate, { merge: true });
+
+            // Update local state
+            setUserData((prev: AppUser | null) => ({
+                ...prev!,
+                ...userUpdate,
+                photoURL: avatarUrl || (prev ? prev.photoURL : '')
+            } as AppUser));
+            
+            // Refresh user data in auth context
+            await refreshUser();
+            
+            toast({ 
+                title: "Profile Updated", 
+                description: "Your profile information has been updated successfully." 
+            });
         } catch (error) {
             console.error("Error updating profile:", error);
-            toast({ title: "Error", description: "Could not update your profile.", variant: "destructive" });
+            toast({ 
+                title: "Error", 
+                description: error instanceof Error ? error.message : "Could not update your profile. Please try again.", 
+                variant: "destructive" 
+            });
         } finally {
             setIsSubmitting(false);
         }
@@ -128,21 +255,71 @@ export default function SettingsPage() {
         if (!event.target.files || event.target.files.length === 0 || !user) {
             return;
         }
+
         const file = event.target.files[0];
+        
+        // Check file type
+        const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validImageTypes.includes(file.type)) {
+            toast({
+                title: "Invalid File Type",
+                description: "Please upload a valid image file (JPEG, PNG, GIF, or WebP).",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        // Check file size (max 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            toast({
+                title: "File Too Large",
+                description: "Please upload an image smaller than 5MB.",
+                variant: "destructive"
+            });
+            return;
+        }
+
         setIsUploading(true);
         try {
-            const storageRef = ref(storage, `profile_images/${user.uid}`);
+            // Get the current user from auth
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                throw new Error('No authenticated user found');
+            }
+
+            // Upload the file to Firebase Storage
+            const storageRef = ref(storage, `profile_images/${currentUser.uid}`);
             await uploadBytes(storageRef, file);
             const photoURL = await getDownloadURL(storageRef);
-            await updateProfile(user, { photoURL });
-            await refreshUser(); // Refresh user in context
-            setAvatarUrl(photoURL); // Update avatar in UI
-            toast({ title: "Avatar Updated", description: "Your profile picture has been changed." });
+
+            // Update the user's profile
+            await updateProfile(currentUser, { photoURL });
+            
+            // Force token refresh to ensure the photo URL is updated
+            await currentUser.getIdToken(true);
+            
+            // Update the UI
+            setAvatarUrl(photoURL);
+            await refreshUser();
+            
+            toast({ 
+                title: "Avatar Updated", 
+                description: "Your profile picture has been changed successfully." 
+            });
         } catch (error) {
             console.error("Error uploading file:", error);
-            toast({ title: "Upload Error", description: "Failed to upload new avatar.", variant: "destructive" });
+            toast({ 
+                title: "Upload Error", 
+                description: error instanceof Error ? error.message : "Failed to upload new avatar.", 
+                variant: "destructive" 
+            });
         } finally {
             setIsUploading(false);
+            // Reset the file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         }
     };
 
@@ -178,29 +355,41 @@ export default function SettingsPage() {
                         <CardContent>
                             <Form {...profileForm}>
                                 <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-8">
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-4 relative">
                                         <div className="relative">
                                             <Avatar className="w-24 h-24 cursor-pointer" onClick={handleAvatarClick}>
-                                                <AvatarImage src={avatarUrl} alt={user?.displayName || 'User'} />
-                                                <AvatarFallback className="text-3xl">{user?.displayName?.[0] || user?.email?.[0]}</AvatarFallback>
+                                                {avatarUrl ? (
+                                                    <AvatarImage src={avatarUrl} alt={user?.displayName || 'User'} />
+                                                ) : null}
+                                                <AvatarFallback className="text-3xl">
+                                                    {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+                                                </AvatarFallback>
                                             </Avatar>
-                                            <div className="absolute bottom-0 right-0 bg-primary rounded-full p-1.5 border-2 border-background">
-                                                {isUploading ? <Loader2 className="w-4 h-4 text-primary-foreground animate-spin" /> : <Camera className="w-4 h-4 text-primary-foreground" />}
+                                            <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1.5 border-2 border-background">
+                                                {isUploading ? (
+                                                    <Loader2 className="w-4 h-4 text-primary-foreground animate-spin" />
+                                                ) : (
+                                                    <Camera className="w-4 h-4 text-primary-foreground" />
+                                                )}
                                             </div>
-                                            <input
-                                                type="file"
-                                                ref={fileInputRef}
-                                                onChange={handleFileChange}
-                                                className="hidden"
-                                                accept="image/png, image/jpeg"
-                                            />
+                                            <div className="flex flex-col gap-1 mt-2">
+                                                <input
+                                                    type="file"
+                                                    ref={fileInputRef}
+                                                    onChange={handleFileChange}
+                                                    className="hidden"
+                                                    accept="image/jpeg, image/png, image/gif, image/webp"
+                                                />
+                                                <p className="text-xs text-muted-foreground">
+                                                    Supported formats: JPG, PNG, GIF, WebP (max 5MB)
+                                                </p>
+                                            </div>
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold">{user?.displayName || "User"}</h3>
                                             <p className="text-sm text-muted-foreground">{user?.email}</p>
                                         </div>
                                     </div>
-                                    
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <FormField control={profileForm.control} name="displayName" render={({ field }) => (
                                             <FormItem><FormLabel>Display Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -208,28 +397,131 @@ export default function SettingsPage() {
                                         <FormField control={profileForm.control} name="email" render={({ field }) => (
                                             <FormItem><FormLabel>Email</FormLabel><FormControl><Input {...field} disabled /></FormControl><FormMessage /></FormItem>
                                         )}/>
-                                        <FormField control={profileForm.control} name="phone" render={({ field }) => (
-                                            <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                                        )}/>
-                                        <FormField control={profileForm.control} name="dob" render={({ field }) => (
-                                        <FormItem className="flex flex-col">
-                                            <FormLabel>Date of Birth</FormLabel>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
+                                        <FormField 
+                                            control={profileForm.control} 
+                                            name="phone" 
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Phone Number</FormLabel>
                                                     <FormControl>
-                                                        <Button variant={"outline"} className="pl-3 text-left font-normal">
-                                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                        </Button>
+                                                        <Input 
+                                                            {...field} 
+                                                            value={field.value || ''} 
+                                                            onChange={(e) => field.onChange(e.target.value)}
+                                                        />
                                                     </FormControl>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0" align="start">
-                                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus />
-                                                </PopoverContent>
-                                            </Popover>
-                                            <FormMessage />
-                                        </FormItem>
-                                        )}/>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField 
+                                            control={profileForm.control} 
+                                            name="dob" 
+                                            render={({ field }) => {
+                                                const handleYearNavigation = (e: React.MouseEvent, change: number) => {
+                                                    e.stopPropagation();
+                                                    if (field.value) {
+                                                        const newDate = new Date(field.value);
+                                                        newDate.setFullYear(newDate.getFullYear() + change);
+                                                        field.onChange(newDate);
+                                                    }
+                                                };
+                                                
+                                                return (
+                                                    <FormItem className="flex flex-col">
+                                                        <FormLabel>Date of Birth</FormLabel>
+                                                        <Popover>
+                                                            <PopoverTrigger asChild>
+                                                                <FormControl>
+                                                                    <Button variant={"outline"} className="pl-3 text-left font-normal w-full">
+                                                                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                                    </Button>
+                                                                </FormControl>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent className="w-auto p-0 z-[9999] bg-background" align="start">
+                                                                <div className="bg-background rounded-md border shadow-lg p-2">
+                                                                    <div className="flex justify-between items-center px-4 py-2 border-b">
+                                                                        <Button 
+                                                                            type="button" 
+                                                                            variant="ghost" 
+                                                                            size="sm" 
+                                                                            className="h-7 w-7 p-0"
+                                                                            onClick={(e) => handleYearNavigation(e, -10)}
+                                                                            aria-label="Previous 10 years"
+                                                                        >
+                                                                            -10y
+                                                                        </Button>
+                                                                        <Button 
+                                                                            type="button" 
+                                                                            variant="ghost" 
+                                                                            size="sm" 
+                                                                            className="h-7 w-7 p-0"
+                                                                            onClick={(e) => handleYearNavigation(e, -1)}
+                                                                            aria-label="Previous year"
+                                                                        >
+                                                                            -1y
+                                                                        </Button>
+                                                                        <Button 
+                                                                            type="button" 
+                                                                            variant="ghost" 
+                                                                            size="sm" 
+                                                                            className="h-7 w-7 p-0"
+                                                                            onClick={(e) => handleYearNavigation(e, 1)}
+                                                                            aria-label="Next year"
+                                                                        >
+                                                                            +1y
+                                                                        </Button>
+                                                                        <Button 
+                                                                            type="button" 
+                                                                            variant="ghost" 
+                                                                            size="sm" 
+                                                                            className="h-7 w-7 p-0"
+                                                                            onClick={(e) => handleYearNavigation(e, 10)}
+                                                                            aria-label="Next 10 years"
+                                                                        >
+                                                                            +10y
+                                                                        </Button>
+                                                                    </div>
+                                                                    <Calendar 
+                                                                        mode="single" 
+                                                                        selected={field.value} 
+                                                                        onSelect={field.onChange}
+                                                                        disabled={false}
+                                                                        initialFocus
+                                                                        captionLayout="dropdown-buttons"
+                                                                        fromYear={1900}
+                                                                        toYear={new Date().getFullYear()}
+                                                                        className="bg-background text-foreground"
+                                                                        classNames={{
+                                                                            dropdown: "bg-background border rounded-md px-2 py-1 text-foreground shadow-sm",
+                                                                            caption_dropdowns: "flex gap-4 mb-2 p-2 bg-background rounded-md relative",
+                                                                            dropdown_year: "flex items-center gap-1 bg-background px-3 py-1.5 rounded-md border shadow-sm hover:bg-accent/50 transition-colors",
+                                                                            dropdown_month: "flex items-center gap-1 bg-background px-3 py-1.5 rounded-md border shadow-sm hover:bg-accent/50 transition-colors",
+                                                                            caption_label: "hidden",
+                                                                            caption: "relative w-full",
+                                                                            nav: "absolute inset-0 flex items-center justify-between pointer-events-none",
+                                                                            nav_button: "h-7 w-7 bg-background hover:bg-accent rounded-md p-0 flex items-center justify-center shadow-sm hover:shadow-md transition-all pointer-events-auto border",
+                                                                            nav_button_previous: "-left-1",
+                                                                            nav_button_next: "-right-1",
+                                                                            table: "w-full border-collapse space-y-1 mt-2 bg-background p-3 rounded-lg border shadow-md",
+                                                                            head_row: "flex w-full justify-between px-1",
+                                                                            head_cell: "text-muted-foreground w-9 font-medium text-sm py-2",
+                                                                            row: "flex w-full mt-2 justify-between",
+                                                                            cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                                                                            day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors duration-200 flex items-center justify-center",
+                                                                            day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 font-medium shadow-sm",
+                                                                            day_today: "bg-accent/80 text-accent-foreground font-bold border border-foreground/20"
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                );
+                                            }}
+                                        />
                                         <FormField control={profileForm.control} name="bloodGroup" render={({ field }) => (
                                         <FormItem><FormLabel>Blood Group</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -270,10 +562,12 @@ export default function SettingsPage() {
                                         </div>
                                     </div>
 
-                                    <Button type="submit" disabled={isSubmitting}>
-                                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                        Update Profile
-                                    </Button>
+                                    <div className="flex justify-end">
+                                        <Button type="submit" disabled={isSubmitting}>
+                                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                            Update Profile
+                                        </Button>
+                                    </div>
                                 </form>
                             </Form>
                         </CardContent>

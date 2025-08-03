@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isProvider(providerId) {
+      return request.auth.uid == providerId;
+    }
+    
+    function getProviderId() {
+      return request.auth.uid;
+    }
+    
+    // AI Agents collection
+    match /ai-agents/{agentId} {
+      // Allow read if authenticated and the agent belongs to the provider
+      allow read: if isAuthenticated() && (
+        isProvider(resource.data.providerId) || 
+        // Allow public read access to active agents
+        (resource.data.status == 'active' && resource.data.isPublic == true)
+      );
+      
+      // Allow create/update/delete only for the provider who owns the agent
+      allow create: if isAuthenticated() && isProvider(request.resource.data.providerId);
+      allow update, delete: if isAuthenticated() && isProvider(resource.data.providerId);
+    }
+    
+    // Consultations collection
+    match /consultations/{consultationId} {
+      // Allow read if the provider or agent is involved in the consultation
+      allow read: if isAuthenticated() && (
+        isProvider(resource.data.providerId) ||
+        request.auth.uid == resource.data.agentId ||
+        request.auth.uid == resource.data.patientId
+      );
+      
+      // Allow create/update only for the provider or agent
+      allow create: if isAuthenticated() && (
+        isProvider(request.resource.data.providerId) ||
+        request.auth.uid == request.resource.data.agentId
+      );
+      
+      allow update: if isAuthenticated() && (
+        isProvider(resource.data.providerId) ||
+        request.auth.uid == resource.data.agentId
+      );
+      
+      // Only allow soft deletes (updating status to cancelled)
+      allow delete: if false; // Disable hard deletes
+    }
+    
+    // API Keys collection
+    match /api-keys/{keyId} {
+      // Only the provider can read their own API keys
+      allow read: if isAuthenticated() && isProvider(resource.data.providerId);
+      
+      // Only the provider can create/update/revoke their own API keys
+      allow create: if isAuthenticated() && isProvider(request.resource.data.providerId);
+      allow update: if isAuthenticated() && isProvider(resource.data.providerId);
+      allow delete: if false; // Disable hard deletes, use soft delete (revoke)
+    }
+    
+    // Provider Settings collection
+    match /provider-settings/{providerId} {
+      // Only the provider can read their own settings
+      allow read: if isAuthenticated() && isProvider(providerId);
+      
+      // Only the provider can update their own settings
+      allow create, update: if isAuthenticated() && isProvider(providerId);
+      allow delete: if false; // Disable deletes
+    }
+    
+    // Analytics data (if stored in Firestore)
+    match /analytics/{providerId} {
+      // Only the provider can read their own analytics
+      allow read: if isAuthenticated() && isProvider(providerId);
+      
+      // Only server-side code can write to analytics
+      allow write: if false; // Disable client-side writes
+    }
+    
+    // Billing information
+    match /billing/{providerId} {
+      // Only the provider can read their own billing info
+      allow read: if isAuthenticated() && isProvider(providerId);
+      
+      // Only server-side code can write to billing
+      allow write: if false; // Disable client-side writes
+    }
+    
+    // Audit logs
+    match /audit-logs/{logId} {
+      // Only server-side code can write to audit logs
+      allow write: if false;
+      
+      // Only the provider can read their own audit logs
+      allow read: if isAuthenticated() && isProvider(resource.data.providerId);
+    }
+  }
+}

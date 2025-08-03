@@ -31,7 +31,7 @@ export function DoctorSidebar() {
             <nav className="flex flex-col items-center gap-4 px-2 py-4">
                 <Link href="/doctor/dashboard" className="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base">
                     <Stethoscope className="h-5 w-5 transition-all group-hover:scale-110" />
-                    <span className="sr-only">AIDoctor</span>
+                    <span className="sr-only">Not Too Late AI</span>
                 </Link>
                 <TooltipProvider>
                     {navItems.map((item) => (

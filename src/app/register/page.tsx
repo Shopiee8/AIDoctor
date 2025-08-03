@@ -32,7 +32,7 @@ export default function RegisterPage() {
             <Link href="/" className="inline-block mb-4">
                 <Stethoscope className="h-10 w-10 text-primary mx-auto" />
             </Link>
-            <h1 className="text-3xl font-bold font-headline">Join AIDoctor</h1>
+            <h1 className="text-3xl font-bold font-headline">Join Not Too Late AI</h1>
             <p className="text-muted-foreground">Choose your role to get started.</p>
         </div>
         <div className="grid md:grid-cols-3 gap-6">

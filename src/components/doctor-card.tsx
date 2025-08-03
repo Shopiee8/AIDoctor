@@ -418,7 +418,7 @@ export function DoctorCard({ doctor, viewMode = 'list' }: DoctorCardProps) {
 
   const { openBookingModal } = useBookingStore();
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const handleFavoriteClick: (e: React.MouseEvent) => void = (e) => {
     e.stopPropagation();
     e.preventDefault();
     setIsFavorited(!isFavorited);

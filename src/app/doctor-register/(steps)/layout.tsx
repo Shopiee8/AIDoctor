@@ -14,7 +14,7 @@ export default function StepsLayout({
                 </div>
             </div>
             <footer className="py-4 text-center text-xs text-muted-foreground">
-                © {new Date().getFullYear()} AIDoctor. All Rights Reserved.
+                © {new Date().getFullYear()} Not Too Late AI. All Rights Reserved.
             </footer>
         </div>
     );

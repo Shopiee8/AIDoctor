@@ -33,19 +33,14 @@ export default function PatientDashboardLayout({
     };
   }, [user, fetchPatientData, clearPatientData]);
   
-  // If on consultation page, render children without the layout for a full-screen experience
-  if (pathname === '/dashboard/consultation') {
-    return <>{children}</>;
-  }
-
   return (
     <RoleGuard allowedRoles={['Patient']}>
        <div className="flex min-h-screen w-full">
           <PatientSidebar />
           <div className="flex flex-col flex-1 overflow-x-hidden">
               <DashboardHeader />
-              <main className="flex-1 w-full p-0 m-0">
-                  <div className="w-full max-w-none">
+              <main className="flex-1 w-full p-4 md:p-6 lg:p-8">
+                  <div className="w-full max-w-7xl mx-auto">
                     {children}
                   </div>
               </main>

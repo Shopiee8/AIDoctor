@@ -46,7 +46,7 @@ export function Footer() {
                         <div className="lg:col-span-3">
                             <Link href="/" className="flex items-center gap-2 mb-4">
                                 <Stethoscope className="w-8 h-8 text-primary" />
-                                <span className="text-2xl font-bold font-headline">AIDoctor</span>
+                                <span className="text-2xl font-bold font-headline">Not Too Late AI</span>
                             </Link>
                             <p className="text-sm text-muted-foreground mb-4">
                                 The future of healthcare, combining AI efficiency with human expertise.
@@ -93,7 +93,7 @@ export function Footer() {
                 </div>
                 <div className="border-t py-6 flex flex-col sm:flex-row items-center justify-between">
                     <p className="text-xs text-muted-foreground mb-4 sm:mb-0">
-                        Copyright © {new Date().getFullYear()} AIDoctor. All Rights Reserved.
+                        Copyright © {new Date().getFullYear()} Not Too Late AI. All Rights Reserved.
                     </p>
                      <div className="flex items-center gap-4">
                         <Link href="#" className="text-xs text-muted-foreground hover:text-primary">Terms of Service</Link>

@@ -11,6 +11,9 @@ import { Loader2, List, LayoutGrid, Sparkles } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { calculateAIMatchScore, sortDoctorsByAIMatch, type PatientQuery, type MatchScore } from '@/lib/ai-matching';
+import type { DoctorData } from '@/lib/ai-matching';
+import { getAIDoctorsByProvider } from '@/lib/firebase/providerService';
+import { getCurrentUser } from '@/lib/session';
 
 type ViewMode = 'list' | 'grid';
 
@@ -25,15 +28,70 @@ function ResultsComponent() {
         const fetchDoctors = async () => {
             setIsLoading(true);
             try {
+                // Fetch human doctors
                 const doctorsRef = collection(db, 'doctors');
-                const querySnapshot = await getDocs(doctorsRef);
+                const doctorsSnapshot = await getDocs(doctorsRef);
                 
+                // Fetch AI doctors
+                const currentUser = await getCurrentUser();
+                const aiDoctors = currentUser ? await getAIDoctorsByProvider(currentUser.id) : [];
+                
+                // Combine and map to Doctor type
                 const allDoctors: Doctor[] = [];
-                querySnapshot.forEach((doc) => {
-                    if (doc.data().name && doc.data().specialty) {
-                        allDoctors.push({ id: doc.id, ...doc.data() } as Doctor);
+                
+                // Add human doctors
+                doctorsSnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.name && data.specialty) {
+                        const doctor: Doctor = {
+                            id: doc.id,
+                            type: 'Human',
+                            name: data.name,
+                            specialty: data.specialty,
+                            specialization: Array.isArray(data.specialization) 
+                                ? data.specialization 
+                                : data.specialization ? [data.specialization] : [],
+                            location: data.location || '',
+                            rating: data.rating || 0,
+                            experience: data.experience || [],
+                            education: data.education || [],
+                            languages: Array.isArray(data.languages) ? data.languages : [],
+                            fees: data.fees || 0,
+                            available: data.available || false,
+                            isVerified: data.isVerified || false,
+                            nextAvailable: data.nextAvailable || '',
+                            image: data.image || '/default-avatar.png' // Add required image property
+                        };
+                        allDoctors.push(doctor);
                     }
                 });
+                
+                // Add AI doctors
+                aiDoctors.forEach((aiDoctor: any) => {
+                    const doctor: Doctor = {
+                        id: aiDoctor.id,
+                        type: 'AI',
+                        name: aiDoctor.name,
+                        specialty: aiDoctor.specialty,
+                        specialization: typeof aiDoctor.specialty === 'string' ? [aiDoctor.specialty] : [],
+                        location: 'Online',
+                        rating: aiDoctor.rating || 4.8,
+                        experience: typeof aiDoctor.experience === 'number' 
+                            ? [{ years: aiDoctor.experience }] 
+                            : [],
+                        education: aiDoctor.education || [],
+                        languages: Array.isArray(aiDoctor.languages) ? aiDoctor.languages : ['English'],
+                        fees: typeof aiDoctor.consultationFee === 'number' ? aiDoctor.consultationFee : 0,
+                        available: aiDoctor.isActive !== false,
+                        isVerified: true,
+                        nextAvailable: 'Now',
+                        aiMatchScore: 0, // Will be calculated below
+                        image: aiDoctor.avatar || '/default-avatar.png' // Add required image property
+                    };
+                    allDoctors.push(doctor);
+                });
+
+                // Extract patient query from search parameters
 
                 // Extract patient query from search parameters
                 const patientQuery: PatientQuery = {
@@ -61,16 +119,49 @@ function ResultsComponent() {
                     return (nameMatch || specialtyMatch) && locationMatch;
                 });
 
-                // Calculate AI match scores and sort
-                const scores = sortDoctorsByAIMatch(patientQuery, filteredDoctors);
+                // Map Doctor to DoctorData for AI matching
+                const doctorDataList = allDoctors.map(doctor => {
+                    // Create a DoctorData object with required fields
+                    const doctorData: DoctorData = {
+                        id: doctor.id,
+                        name: doctor.name,
+                        specialty: doctor.specialty,
+                        specialization: Array.isArray(doctor.specialization) 
+                            ? doctor.specialization 
+                            : doctor.specialization ? [doctor.specialization] : [],
+                        location: doctor.location,
+                        rating: doctor.rating || 0,
+                        experience: Array.isArray(doctor.experience) 
+                            ? doctor.experience 
+                            : doctor.experience ? [{ years: Number(doctor.experience) }] : [],
+                        education: [],
+                        awards: [],
+                        conferences: [],
+                        languages: Array.isArray(doctor.languages) 
+                            ? doctor.languages 
+                            : doctor.languages ? [doctor.languages] : [],
+                        fees: typeof doctor.fees === 'string' 
+                            ? parseFloat(doctor.fees.replace(/[^0-9.]/g, '')) 
+                            : Number(doctor.fees) || 0,
+                        available: doctor.available || false,
+                        type: doctor.type === 'AI' ? 'AI' : 'Human',
+                        verified: (doctor as any).isVerified || false,
+                        onlineTherapy: true,
+                        nextAvailable: doctor.nextAvailable || ''
+                    };
+                    return doctorData;
+                });
+                
+                // Calculate AI match scores using the mapped DoctorData
+                const scores = sortDoctorsByAIMatch(patientQuery, doctorDataList);
                 setMatchScores(scores);
 
-                // Update doctors with AI match scores
-                const doctorsWithScores = filteredDoctors.map(doctor => {
-                    const matchScore = scores.find(score => score.doctorId === doctor.id);
+                // Update doctors with their AI match scores
+                const doctorsWithScores = allDoctors.map(doctor => {
+                    const match = scores.find(score => score.doctorId === doctor.id);
                     return {
                         ...doctor,
-                        aiMatchScore: matchScore?.aiMatchPercentage || 0
+                        aiMatchScore: match ? match.aiMatchPercentage : 0
                     };
                 });
 

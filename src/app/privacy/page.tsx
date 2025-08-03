@@ -11,7 +11,7 @@ export default function PrivacyPolicyPage() {
           <h1 className="text-3xl font-bold font-headline mb-6">Privacy Policy</h1>
           <div className="prose prose-lg max-w-none text-muted-foreground">
             <p>
-              Your privacy is important to us. It is AIDoctor's policy to respect
+              Your privacy is important to us. It is Not Too Late AI's policy to respect
               your privacy regarding any information we may collect from you across
               our website, and other sites we own and operate.
             </p>

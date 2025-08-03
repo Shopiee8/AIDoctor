@@ -6,10 +6,10 @@ export function LandingFooter() {
     <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
       <div className="flex items-center">
         <Stethoscope className="h-6 w-6 text-primary" />
-        <span className="ml-2 text-lg font-semibold font-headline">AIDoctor</span>
+        <span className="ml-2 text-lg font-semibold font-headline">Not Too Late AI</span>
       </div>
       <p className="text-xs text-muted-foreground sm:ml-auto">
-        &copy; {new Date().getFullYear()} AIDoctor. All rights reserved.
+        &copy; {new Date().getFullYear()} Not Too Late AI. All rights reserved.
       </p>
       <nav className="sm:ml-auto flex gap-4 sm:gap-6">
         <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
