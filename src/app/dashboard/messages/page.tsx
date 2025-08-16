@@ -89,8 +89,11 @@ export default function MessagesPage() {
              {onlineContacts.map(contact => (
                 <div key={contact.id} className="px-1">
                     <Avatar className="w-12 h-12 border-2 border-green-500 p-0.5">
-                        <AvatarImage src={contact.image} data-ai-hint="person portrait" />
-                        <AvatarFallback>{contact.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage 
+                          src={contact.image} 
+                          fallbackText={contact.name}
+                          data-ai-hint="person portrait"
+                        />
                     </Avatar>
                 </div>
             ))}
@@ -124,8 +127,10 @@ export default function MessagesPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <Avatar className="w-10 h-10 border-2 border-green-500 p-0.5">
-            <AvatarImage src={activeChat.image} />
-            <AvatarFallback>{activeChat.name.charAt(0)}</AvatarFallback>
+            <AvatarImage 
+              src={activeChat.image} 
+              fallbackText={activeChat.name}
+            />
           </Avatar>
           <div className="ml-3">
             <h5 className="font-bold text-sm">{activeChat.name}</h5>
@@ -154,8 +159,10 @@ export default function MessagesPage() {
               <div key={msg.id} className={cn("flex items-end gap-3", msg.from === 'me' && 'justify-end')}>
                 {msg.from === 'doctor' && (
                   <Avatar className="w-8 h-8">
-                    <AvatarImage src={activeChat.image} />
-                    <AvatarFallback>{activeChat.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage 
+                      src={activeChat.image} 
+                      fallbackText={activeChat.name}
+                    />
                   </Avatar>
                 )}
                 <div className={cn("max-w-md p-3 rounded-lg", 
@@ -227,8 +234,10 @@ function ChatItem({ chat, activeChat, setActiveChat }: { chat: any, activeChat: 
                     "w-12 h-12 border-2",
                     chat.status === 'online' ? 'border-green-500' : 'border-transparent'
                 )}>
-                    <AvatarImage src={chat.image} />
-                    <AvatarFallback>{chat.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage 
+                      src={chat.image} 
+                      fallbackText={chat.name}
+                    />
                 </Avatar>
                 <div className="flex-1">
                     <div className="flex justify-between items-center">

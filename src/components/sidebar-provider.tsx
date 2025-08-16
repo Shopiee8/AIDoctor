@@ -19,27 +19,27 @@ export function ProviderSidebar() {
     () => [
       {
         name: 'Dashboard',
-        href: '/dashboard/ai-provider',
+        href: '/ai-provider/dashboard',
         icon: LayoutDashboard,
-        active: pathname === '/dashboard/ai-provider',
+        active: pathname === '/ai-provider/dashboard',
       },
       {
         name: 'AI Doctors',
-        href: '/dashboard/ai-provider/doctors',
+        href: '/ai-provider/doctors',
         icon: Stethoscope,
-        active: pathname.startsWith('/dashboard/ai-provider/doctors'),
+        active: pathname.startsWith('/ai-provider/doctors'),
       },
       {
         name: 'Analytics',
-        href: '/dashboard/ai-provider/analytics',
+        href: '/ai-provider/analytics',
         icon: LineChart,
-        active: pathname.startsWith('/dashboard/ai-provider/analytics'),
+        active: pathname.startsWith('/ai-provider/analytics'),
       },
       {
         name: 'Settings',
-        href: '/dashboard/ai-provider/settings',
+        href: '/ai-provider/settings',
         icon: Settings,
-        active: pathname.startsWith('/dashboard/ai-provider/settings'),
+        active: pathname.startsWith('/ai-provider/settings'),
       },
     ],
     [pathname]
@@ -87,7 +87,7 @@ export function ProviderSidebar() {
             
             <div className="mt-4 pt-4 border-t">
               <Link
-                href="/dashboard/ai-provider/doctors/new"
+                href="/ai-provider/doctors/new"
                 className="flex items-center gap-3 rounded-lg bg-primary px-3 py-2 text-primary-foreground transition-all hover:bg-primary/90"
               >
                 <Plus className="h-4 w-4" />

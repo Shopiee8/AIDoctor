@@ -36,10 +36,17 @@ export default function AiProviderRegisterStepTwo() {
       }
 
       try {
-        const providerDoc = await getDoc(doc(db, 'temp-ai-providers', user.uid));
+        // Check both the aiProviders collection and the users collection
+        const [providerDoc, userDoc] = await Promise.all([
+          getDoc(doc(db, 'aiProviders', user.uid)),
+          getDoc(doc(db, 'users', user.uid))
+        ]);
         
-        // If no document or registration step is not 1, redirect to step 1
-        if (!providerDoc.exists() || providerDoc.data()?.registrationStep !== 1) {
+        // If user is not an AI Provider or registration is not in progress, redirect to step 1
+        const isAIProvider = userDoc.exists() && (userDoc.data().role === 'AI Provider' || userDoc.data().isAIProvider);
+        const isRegistrationInProgress = providerDoc.exists() && providerDoc.data().registrationStep === 1;
+        
+        if (!isAIProvider || !isRegistrationInProgress) {
           router.push('/ai-provider-register/step-1');
           return;
         }
@@ -79,23 +86,56 @@ export default function AiProviderRegisterStepTwo() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    
+    if (!user) {
+      toast({
+        title: 'Error',
+        description: 'You must be logged in to continue',
+        variant: 'destructive',
+      });
+      router.push('/login');
+      return;
+    }
     
     setIsSubmitting(true);
-    
+
     try {
-      // Save the form data to the temporary provider document
-      await setDoc(doc(db, 'temp-ai-providers', user.uid), {
+      // Update the AI Provider document
+      await setDoc(doc(db, 'aiProviders', user.uid), {
         ...formData,
-        registrationStep: 2,
+        userId: user.uid,
+        registrationComplete: false,
+        registrationStep: 2, // Move to next step
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        settings: {
+          notifications: true,
+          emailNotifications: true,
+          defaultLanguage: 'en',
+        },
+        subscriptionPlan: 'free',
+        subscriptionStatus: 'active'
+      }, { merge: true });
+
+      // Also update the user document to mark as AI Provider
+      await setDoc(doc(db, 'users', user.uid), {
+        role: 'AI Provider',
+        isAIProvider: true,
         updatedAt: new Date().toISOString()
       }, { merge: true });
-      
-      // Move to the next step
+
+      // Force refresh the user's token to update claims
+      await user.getIdToken(true);
+
+      // Redirect to step 3
       router.push('/ai-provider-register/step-3');
     } catch (error) {
-      console.error('Error saving AI provider data:', error);
-      // Handle error (you might want to show a toast notification)
+      console.error('Error saving AI provider details:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save your details. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsSubmitting(false);
     }

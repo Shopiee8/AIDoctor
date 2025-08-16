@@ -1,26 +1,52 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { usePatientDataStore } from '@/store/patient-data-store';
-import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
+import { theme } from './theme';
+
+// Define the HealthReport interface to match the store's structure
+interface HealthReport {
+  percentage: number;
+  title: string;
+  details: string;
+  lastVisit: string | Date;  // Made required to match usage
+  status: string;           // Made required to match usage
+}
+
+// Add default health report values
+const defaultHealthReport: HealthReport = {
+  percentage: 0,
+  title: 'Overall Health',
+  details: 'Your health report is being generated',
+  lastVisit: new Date(),
+  status: 'Normal'
+};
+import { ModernSidebar, ModernSidebarBody, ModernSidebarLink } from '@/components/ui/modern-sidebar';
 import { 
+  LayoutDashboard,
+  MessageSquare, 
+  FileText, 
+  Settings, 
+  LogOut, 
+  Stethoscope, 
+  User, 
+  Calendar, 
+  HelpCircle, 
+  Home, 
+  HeartPulse, 
+  Pill, 
+  ClipboardList, 
+  Bell, 
+  UserPlus,
   Heart, 
   Thermometer, 
   Activity, 
   Droplets, 
   Scale, 
   Wind,
-  Calendar,
   MessageCircle,
   Video,
   Hospital,
-  Bell,
   Star,
   Users,
   Plus,
@@ -33,6 +59,14 @@ import {
   Trash2,
   Link2
 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import { usePatientDataStore } from '@/store/patient-data-store';
+import { useAuth } from '@/hooks/use-auth';
 import { format } from 'date-fns';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line } from 'recharts';
 
@@ -81,19 +115,174 @@ interface Dependent {
   image: string;
 }
 
+// Helper function to get initials from name
+function getInitials(name: string) {
+  if (!name) return 'U';
+  return name
+    .split(' ')
+    .map(part => part[0] || '')
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
+}
+
+// Add a custom hook to handle the initial data loading
 export default function EnhancedPatientDashboard() {
-  const { user } = useAuth();
-  const { 
-    healthRecords, 
-    healthReport, 
-    analytics, 
-    favorites, 
-    upcomingAppointments, 
-    notifications, 
-    dependents,
+  const [isClientSide, setIsClientSide] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const { user, userRole } = useAuth();
+  const router = useRouter();
+  
+  // Use the imported theme as initial state
+  const [currentTheme, setCurrentTheme] = useState(theme);
+  const {
+    healthRecords = [],
+    healthReport = defaultHealthReport as HealthReport,
+    analytics = {},
+    favorites = [],
+    appointmentDates = [],
+    upcomingAppointments = [],
+    notifications = [],
+    dependents = [],
+    relaxationData = {},
     isLoading,
-    fetchPatientData 
+    fetchPatientData,
   } = usePatientDataStore();
+  
+  // Track if we're on the client side to prevent hydration issues
+  useEffect(() => {
+    setIsClientSide(true);
+  }, []);
+
+  // Debug logging
+  console.log('Dashboard rendering - isLoading:', isLoading, 'user:', !!user);
+  
+  // Handle role-based redirection and data loading
+  useEffect(() => {
+    console.log('useEffect triggered - user:', user, 'userRole:', userRole);
+    
+    // Set client-side flag
+    setIsClientSide(true);
+    
+    // If no user, let the UI handle the auth state
+    if (!user) {
+      console.log('No user found');
+      return;
+    }
+    
+    // Normalize role and redirect if needed (case-insensitive)
+    const normalizedRole = (userRole || '').toLowerCase();
+    if (normalizedRole && normalizedRole !== 'patient') {
+      if (!isRedirecting) {
+        console.log(`User has role '${userRole}', redirecting to appropriate dashboard`);
+        setIsRedirecting(true);
+        // Redirect based on role
+        if (normalizedRole === 'ai provider') {
+          router.push('/ai-provider/dashboard');
+        } else if (normalizedRole === 'doctor') {
+          router.push('/doctor/dashboard');
+        } else if (normalizedRole === 'admin') {
+          router.push('/admin/dashboard');
+        } else {
+          // Default redirect for other non-patient roles
+          router.push(`/${normalizedRole.replace(/\s+/g, '-')}/dashboard`);
+        }
+      }
+      return;
+    }
+    
+    console.log('Starting data fetch for user:', user.uid);
+    let isMounted = true;
+    
+    const loadData = async () => {
+      console.log('loadData started');
+      try {
+        // Set loading state
+        usePatientDataStore.setState({ isLoading: true });
+        
+        // Fetch patient data with a timeout
+        const fetchWithTimeout = () => {
+          return new Promise<() => void>(async (resolve, reject) => {
+            const timeout = setTimeout(() => {
+              reject(new Error('Data fetch timed out after 10 seconds'));
+            }, 10000);
+            
+            try {
+              if (!user?.uid) {
+                throw new Error('No user UID available');
+              }
+              const unsub = await fetchPatientData(user.uid);
+              clearTimeout(timeout);
+              resolve(unsub);
+            } catch (error) {
+              clearTimeout(timeout);
+              reject(error);
+            }
+          });
+        };
+        
+        const unsub = await fetchWithTimeout();
+        console.log('fetchPatientData completed');
+        return unsub;
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        // Ensure loading state is reset on error
+        usePatientDataStore.setState({ isLoading: false });
+        return () => {}; // Return empty cleanup function
+      }
+    };
+    
+    // Only fetch data if we're not redirecting
+    if (!isRedirecting) {
+      const cleanupPromise = loadData();
+      
+      // Cleanup function to handle component unmounting
+      return () => {
+        console.log('Cleanup function called');
+        isMounted = false;
+        cleanupPromise.then((unsub: (() => void) | undefined) => {
+          if (typeof unsub === 'function') {
+            unsub();
+          }
+        }).catch(error => {
+          console.error('Error during cleanup:', error);
+        });
+      };
+    }
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.uid, userRole, router, isRedirecting]);
+
+  // Show loading state while data is being fetched or redirecting
+  if (isLoading || isRedirecting) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-muted-foreground">
+            {isRedirecting ? 'Redirecting...' : 'Loading your dashboard...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // If no user data is available after loading
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Session Expired</h2>
+          <p className="text-muted-foreground mb-6">Please sign in to access your dashboard</p>
+          <Button onClick={() => router.push('/login')}>
+            Sign In
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // Dark theme colors
   const theme = {
@@ -184,28 +373,28 @@ export default function EnhancedPatientDashboard() {
       id: '1',
       name: 'Dr. Edalin Hendry',
       specialty: 'Endodontist',
-      image: 'https://via.placeholder.com/40x40',
+      image: 'https://i.pravatar.cc/40?img=1',
       rating: 4.8
     },
     {
       id: '2',
       name: 'Dr. Maloney',
       specialty: 'Cardiologist',
-      image: 'https://via.placeholder.com/40x40',
+      image: 'https://i.pravatar.cc/40?img=2',
       rating: 4.9
     },
     {
       id: '3',
       name: 'Dr. Wayne',
       specialty: 'Dental Specialist',
-      image: 'https://via.placeholder.com/40x40',
+      image: 'https://i.pravatar.cc/40?img=3',
       rating: 4.7
     },
     {
       id: '4',
       name: 'Dr. Marla',
       specialty: 'Endodontist',
-      image: 'https://via.placeholder.com/40x40',
+      image: 'https://i.pravatar.cc/40?img=4',
       rating: 4.6
     }
   ]);
@@ -217,7 +406,7 @@ export default function EnhancedPatientDashboard() {
         id: '1',
         name: 'Dr. Edalin Hendry',
         specialty: 'Dentist',
-        image: 'https://via.placeholder.com/40x40',
+        image: 'https://i.pravatar.cc/40?img=5',
         rating: 4.8
       },
       date: '2025-07-31',
@@ -231,7 +420,7 @@ export default function EnhancedPatientDashboard() {
         id: '2',
         name: 'Dr. Juliet Gabriel',
         specialty: 'Cardiologist',
-        image: 'https://via.placeholder.com/40x40',
+        image: 'https://i.pravatar.cc/40?img=6',
         rating: 4.9
       },
       date: '2025-08-01',
@@ -282,14 +471,14 @@ export default function EnhancedPatientDashboard() {
       name: 'Laura',
       relation: 'Mother',
       age: 58,
-      image: '/api/placeholder/40/40'
+      image: 'https://i.pravatar.cc/40?img=10'
     },
     {
       id: '2',
       name: 'Mathew',
       relation: 'Father',
       age: 59,
-      image: '/api/placeholder/40/40'
+      image: 'https://i.pravatar.cc/40?img=11'
     }
   ]);
 
@@ -313,52 +502,41 @@ export default function EnhancedPatientDashboard() {
     { day: 'Sun', systolic: 130, diastolic: 70 }
   ];
 
-  // Fetch patient data on component mount
-  useEffect(() => {
-    if (user?.uid) {
-      const unsubscribe = fetchPatientData(user.uid);
-      return unsubscribe;
-    }
-  }, [user?.uid, fetchPatientData]);
+  // Removed duplicate data fetching effect
 
   // Update health metrics when healthRecords change
   useEffect(() => {
-    if (healthRecords.length > 0) {
+    if (healthRecords && healthRecords.length > 0) {
       const updatedMetrics = healthMetrics.map(metric => {
-        const record = healthRecords.find(r => 
-          r.title.toLowerCase().includes(metric.title.toLowerCase().split(' ')[0])
+        const record = healthRecords.find((r: any) => 
+          r.title && r.title.toLowerCase().includes(metric.title.toLowerCase().split(' ')[0])
         );
         return record ? { ...metric, value: record.value } : metric;
       });
       setHealthMetrics(updatedMetrics);
     }
-  }, [healthRecords]);
+  }, [healthRecords, healthMetrics, setHealthMetrics]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // Removed duplicate loading state
 
   return (
-    <div className={`min-h-screen w-full ${theme.background} ${theme.text.primary} overflow-x-hidden`}>
+    <main className={`min-h-screen w-full ${currentTheme.background} ${currentTheme.text.primary} overflow-x-hidden`}>
       <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full">
           <div>
             <h1 className="text-3xl font-bold">Patient Dashboard</h1>
-            <p className={theme.text.secondary}>Welcome back, {user?.displayName || 'Patient'}</p>
+            <p className={currentTheme.text.secondary}>Welcome back, {user?.displayName || 'Patient'}</p>
           </div>
           <div className="flex items-center gap-2 mt-4 md:mt-0">
             <Avatar className="h-10 w-10 border border-gray-600">
-              <AvatarImage src={user?.photoURL || ''} />
-              <AvatarFallback className="bg-gray-700 text-gray-200">
-                {user?.displayName?.[0]?.toUpperCase() || 'P'}
-              </AvatarFallback>
+              <AvatarImage 
+                src={user?.photoURL || ''} 
+                fallbackText={user?.displayName || 'Patient'}
+                className="bg-gray-700 text-gray-200"
+              />
             </Avatar>
-            <span className={`font-medium ${theme.text.primary}`}>
+            <span className={`font-medium ${currentTheme.text.primary}`}>
               {user?.displayName || 'Patient'}
             </span>
           </div>
@@ -369,7 +547,7 @@ export default function EnhancedPatientDashboard() {
           <div className="xl:col-span-8">
             <Card className={`mb-6 ${theme.card} border ${theme.border}`}>
               <CardHeader className="border-b border-gray-700">
-                <CardTitle className={theme.text.primary}>Health Overview</CardTitle>
+                <CardTitle className={currentTheme.text.primary}>Health Overview</CardTitle>
               </CardHeader>
               <CardContent className="bg-gray-800">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -385,7 +563,7 @@ export default function EnhancedPatientDashboard() {
                       : metric.color;
                     
                     return (
-                      <div key={metric.id} className={`p-4 rounded-lg ${darkModeBg} border ${theme.border}`}>
+                      <div key={metric.id} className={`p-4 rounded-lg ${darkModeBg} border ${currentTheme.border}`}>
                         <div className="flex items-center justify-between mb-2">
                           <metric.icon className={`h-5 w-5 ${darkModeText}`} />
                           {metric.trend && (
@@ -395,8 +573,8 @@ export default function EnhancedPatientDashboard() {
                             </Badge>
                           )}
                         </div>
-                        <p className={`text-sm ${theme.text.secondary} mb-1`}>{metric.title}</p>
-                        <p className={`text-lg font-semibold ${theme.text.primary}`}>{metric.value}</p>
+                        <p className={`text-sm ${currentTheme.text.secondary} mb-1`}>{metric.title}</p>
+                        <p className={`text-lg font-semibold ${currentTheme.text.primary}`}>{metric.value}</p>
                       </div>
                     );
                   })}
@@ -421,27 +599,30 @@ export default function EnhancedPatientDashboard() {
                               fill="none"
                               stroke="#10b981"
                               strokeWidth="2"
-                              strokeDasharray={`${healthReport.percentage}, 100`}
+                              strokeDasharray={`${healthReport?.percentage ?? 0}, 100`}
                             />
-                          </svg>
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-sm font-semibold">{healthReport.percentage}%</span>
+                            <span className="text-sm font-semibold">{healthReport?.percentage ?? 0}%</span>
                           </div>
-                        </div>
+                        </svg>
+                      </div>
                         <div>
-                          <p className={`text-sm ${theme.text.secondary}`}>Your health is {healthReport.percentage}% Normal</p>
-                          <p className={`text-xs ${theme.text.muted} mt-1`}>Last Visit: {format(new Date(), 'dd MMM yyyy')}</p>
+                          <p className="text-sm text-gray-300">
+                            Your health is {healthReport?.percentage ?? 0}% Normal
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Last Visit: {healthReport?.lastVisit ? format(new Date(healthReport.lastVisit as string), 'dd MMM yyyy') : 'N/A'}
+                          </p>
                         </div>
                       </div>
+                      <Button className="rounded-full">
+                        View Details
+                        <ChevronRight className="h-4 w-4 ml-2" />
+                      </Button>
                     </div>
-                    <Button className="rounded-full">
-                      View Details
-                      <ChevronRight className="h-4 w-4 ml-2" />
-                    </Button>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
           </div>
 
           {/* Book Appointment & Favorites */}
@@ -451,13 +632,13 @@ export default function EnhancedPatientDashboard() {
               <style jsx global>{`
                 .recharts-cartesian-grid-horizontal line,
                 .recharts-cartesian-grid-vertical line {
-                  stroke: ${theme.chart.grid};
+                  stroke: ${currentTheme.chart.grid};
                 }
                 .recharts-text {
-                  fill: ${theme.chart.text};
+                  fill: ${currentTheme.chart.text};
                 }
                 .recharts-line {
-                  stroke: ${theme.chart.line};
+                  stroke: ${currentTheme.chart.line};
                 }
               `}</style>
               {/* Book Appointment */}
@@ -465,8 +646,8 @@ export default function EnhancedPatientDashboard() {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className={`font-semibold ${theme.text.secondary}`}>Book a new</h3>
-                      <h2 className={`text-xl font-bold ${theme.text.primary}`}>Appointment</h2>
+                      <h3 className={`font-semibold ${currentTheme.text.secondary}`}>Book a new</h3>
+                      <h2 className={`text-xl font-bold ${currentTheme.text.primary}`}>Appointment</h2>
                     </div>
                     <Button size="sm" className="rounded-full bg-blue-600 hover:bg-blue-700 text-white">
                       <Plus className="h-4 w-4" />
@@ -479,7 +660,7 @@ export default function EnhancedPatientDashboard() {
               <Card className={`mb-6 ${theme.card} border ${theme.border} hover:bg-gray-700/50 transition-colors`}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle className={theme.text.primary}>Favourites</CardTitle>
+                    <CardTitle className={currentTheme.text.primary}>Favourites</CardTitle>
                     <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300">View All</Button>
                   </div>
                 </CardHeader>
@@ -494,8 +675,8 @@ export default function EnhancedPatientDashboard() {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className={`font-medium ${theme.text.primary}`}>{doctor.name}</p>
-                          <p className={`text-sm ${theme.text.secondary}`}>{doctor.specialty}</p>
+                          <p className={`font-medium ${currentTheme.text.primary}`}>{doctor.name}</p>
+                          <p className={`text-sm ${currentTheme.text.secondary}`}>{doctor.specialty}</p>
                         </div>
                       </div>
                       <Button size="sm" variant="ghost" className="text-gray-400 hover:text-blue-400 hover:bg-gray-600/50">
@@ -514,11 +695,11 @@ export default function EnhancedPatientDashboard() {
           <div className="xl:col-span-5">
             <Card className={`mb-6 ${theme.card} border ${theme.border}`}>
               <CardHeader>
-                <CardTitle className={theme.text.primary}>Appointments</CardTitle>
+                <CardTitle className={currentTheme.text.primary}>Appointments</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {appointments.map((appointment) => (
-                  <div key={appointment.id} className={`border ${theme.border} rounded-lg p-4 hover:bg-gray-700/30 transition-colors`}>
+                  <div key={appointment.id} className={`border ${currentTheme.border} rounded-lg p-4 hover:bg-gray-700/30 transition-colors`}>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10 border border-gray-600">
@@ -528,8 +709,8 @@ export default function EnhancedPatientDashboard() {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className={`font-medium ${theme.text.primary}`}>{appointment.doctor.name}</p>
-                          <p className={`text-sm ${theme.text.secondary}`}>{appointment.doctor.specialty}</p>
+                          <p className={`font-medium ${currentTheme.text.primary}`}>{appointment.doctor.name}</p>
+                          <p className={`text-sm ${currentTheme.text.secondary}`}>{appointment.doctor.specialty}</p>
                         </div>
                       </div>
                       {appointment.type === 'video' ? (
@@ -538,22 +719,14 @@ export default function EnhancedPatientDashboard() {
                         <Hospital className="h-5 w-5 text-green-400" />
                       )}
                     </div>
-                    <div className={`flex items-center gap-2 text-sm ${theme.text.secondary} mb-3`}>
-                      <Clock className="h-4 w-4" />
-                      {format(new Date(appointment.date), 'dd MMM yyyy')} - {appointment.time}
-                    </div>
-                    <div className="flex gap-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4" />
+                        {format(new Date(appointment.date), 'dd MMM yyyy')} - {appointment.time}
+                      </div>
                       <Button 
                         size="sm" 
-                        variant="outline" 
-                        className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
-                      >
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Chat Now
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
                       >
                         <Calendar className="h-4 w-4 mr-2" />
                         Attend
@@ -568,7 +741,7 @@ export default function EnhancedPatientDashboard() {
             <Card className={`mt-6 ${theme.card} border ${theme.border} hover:bg-gray-700/50 transition-colors`}>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className={theme.text.primary}>Notifications</CardTitle>
+                  <CardTitle className={currentTheme.text.primary}>Notifications</CardTitle>
                   <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300">
                     View All
                   </Button>
@@ -594,8 +767,8 @@ export default function EnhancedPatientDashboard() {
                       />
                     </div>
                     <div className="flex-1">
-                      <p className={`text-sm ${theme.text.primary}`}>{notification.message}</p>
-                      <p className={`text-xs ${theme.text.muted} mt-1`}>{notification.time}</p>
+                      <p className={`text-sm ${currentTheme.text.primary}`}>{notification.message}</p>
+                      <p className={`text-xs ${currentTheme.text.muted} mt-1`}>{notification.time}</p>
                     </div>
                   </div>
                 ))}
@@ -605,10 +778,10 @@ export default function EnhancedPatientDashboard() {
 
           {/* Analytics Section */}
           <div className="xl:col-span-7">
-            <Card className={`${theme.card} border ${theme.border} hover:bg-gray-700/50 transition-colors`}>
+            <Card className={`${currentTheme.card} border ${currentTheme.border} hover:bg-gray-700/50 transition-colors`}>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className={theme.text.primary}>Analytics</CardTitle>
+                  <CardTitle className={currentTheme.text.primary}>Analytics</CardTitle>
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -896,6 +1069,6 @@ export default function EnhancedPatientDashboard() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </main>
   );
 }

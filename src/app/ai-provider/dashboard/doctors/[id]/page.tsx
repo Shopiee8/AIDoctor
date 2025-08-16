@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, DollarSign, MessageSquare, Phone, Settings, Star, User, Users, X } from 'lucide-react';
+import { Calendar, Clock, DollarSign, MessageSquare, Pencil, Phone, Plus, Settings, Star, User, Users, X } from 'lucide-react';
 import Link from 'next/link';
 
 export async function generateMetadata({
@@ -74,15 +74,15 @@ export default async function AIDoctorDetailPage({
           </div>
         </div>
         <div className="flex gap-2">
-          <Link href={`/dashboard/ai-provider/doctors/${aiDoctor.id}/edit`}>
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
+          <Link href={`/ai-provider/doctors/${aiDoctor.id}/edit`}>
+            <Button variant="outline">
+              <Pencil className="mr-2 h-4 w-4" />
               Edit
             </Button>
           </Link>
-          <Link href="/dashboard/ai-provider/doctors/new">
-            <Button size="sm">
-              <User className="h-4 w-4 mr-2" />
+          <Link href="/ai-provider/doctors/new">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
               New AI Doctor
             </Button>
           </Link>

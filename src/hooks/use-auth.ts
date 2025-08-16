@@ -7,5 +7,14 @@ export const useAuth = () => {
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  return context;
+  return {
+    user: context.user,
+    userRole: context.userRole,
+    loading: context.loading,
+    signIn: context.signIn,
+    signUp: context.signUp,
+    signOut: context.signOut,
+    googleSignIn: context.googleSignIn,
+    refreshUser: context.refreshUser
+  };
 };

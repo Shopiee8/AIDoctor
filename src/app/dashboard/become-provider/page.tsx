@@ -31,11 +31,13 @@ export default function BecomeProviderPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
+    setError,
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,19 +49,44 @@ export default function BecomeProviderPage() {
   });
 
   const onSubmit = async (data: FormValues) => {
+    console.log('Form submission started');
+    
     if (!user) {
-      toast.error('You must be logged in to become a provider');
+      const errorMsg = 'You must be logged in to become a provider';
+      console.error(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     try {
+      console.log('Setting loading state to true');
       setIsLoading(true);
+      setSubmitError(null);
       
+      // Validate form data
+      console.log('Validating form data');
+      const validationResult = formSchema.safeParse(data);
+      if (!validationResult.success) {
+        console.log('Form validation failed', validationResult.error.format());
+        const errors = validationResult.error.format();
+        Object.entries(errors).forEach(([field, error]) => {
+          if (field !== '_errors' && error && typeof error === 'object' && '_errors' in error) {
+            const errorMessage = Array.isArray(error._errors) ? error._errors[0] : 'Invalid field';
+            setError(field as keyof FormValues, {
+              type: 'manual',
+              message: errorMessage,
+            });
+          }
+        });
+        return;
+      }
+
+      console.log('Saving AI provider data to Firestore');
       // Save provider data to Firestore
-      await saveAIProvider({
+      const providerData = {
         userId: user.uid,
-        organizationName: data.organizationName,
-        website: data.website || undefined,
+        organizationName: data.organizationName.trim(),
+        website: data.website?.trim() || null,
         subscriptionPlan: 'free',
         subscriptionStatus: 'trial',
         settings: {
@@ -67,17 +94,37 @@ export default function BecomeProviderPage() {
           emailNotifications: true,
           defaultLanguage: 'en',
         },
-      });
+      };
+      
+      console.log('Provider data to save:', providerData);
+      await saveAIProvider(providerData);
+      console.log('Successfully saved AI provider data');
 
-      toast.success('Successfully registered as an AI Provider!');
+      const successMsg = 'Successfully registered as an AI Provider! Redirecting to your dashboard...';
+      console.log(successMsg);
+      toast.success(successMsg);
+      
+      // Add a small delay to show the success message
+      console.log('Adding delay before redirect');
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Redirect to the provider dashboard
-      router.push('/dashboard/ai-provider');
+      console.log('Initiating redirect to /ai-provider/dashboard');
+      router.push('/ai-provider/dashboard');
+      console.log('Router push completed, refreshing router');
       router.refresh();
-    } catch (error) {
-      console.error('Error registering as provider:', error);
-      toast.error('Failed to register as provider. Please try again.');
+    } catch (error: any) {
+      const errorMsg = error?.message || 'Failed to register as provider. Please try again.';
+      console.error('Error in form submission:', {
+        error: errorMsg,
+        stack: error?.stack,
+        name: error?.name,
+        code: error?.code,
+      });
+      setSubmitError(errorMsg);
+      toast.error(errorMsg);
     } finally {
+      console.log('Form submission completed, setting loading to false');
       setIsLoading(false);
     }
   };
@@ -98,9 +145,11 @@ export default function BecomeProviderPage() {
                 <Label htmlFor="organizationName">Organization Name *</Label>
                 <Input
                   id="organizationName"
+                  disabled={isLoading}
+                  aria-invalid={!!errors.organizationName}
+                  aria-describedby={errors.organizationName ? 'organizationName-error' : undefined}
                   placeholder="Your organization name"
                   {...register('organizationName')}
-                  disabled={isLoading}
                 />
                 {errors.organizationName && (
                   <p className="text-sm text-destructive">
@@ -113,10 +162,12 @@ export default function BecomeProviderPage() {
                 <Label htmlFor="website">Website (Optional)</Label>
                 <Input
                   id="website"
+                  disabled={isLoading}
+                  aria-invalid={!!errors.website}
+                  aria-describedby={errors.website ? 'website-error' : undefined}
                   type="url"
                   placeholder="https://your-organization.com"
                   {...register('website')}
-                  disabled={isLoading}
                 />
                 {errors.website && (
                   <p className="text-sm text-destructive">
@@ -129,10 +180,12 @@ export default function BecomeProviderPage() {
                 <Label htmlFor="description">About Your Organization *</Label>
                 <Textarea
                   id="description"
+                  disabled={isLoading}
+                  aria-invalid={!!errors.description}
+                  aria-describedby={errors.description ? 'description-error' : undefined}
                   placeholder="Tell us about your organization and how you plan to use AI doctors..."
                   className="min-h-[120px]"
                   {...register('description')}
-                  disabled={isLoading}
                 />
                 {errors.description && (
                   <p className="text-sm text-destructive">
@@ -147,8 +200,10 @@ export default function BecomeProviderPage() {
                     id="terms"
                     type="checkbox"
                     className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    {...register('terms')}
                     disabled={isLoading}
+                    aria-invalid={!!errors.terms}
+                    aria-describedby={errors.terms ? 'terms-error' : undefined}
+                    {...register('terms')}
                   />
                 </div>
                 <div className="grid gap-1.5 leading-none">
@@ -175,20 +230,45 @@ export default function BecomeProviderPage() {
             </div>
 
             <div className="flex justify-end space-x-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Register as Provider
-              </Button>
+              <div className="flex flex-col space-y-4 sm:flex-row sm:justify-end sm:space-x-4 sm:space-y-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.back()}
+                  disabled={isLoading}
+                  className="w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isLoading || isSubmitting}
+                  className="w-full sm:w-auto"
+                >
+                  {isLoading || isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    'Register as Provider'
+                  )}
+                </Button>
+              </div>
             </div>
           </form>
+          
+          {submitError && (
+            <div className="mt-4 p-4 text-sm text-red-600 bg-red-50 rounded-md">
+              <p>Error: {submitError}</p>
+              <p className="mt-2">Please check your information and try again. If the problem persists, please contact support.</p>
+            </div>
+          )}
+          
+          <div className="mt-6 text-sm text-muted-foreground">
+            <p>By registering as an AI Provider, you agree to our Terms of Service and Privacy Policy.</p>
+            <p className="mt-2">You can update your organization details later in the settings.</p>
+          </div>
         </CardContent>
       </Card>
 

@@ -154,16 +154,23 @@ export function AIDoctorForm({ initialData, providerId }: AIDoctorFormProps) {
         setIsUploading(false);
       }
 
-      const aiDoctorData: AIDoctor = {
+      // Create a properly typed object that matches the expected type for saveAIDoctor
+      const aiDoctorData = {
         ...data,
         id: initialData?.id,
         providerId,
         avatar: avatarUrl,
+        // Ensure we're not passing undefined for required fields
+        name: data.name || '',
+        specialty: data.specialty || '',
+        // Convert Date objects to Firestore Timestamp-compatible format if needed
+        createdAt: initialData?.createdAt ? (initialData.createdAt instanceof Date ? initialData.createdAt.toISOString() : initialData.createdAt) : undefined,
+        updatedAt: new Date().toISOString(),
       };
 
       await saveAIDoctor(aiDoctorData);
       toast.success(initialData ? 'AI Doctor updated!' : 'AI Doctor created!');
-      router.push('/dashboard/ai-provider');
+      router.push('/ai-provider/dashboard');
     } catch (error) {
       console.error('Error saving AI doctor:', error);
       toast.error('Failed to save AI doctor.');

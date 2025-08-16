@@ -1,4 +1,4 @@
-import { db, storage } from '@/lib/firebase';
+import { db, storage, auth } from '@/lib/firebase';
 import { 
   collection, 
   doc, 
@@ -11,7 +11,8 @@ import {
   where, 
   orderBy,
   Timestamp,
-  DocumentData
+  DocumentData,
+  writeBatch
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import type { AIProvider, AIDoctor } from '@/types';
@@ -27,6 +28,7 @@ const AI_DOCTORS_COLLECTION = 'aiDoctors';
  */
 export const getAIProvider = async (userId: string): Promise<AIProvider | null> => {
   try {
+    // First check the AI Providers collection
     const providerDoc = await getDoc(doc(db, PROVIDERS_COLLECTION, userId));
     if (providerDoc.exists()) {
       return {
@@ -36,6 +38,28 @@ export const getAIProvider = async (userId: string): Promise<AIProvider | null> 
         updatedAt: providerDoc.data().updatedAt?.toDate(),
       } as AIProvider;
     }
+
+    // If not found in AI Providers, check the users collection
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    if (userDoc.exists() && (userDoc.data().role === 'AI Provider' || userDoc.data().isAIProvider)) {
+      // Return a minimal AIProvider object with the user's data
+      return {
+        id: userDoc.id,
+        userId: userDoc.id,
+        organizationName: userDoc.data().organizationName || 'My Organization',
+        website: userDoc.data().website || null,
+        subscriptionPlan: userDoc.data().subscriptionPlan || 'free',
+        subscriptionStatus: userDoc.data().subscriptionStatus || 'active',
+        settings: userDoc.data().settings || {
+          notifications: true,
+          emailNotifications: true,
+          defaultLanguage: 'en',
+        },
+        createdAt: userDoc.data().createdAt?.toDate?.() || new Date(),
+        updatedAt: userDoc.data().updatedAt?.toDate?.() || new Date(),
+      } as AIProvider;
+    }
+
     return null;
   } catch (error) {
     console.error('Error getting AI provider:', error);
@@ -47,18 +71,79 @@ export const getAIProvider = async (userId: string): Promise<AIProvider | null> 
  * Create or update AI Provider
  */
 export const saveAIProvider = async (providerData: Partial<AIProvider> & { userId: string }): Promise<void> => {
+  // Ensure the user's role is updated to 'AI Provider' in the users collection and session
+  await setDoc(doc(db, 'users', providerData.userId), {
+    role: 'AI Provider',
+    updatedAt: Timestamp.now(),
+    isAIProvider: true
+  }, { merge: true });
+  
+  // Force refresh the auth token to update the user's claims
+  const user = auth.currentUser;
+  if (user) {
+    await user.getIdToken(true); // Force token refresh
+  }
+  console.log('Starting saveAIProvider with data:', JSON.stringify(providerData, null, 2));
+  
   try {
     const now = Timestamp.now();
     const providerRef = doc(db, PROVIDERS_COLLECTION, providerData.userId);
+    const batch = writeBatch(db);
     
-    await setDoc(providerRef, {
+    console.log('Preparing batch write for provider data');
+    
+    // 1. Save the provider data
+    const providerDoc = {
       ...providerData,
       createdAt: providerData.createdAt || now,
       updatedAt: now,
-    }, { merge: true });
+    };
+    
+    console.log('Setting provider document:', JSON.stringify(providerDoc, null, 2));
+    batch.set(providerRef, providerDoc, { merge: true });
+    
+    // 2. Mark registration as complete in temp-ai-providers
+    const tempProviderRef = doc(db, 'temp-ai-providers', providerData.userId);
+    const tempProviderData = {
+      registrationComplete: true,
+      registrationStep: 'complete',
+      updatedAt: now,
+      completedAt: now
+    };
+    
+    console.log('Updating temp provider with completion data:', JSON.stringify(tempProviderData, null, 2));
+    batch.set(tempProviderRef, tempProviderData, { merge: true });
+    
+    console.log('Committing batch write...');
+    // 3. Commit both operations atomically
+    await batch.commit();
+    
+    console.log('AI Provider registration completed successfully');
+    
+    // Verify the data was saved correctly
+    try {
+      const savedProvider = await getAIProvider(providerData.userId);
+      console.log('Provider data after save:', JSON.stringify(savedProvider, null, 2));
+      
+      const tempProvider = await getDoc(tempProviderRef);
+      console.log('Temp provider after update:', tempProvider.exists() ? tempProvider.data() : 'Not found');
+    } catch (verificationError) {
+      console.error('Error verifying saved data:', verificationError);
+      // Don't fail the whole operation if verification fails
+    }
+    
   } catch (error) {
-    console.error('Error saving AI provider:', error);
-    throw error;
+    console.error('Error in saveAIProvider:', {
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      } : error,
+      providerData: JSON.stringify(providerData, null, 2)
+    });
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    throw new Error(`Failed to save AI provider: ${errorMessage}`);
   }
 };
 

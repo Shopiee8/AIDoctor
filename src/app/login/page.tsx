@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/hooks/use-auth';
+import { signIn, signInWithGoogle, onAuthStateChanged } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import { Stethoscope, Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles } from "lucide-react";
 
 export default function LoginPage() {
-  const { signIn, googleSignIn, user, loading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
@@ -20,9 +19,11 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [user, setUser] = useState<any>(null);
 
   // Debug logging
-  console.log('LoginPage render:', { user, loading, error });
+  console.log('LoginPage render:', { error });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,9 +47,10 @@ export default function LoginPage() {
     setError(null);
     setIsLoading(true);
     try {
-      await googleSignIn();
+      const user = await signInWithGoogle();
+      setUser(user);
       toast({ title: 'Login Successful!', description: 'Welcome!' });
-      // Role-based redirection is now handled automatically by AuthContext
+      // Role-based redirection will be handled by the useEffect below
     } catch (err: any) {
       setError(err.message);
       toast({ title: 'Google Sign-In Failed', description: err.message, variant: 'destructive' });
@@ -57,9 +59,24 @@ export default function LoginPage() {
     }
   };
 
-  // Show loading while auth context is initializing
-  if (loading) {
-    console.log('LoginPage: Showing loading state');
+  // Check auth state on component mount
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+      setIsCheckingAuth(false);
+      
+      // If user is already logged in, redirect based on role
+      if (currentUser) {
+        // You can add role-based redirection logic here
+        router.push('/dashboard');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
+
+  // Show loading while checking auth state
+  if (isCheckingAuth) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="text-center">

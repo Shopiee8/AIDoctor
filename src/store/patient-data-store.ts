@@ -1,12 +1,10 @@
 
-
 import { create } from 'zustand';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { LucideIcon } from 'lucide-react';
 import { Heart, Thermometer, Brain, Droplets, LineChart, User, Calendar, Bell, Wallet, Hospital, Video, Scale, Wind, FileText } from "lucide-react";
 import type { Appointment } from '@/types';
-
 
 // Types
 export interface HealthRecord {
@@ -27,6 +25,7 @@ interface VitalsSummaryData {
 }
 
 interface HealthReport {
+    lastVisit: any;
     percentage: number;
     title: string;
     details: string;
@@ -51,7 +50,7 @@ interface AppointmentDate {
     available: boolean;
 }
 
-interface UpcomingAppointment {
+export interface UpcomingAppointment {
     doctor: string;
     specialty: string;
     image: string;
@@ -99,7 +98,12 @@ interface PatientDataState {
 
 const initialPatientDataState: Omit<PatientDataState, 'fetchPatientData' | 'clearPatientData'> = {
     healthRecords: [],
-    healthReport: { percentage: 95, title: 'Your Health is Normal', details: 'Keep up the good work to maintain your excellent health status. Your biological age is well-managed.'},
+    healthReport: { 
+        lastVisit: new Date().toISOString(),
+        percentage: 95, 
+        title: 'Your Health is Normal', 
+        details: 'Keep up the good work to maintain your excellent health status. Your biological age is well-managed.'
+    },
     relaxationData: {
         timeOfRelaxation: [
             { date: '21', relaxation: 20 }, { date: '22', relaxation: 40 }, { date: '23', relaxation: 35 },
@@ -173,36 +177,57 @@ const transformVitalsToHealthRecords = (vitals?: VitalsSummaryData): HealthRecor
 export const usePatientDataStore = create<PatientDataState>((set, get) => ({
     ...initialPatientDataState,
     fetchPatientData: (userId: string) => {
+        console.log('fetchPatientData called with userId:', userId);
         set({ isLoading: true });
         
         const userDocRef = doc(db, 'users', userId);
-        const unsubscribe = onSnapshot(userDocRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.data();
-                
-                set({
-                    healthRecords: transformVitalsToHealthRecords(data.dashboard?.vitalsSummary),
-                    healthReport: data.dashboard?.healthReport || initialPatientDataState.healthReport,
-                    analytics: data.dashboard?.analytics || initialPatientDataState.analytics,
-                    favorites: data.dashboard?.favorites || initialPatientDataState.favorites,
-                    appointmentDates: data.dashboard?.appointmentDates || initialPatientDataState.appointmentDates,
-                    upcomingAppointments: data.dashboard?.upcomingAppointments || initialPatientDataState.upcomingAppointments,
-                    notifications: data.dashboard?.notifications || initialPatientDataState.notifications,
-                    dependents: data.dashboard?.dependents || initialPatientDataState.dependents,
-                    // Relaxation data can also be made dynamic later
-                    relaxationData: data.dashboard?.relaxationData || initialPatientDataState.relaxationData,
-                    isLoading: false,
-                });
-            } else {
-                console.warn(`No data found for user ${userId}. Displaying empty dashboard.`);
+        console.log('Setting up Firestore listener for document:', userDocRef.path);
+        
+        const unsubscribe = onSnapshot(userDocRef, 
+            (snapshot) => {
+                console.log('Received snapshot from Firestore');
+                if (snapshot.exists()) {
+                    const data = snapshot.data();
+                    console.log('Document data:', data);
+                    
+                    // Transform the data
+                    const healthRecords = transformVitalsToHealthRecords(data.dashboard?.vitalsSummary);
+                    console.log('Transformed health records:', healthRecords);
+                    
+                    const newState = {
+                        healthRecords,
+                        healthReport: data.dashboard?.healthReport || initialPatientDataState.healthReport,
+                        analytics: data.dashboard?.analytics || initialPatientDataState.analytics,
+                        favorites: data.dashboard?.favorites || initialPatientDataState.favorites,
+                        appointmentDates: data.dashboard?.appointmentDates || initialPatientDataState.appointmentDates,
+                        upcomingAppointments: data.dashboard?.upcomingAppointments || initialPatientDataState.upcomingAppointments,
+                        notifications: data.dashboard?.notifications || initialPatientDataState.notifications,
+                        dependents: data.dashboard?.dependents || initialPatientDataState.dependents,
+                        relaxationData: data.dashboard?.relaxationData || initialPatientDataState.relaxationData,
+                        isLoading: false,
+                    };
+                    
+                    console.log('Updating store with new state:', newState);
+                    set(newState);
+                } else {
+                    console.warn(`No data found for user ${userId}. Displaying empty dashboard.`);
+                    set({ ...initialPatientDataState, isLoading: false });
+                }
+            }, 
+            (error) => {
+                console.error("Error fetching patient data: ", error);
                 set({ ...initialPatientDataState, isLoading: false });
             }
-        }, (error) => {
-            console.error("Error fetching patient data: ", error);
-            set({ ...initialPatientDataState, isLoading: false });
-        });
+        );
 
-        return unsubscribe;
+        console.log('Returning unsubscribe function');
+        return () => {
+            console.log('Unsubscribing from Firestore');
+            unsubscribe();
+        };
     },
-    clearPatientData: () => set({...initialPatientDataState, isLoading: false}),
+    clearPatientData: () => {
+        console.log('Clearing patient data');
+        set({...initialPatientDataState, isLoading: false});
+    },
 }));

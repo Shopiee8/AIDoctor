@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   Menu,
   Stethoscope,
@@ -65,7 +65,7 @@ export function LandingHeader() {
       case 'Patient':
         return '/dashboard';
       case 'Doctor':
-        return '/doctor/dashboard';
+        return '/dashboard';
       case 'Admin':
         return '/admin/dashboard';
       case 'AI Provider':
@@ -243,6 +243,9 @@ export function LandingHeader() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80 glass-card">
+                <SheetHeader>
+                  <SheetTitle className="sr-only">Mobile Navigation</SheetTitle>
+                </SheetHeader>
                 <div className="flex flex-col gap-6 p-6">
                   {/* Mobile Logo */}
                   <Link
@@ -325,22 +328,6 @@ export function LandingHeader() {
                         </Button>
                       </>
                     )}
-                  </div>
-
-                  {/* Mobile Contact Info */}
-                  <div className="mt-6 pt-6 border-t border-border/50 space-y-3">
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                      <Mail className="h-4 w-4" />
-                      <span>info@aidoctor.com</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                      <Phone className="h-4 w-4" />
-                      <span>+1 (234) 567-890</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-primary font-medium">
-                      <Clock className="h-4 w-4" />
-                      <span>24/7 Available</span>
-                    </div>
                   </div>
                 </div>
               </SheetContent>

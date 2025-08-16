@@ -1,5 +1,53 @@
 // TypeScript interfaces for AI Provider Dashboard
 
+export interface AIProvider {
+  id: string;
+  userId: string;
+  organizationName: string;
+  website?: string | null;
+  subscriptionPlan: string;
+  subscriptionStatus: string;
+  settings: {
+    notifications: boolean;
+    emailNotifications: boolean;
+    defaultLanguage: string;
+  };
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  [key: string]: any; // For any additional properties
+}
+
+export interface AIDoctor {
+  id: string;
+  name: string;
+  specialty: string;
+  description: string;
+  avatar: string;
+  rating: number;
+  responseTime: number;
+  isActive: boolean;
+  providerId: string;
+  createdAt: string;
+  updatedAt: string;
+  metadata?: Record<string, any>;
+  
+  // Add stats property
+  stats?: {
+    totalConsultations: number;
+    averageRating: number;
+    totalPatients: number;
+    // Add other stats properties as needed
+  };
+  
+  // Add settings property
+  settings: {
+    consultationFee: number;
+    availability: '24/7' | 'office-hours' | 'custom';
+    language: string;
+    // Add other settings properties as needed
+  };
+}
+
 export interface AIAgent {
   id: string;
   name: string;
