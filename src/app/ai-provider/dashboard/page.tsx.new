@@ -1,0 +1,360 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { RoleGuard } from "@/components/role-guard";
+import { cn } from "@/lib/utils";
+import { 
+  Sidebar, 
+  SidebarContent, 
+  SidebarHeader, 
+  SidebarFooter,
+  SidebarProvider,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem
+} from "@/components/ui/sidebar";
+import { LayoutDashboard, UserCog, Settings, LogOut, Bot, BrainCircuit } from 'lucide-react';
+import { 
+  SimpleBarChart, 
+  SimpleLineChart, 
+  SimpleDonutChart, 
+  MetricCard, 
+  ProgressRing, 
+  Sparkline,
+  ChartDataPoint,
+  TimeSeriesData,
+  ChartLoadingState
+} from "@/components/charts/ai-dashboard-charts";
+
+// UI Components
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+interface LinkItem {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+}
+
+export default function AiProviderDashboardPage() {
+  const { user, signOut } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isLoading, setIsLoading] = useState(true);
+  const [metrics, setMetrics] = useState({
+    totalConsultations: 0,
+    activePatients: 0,
+    monthlyRevenue: 0,
+    satisfactionRate: 0,
+  });
+
+  // Mock data for charts
+  const consultationData: ChartDataPoint[] = [
+    { name: 'Jan', value: 45 },
+    { name: 'Feb', value: 52 },
+    { name: 'Mar', value: 48 },
+    { name: 'Apr', value: 60 },
+    { name: 'May', value: 72 },
+    { name: 'Jun', value: 85 },
+  ];
+
+  const revenueData: TimeSeriesData[] = [
+    { date: '2023-01-01', value: 1250 },
+    { date: '2023-02-01', value: 1450 },
+    { date: '2023-03-01', value: 1380 },
+    { date: '2023-04-01', value: 1650 },
+    { date: '2023-05-01', value: 1920 },
+    { date: '2023-06-01', value: 2180 },
+  ];
+
+  const satisfactionData = [
+    { name: 'Very Satisfied', value: 65 },
+    { name: 'Satisfied', value: 25 },
+    { name: 'Neutral', value: 7 },
+    { name: 'Dissatisfied', value: 3 },
+  ];
+
+  const navigation: LinkItem[] = [
+    { label: 'Dashboard', href: '/ai-provider/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
+    { label: 'Patients', href: '/ai-provider/patients', icon: <UserCog className="h-5 w-5" /> },
+    { label: 'AI Models', href: '/ai-provider/ai-models', icon: <BrainCircuit className="h-5 w-5" /> },
+    { label: 'Settings', href: '/ai-provider/settings', icon: <Settings className="h-5 w-5" /> },
+  ];
+
+  useEffect(() => {
+    // Simulate loading data
+    const timer = setTimeout(() => {
+      setMetrics({
+        totalConsultations: 245,
+        activePatients: 183,
+        monthlyRevenue: 12500,
+        satisfactionRate: 92,
+      });
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <RoleGuard allowedRoles={['AI Provider']}>
+      <div className="flex h-screen bg-white dark:bg-neutral-900">
+        <SidebarProvider>
+          <Sidebar>
+            <div className="space-y-4 py-4">
+              <div className="px-3 py-2">
+                <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
+                  AI Provider Portal
+                </h2>
+                <div className="space-y-1">
+                  {navigation.map((item) => (
+                    <Button
+                      key={item.href}
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        // Handle navigation
+                      }}
+                    >
+                      {item.icon}
+                      <span className="ml-3">{item.label}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="px-3 py-2">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={signOut}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </Button>
+            </div>
+          </Sidebar>
+        </SidebarProvider>
+
+        <div className="flex-1 overflow-auto">
+          <main className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-3xl font-bold">Dashboard</h1>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Button>
+              </div>
+            </div>
+
+            <Tabs defaultValue="overview" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                <TabsTrigger value="reports">Reports</TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="overview" className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <MetricCard 
+                    title="Total Consultations"
+                    value={metrics.totalConsultations.toString()}
+                    description="+12% from last month"
+                    icon={<LayoutDashboard className="h-4 w-4 text-muted-foreground" />}
+                  />
+                  <MetricCard 
+                    title="Active Patients"
+                    value={metrics.activePatients.toString()}
+                    description="+5% from last month"
+                    icon={<UserCog className="h-4 w-4 text-muted-foreground" />}
+                  />
+                  <MetricCard 
+                    title="Monthly Revenue"
+                    value={`$${metrics.monthlyRevenue.toLocaleString()}`}
+                    description="+8% from last month"
+                    icon={<BrainCircuit className="h-4 w-4 text-muted-foreground" />}
+                  />
+                  <MetricCard 
+                    title="Satisfaction Rate"
+                    value={`${metrics.satisfactionRate}%`}
+                    description="+2% from last month"
+                    icon={<Settings className="h-4 w-4 text-muted-foreground" />}
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                  <Card className="col-span-4">
+                    <CardHeader>
+                      <CardTitle>Consultation Overview</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pl-2">
+                      <SimpleBarChart data={consultationData} />
+                    </CardContent>
+                  </Card>
+                  <Card className="col-span-3">
+                    <CardHeader>
+                      <CardTitle>Patient Satisfaction</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-center p-6">
+                      <SimpleDonutChart data={satisfactionData} />
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="analytics" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Revenue Analytics</CardTitle>
+                    <CardDescription>
+                      Track your revenue growth and consultation metrics
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <SimpleLineChart data={revenueData} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="reports">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Reports</CardTitle>
+                    <CardDescription>
+                      Generate and view detailed reports
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Report Type</Label>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select report type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="consultation">Consultation Report</SelectItem>
+                              <SelectItem value="revenue">Revenue Report</SelectItem>
+                              <SelectItem value="patient">Patient Report</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Date Range</Label>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select date range" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="7">Last 7 days</SelectItem>
+                              <SelectItem value="30">Last 30 days</SelectItem>
+                              <SelectItem value="90">Last 90 days</SelectItem>
+                              <SelectItem value="custom">Custom range</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <Button>Generate Report</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="settings">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Account Settings</CardTitle>
+                    <CardDescription>
+                      Manage your account settings and preferences
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-medium">Profile Information</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Update your profile information and contact details
+                          </p>
+                        </div>
+                        <Button variant="outline">Edit Profile</Button>
+                      </div>
+                      <Separator />
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium">Notification Preferences</h3>
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">Email Notifications</p>
+                              <p className="text-sm text-muted-foreground">
+                                Receive email notifications about your account
+                              </p>
+                            </div>
+                            <Switch defaultChecked />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">SMS Notifications</p>
+                              <p className="text-sm text-muted-foreground">
+                                Receive SMS notifications for urgent matters
+                              </p>
+                            </div>
+                            <Switch />
+                          </div>
+                        </div>
+                      </div>
+                      <Separator />
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium">Billing Information</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Revenue Share</Label>
+                            <p className="text-sm text-muted-foreground">
+                              85% (You keep 85% of consultation fees)
+                            </p>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Payment Method</Label>
+                            <p className="text-sm text-muted-foreground">
+                              Bank Transfer (Monthly)
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </main>
+        </div>
+      </div>
+    </RoleGuard>
+  );
+}

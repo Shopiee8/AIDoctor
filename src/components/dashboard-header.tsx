@@ -14,10 +14,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 import { ShoppingCartDropdown } from './shopping-cart-dropdown';
 import { NotificationDropdown } from './notification-dropdown';
-import { ArrowLeft, Clock } from 'lucide-react';
-import { useSidebar } from './ui/sidebar';
+import { ArrowLeft, Clock, Menu } from 'lucide-react';
 
-export function DashboardHeader() {
+type DashboardHeaderProps = {
+  onMenuClick?: () => void;
+};
+
+export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const { signOut, user } = useAuth();
   
   const handleLogout = async () => {
@@ -25,7 +28,16 @@ export function DashboardHeader() {
   };
 
   return (
-    <header className="flex h-16 items-center gap-4 px-4 md:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-white dark:bg-gray-900 px-4 md:px-6">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="md:hidden"
+        onClick={onMenuClick}
+      >
+        <Menu className="h-5 w-5" />
+        <span className="sr-only">Toggle menu</span>
+      </Button>
       
       <div className="ml-auto flex items-center gap-2">
         <ShoppingCartDropdown />
@@ -34,8 +46,11 @@ export function DashboardHeader() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
               <Avatar>
-                <AvatarImage src={user?.photoURL || undefined} data-ai-hint="person" />
-                <AvatarFallback>{user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'W'}</AvatarFallback>
+                <AvatarImage 
+                  src={user?.photoURL || undefined} 
+                  fallbackText={user?.displayName || user?.email || 'User'}
+                  data-ai-hint="person" 
+                />
               </Avatar>
               <span className="sr-only">Toggle user menu</span>
             </Button>

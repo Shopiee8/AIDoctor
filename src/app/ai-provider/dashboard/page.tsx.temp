@@ -1,8 +1,8 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { getAIProvider, getAIDoctorsByProvider } from '@/lib/firebase/providerService';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,16 +10,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PlusCircle, Users, Activity, Star, LayoutDashboard, MessageSquare, FileText, Settings, LogOut } from 'lucide-react';
 import { ModernSidebar, ModernSidebarBody, ModernSidebarLink } from '@/components/ui/modern-sidebar';
 import { cn } from '@/lib/utils';
-import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-
 // Define types for our data
 interface AIProvider {
   id: string;
   organizationName: string;
   // Add other provider properties as needed
 }
-
 interface AIDoctor {
   id: string;
   name: string;
@@ -33,7 +29,6 @@ interface AIDoctor {
   };
   [key: string]: any; // For any additional properties
 }
-
 // Helper function to get initials from name
 function getInitials(name: string) {
   if (!name) return '';
@@ -44,54 +39,43 @@ function getInitials(name: string) {
     .toUpperCase()
     .substring(0, 2);
 }
-
 function DashboardContent() {
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [provider, setProvider] = useState<AIProvider | null>(null);
   const [doctors, setDoctors] = useState<AIDoctor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      setLoading(!currentUser);
-      
-      if (!currentUser) {
+    const fetchData = async () => {
+      if (status === 'unauthenticated') {
         router.push('/login');
         return;
       }
-
-      try {
-        // Get provider data
-        const providerData = await getAIProvider(currentUser.uid);
-        if (providerData) {
-          setProvider(providerData);
-        } else {
-          // If no provider found, redirect to registration
-          router.push('/ai-provider-register');
+      if (status === 'authenticated' && session?.user?.email) {
+        try {
+          const providerData = await getAIProvider(session.user.email);
+          if (providerData) {
+            setProvider(providerData);
+            setError(null);
+          } else {
+            throw new Error('Provider data not found');
+          }
+        } catch (err) {
+          console.error('Error fetching data:', err);
+          setError('Failed to load dashboard data. Please try again later.');
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error('Error loading provider data:', error);
-      } finally {
-        setLoading(false);
       }
-    });
-
-    return () => unsubscribe();
-  }, [router]);
-
-  if (loading) {
+    };
+    if (status === 'authenticated') {
+      fetchData();
+    }
+  }, [status, router, session?.user?.email]);
+  if (status === 'loading' || isLoading) {
     return <DashboardSkeleton />;
   }
-
-  if (!user) {
-    return null; // Redirecting, no need to render anything
-  }
-
   if (error) {
     return (
       <div className="space-y-6">
@@ -103,7 +87,6 @@ function DashboardContent() {
       </div>
     );
   }
-
   if (!provider) {
     return (
       <div className="space-y-6">
@@ -114,7 +97,6 @@ function DashboardContent() {
       </div>
     );
   }
-
   if (!provider) {
     // Show a message and a button to become a provider
     return (
@@ -133,16 +115,6 @@ function DashboardContent() {
       </div>
     );
   }
-
-  const handleSignOut = async () => {
-    try {
-      await auth.signOut();
-      router.push('/login');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
   // Fetch AI doctors data
   useEffect(() => {
     if (!provider) return;
@@ -156,10 +128,8 @@ function DashboardContent() {
         setError('Failed to load AI doctors');
       }
     };
-
     fetchAiDoctors();
   }, [provider?.id]);
-
   // Calculate total stats across all AI doctors
   const totalStats = doctors.reduce(
     (acc, doctor) => ({
@@ -170,11 +140,9 @@ function DashboardContent() {
     }),
     { totalConsultations: 0, totalPatients: 0, totalRating: 0, activeDoctors: 0 }
   );
-
   const averageRating = doctors.length > 0 
     ? (totalStats.totalRating / doctors.length).toFixed(1) 
     : '0';
-
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -191,7 +159,6 @@ function DashboardContent() {
           </Button>
         </Link>
       </div>
-
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -248,7 +215,6 @@ function DashboardContent() {
           </CardContent>
         </Card>
       </div>
-
       {/* Recent Activity & AI Doctors List */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
@@ -339,7 +305,6 @@ function DashboardContent() {
     </div>
   );
 }
-
 // Loading skeleton component
 function DashboardSkeleton() {
   return (
@@ -394,7 +359,6 @@ function DashboardSkeleton() {
           </CardContent>
         </Card>
       </div>
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
@@ -414,7 +378,6 @@ function DashboardSkeleton() {
             ))}
           </CardContent>
         </Card>
-
         <Card className="col-span-3">
           <CardHeader>
             <CardTitle>Your AI Doctors</CardTitle>
@@ -442,5 +405,3 @@ function DashboardSkeleton() {
     </div>
   );
 }
-
-export default DashboardContent;

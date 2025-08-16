@@ -8,7 +8,7 @@ import { Bot, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
 import { completeAIProviderRegistration, getAIProviderData } from "@/lib/ai-provider";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,10 +30,17 @@ export default function AiProviderRegisterStepThree() {
       }
 
       try {
-        const providerDoc = await getDoc(doc(db, 'temp-ai-providers', user.uid));
+        // Check both the aiProviders collection and the users collection
+        const [providerDoc, userDoc] = await Promise.all([
+          getDoc(doc(db, 'aiProviders', user.uid)),
+          getDoc(doc(db, 'users', user.uid))
+        ]);
         
-        // If no document or registration step is not 2, redirect to step 1
-        if (!providerDoc.exists() || providerDoc.data()?.registrationStep !== 2) {
+        // If user is not an AI Provider or registration step is not 2, redirect to step 1
+        const isAIProvider = userDoc.exists() && (userDoc.data().role === 'AI Provider' || userDoc.data().isAIProvider);
+        const isRegistrationStep2 = providerDoc.exists() && providerDoc.data().registrationStep === 2;
+        
+        if (!isAIProvider || !isRegistrationStep2) {
           router.push('/ai-provider-register/step-1');
           return;
         }
@@ -42,6 +49,11 @@ export default function AiProviderRegisterStepThree() {
         
       } catch (error) {
         console.error('Error checking registration progress:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load registration data. Please try again.',
+          variant: 'destructive',
+        });
         setError('Failed to load registration data. Please try again.');
       } finally {
         setIsLoading(false);
@@ -49,48 +61,75 @@ export default function AiProviderRegisterStepThree() {
     };
 
     checkAccess();
-  }, [user, router]);
+  }, [user, router, toast]);
 
   // Complete registration when component mounts and data is loaded
   useEffect(() => {
-    if (!providerData || !user) return;
-
+    if (!providerData) return;
+    
     let redirectTimer: NodeJS.Timeout;
     
     const completeRegistration = async () => {
+      if (!user) return;
+      
       setIsCompleting(true);
       
       try {
-        // Complete the registration
-        await completeAIProviderRegistration(user.uid, {
-          ...providerData,
+        // Mark registration as complete in aiProviders collection
+        await setDoc(doc(db, 'aiProviders', user.uid), {
           registrationComplete: true,
           registrationStep: 3,
-          completedAt: new Date().toISOString()
-        });
-
-        // Registration complete
-        setIsCompleting(false);
+          updatedAt: new Date().toISOString(),
+          subscriptionStatus: 'active',
+          subscriptionPlan: 'free',
+          settings: {
+            notifications: true,
+            emailNotifications: true,
+            defaultLanguage: 'en',
+          }
+        }, { merge: true });
         
-        // Set up automatic redirect after 5 seconds
+        // Update user document to mark as active AI Provider
+        await setDoc(doc(db, 'users', user.uid), {
+          isAIProvider: true,
+          role: 'AI Provider',
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+        
+        // Force refresh the user's token to update claims
+        await user.getIdToken(true);
+        
+        // Show success message
+        toast({
+          title: 'Registration Complete!',
+          description: 'Your AI Provider account has been successfully created.',
+        });
+        
+        // Redirect to AI Provider dashboard after a short delay
         redirectTimer = setTimeout(() => {
           router.push('/ai-provider/dashboard');
-        }, 5000);
+        }, 3000);
         
-      } catch (err) {
-        console.error('Error completing registration:', err);
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      } catch (error) {
+        console.error('Error completing registration:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to complete registration. Please try again.',
+          variant: 'destructive',
+        });
+        setError('Failed to complete registration. Please try again.');
+      } finally {
         setIsCompleting(false);
       }
     };
-
+    
     completeRegistration();
     
     // Clean up the timer if the component unmounts
     return () => {
       if (redirectTimer) clearTimeout(redirectTimer);
     };
-  }, [providerData, user, router]);
+  }, [providerData, user, router, toast]);
 
   if (isLoading) {
     return (

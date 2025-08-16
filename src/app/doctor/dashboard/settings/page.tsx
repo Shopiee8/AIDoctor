@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -58,7 +57,6 @@ function removeUndefined(obj: any): any {
   return obj;
 }
 
-
 export default function DoctorSettingsPage() {
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
@@ -83,89 +81,218 @@ export default function DoctorSettingsPage() {
   useEffect(() => {
     if (!user) return;
     const fetchDoctor = async () => {
-      const docRef = doc(db, 'doctors', user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setDoctorData({ ...data, email: user.email, experience: data.experience || [] });
-        setAvatarUrl(data.image || user.photoURL || '');
-      } else {
-        setDoctorData({
-          name: user.displayName || '',
-          email: user.email || '',
-          phone: '',
-          gender: '',
-          dob: '',
-          bio: '',
-          clinicName: '',
-          clinicAddress: '',
-          pricing: '',
-          services: [],
-          specialization: [],
-          experience: [],
+      try {
+        const docRef = doc(db, 'doctors', user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setDoctorData({ 
+            ...data, 
+            email: user.email, 
+            experience: data.experience || [],
+            clinics: data.clinics || [],
+            education: data.education || []
+          });
+          setAvatarUrl(data.image || user.photoURL || '');
+        } else {
+          setDoctorData({
+            name: user.displayName || '',
+            email: user.email || '',
+            firstName: '',
+            lastName: '',
+            designation: '',
+            phone: '',
+            gender: '',
+            dob: '',
+            bio: '',
+            languages: [],
+            clinics: [],
+            education: [],
+            experience: [],
+            services: [],
+            specialization: [],
+            awards: [],
+            memberships: [],
+            insurance: [],
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching doctor data:', error);
+        toast({ 
+          title: 'Error', 
+          description: 'Failed to load profile data.', 
+          variant: 'destructive' 
         });
       }
     };
     fetchDoctor();
-  }, [user]);
+  }, [user, toast]);
 
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setDoctorData((prev: any) => ({ ...prev, [id]: value }));
   };
+  
   const handleSelectChange = (id: string, value: string) => {
     setDoctorData((prev: any) => ({ ...prev, [id]: value }));
   };
 
-  // Handle image upload
+  // Enhanced image upload with better error handling and validation
   const handleAvatarClick = () => {
-    fileInputRef.current?.click();
+    if (!isUploading) {
+      fileInputRef.current?.click();
+    }
   };
+
+  const validateImageFile = (file: File): string | null => {
+    // Check file size (2MB limit)
+    if (file.size > 2 * 1024 * 1024) {
+      return 'File size must be less than 2MB';
+    }
+    
+    // Check file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      return 'Only JPG, PNG, and GIF files are allowed';
+    }
+    
+    return null;
+  };
+
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0 || !user) {
       return;
     }
+    
     const file = event.target.files[0];
+    
+    // Validate file
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      toast({ 
+        title: 'Invalid File', 
+        description: validationError, 
+        variant: 'destructive' 
+      });
+      return;
+    }
+    
     setIsUploading(true);
+    
     try {
-      const storageRef = ref(storage, `doctor_images/${user.uid}`);
-      await uploadBytes(storageRef, file);
-      const photoURL = await getDownloadURL(storageRef);
+      // Create a unique filename to avoid caching issues
+      const timestamp = Date.now();
+      const storageRef = ref(storage, `doctor_images/${user.uid}_${timestamp}`);
+      
+      // Upload file
+      const uploadResult = await uploadBytes(storageRef, file);
+      const photoURL = await getDownloadURL(uploadResult.ref);
+      
+      // Update local state immediately for better UX
       setAvatarUrl(photoURL);
       setDoctorData((prev: any) => ({ ...prev, image: photoURL }));
+      
       // Update Firestore
-      await setDoc(doc(db, 'doctors', user.uid), { ...doctorData, image: photoURL }, { merge: true });
-      // Update auth profile
+      await setDoc(doc(db, 'doctors', user.uid), { 
+        ...doctorData, 
+        image: photoURL 
+      }, { merge: true });
+      
+      // Update Firebase Auth profile
       await updateProfile(user, { photoURL });
       await refreshUser();
-      toast({ title: 'Profile Image Updated', description: 'Your profile image has been updated.' });
+      
+      toast({ 
+        title: 'Success', 
+        description: 'Profile image updated successfully.' 
+      });
+      
+      // Dispatch event for other components
       window.dispatchEvent(new Event('doctor-profile-updated'));
+      
     } catch (error) {
       console.error('Error uploading file:', error);
-      toast({ title: 'Upload Error', description: 'Failed to upload new avatar.', variant: 'destructive' });
+      
+      // Revert local state on error
+      setAvatarUrl(user?.photoURL || '');
+      setDoctorData((prev: any) => ({ 
+        ...prev, 
+        image: user?.photoURL || '' 
+      }));
+      
+      toast({ 
+        title: 'Upload Failed', 
+        description: 'Failed to upload profile image. Please try again.', 
+        variant: 'destructive' 
+      });
     } finally {
       setIsUploading(false);
+      // Clear the input so the same file can be selected again if needed
+      if (event.target) {
+        event.target.value = '';
+      }
     }
   };
 
-  // Save doctor info
+  // Save doctor info with better error handling
   const handleSave = async () => {
     if (!user || !doctorData) return;
+    
     setIsSubmitting(true);
+    
     try {
-      // Clean insurance field if present
-      let cleanedDoctorData = { ...doctorData, image: avatarUrl };
+      // Validate required fields
+      const requiredFields = ['firstName', 'lastName', 'name', 'designation', 'phone'];
+      const missingFields = requiredFields.filter(field => !doctorData[field]?.trim());
+      
+      if (missingFields.length > 0) {
+        toast({ 
+          title: 'Missing Information', 
+          description: `Please fill in: ${missingFields.join(', ')}`, 
+          variant: 'destructive' 
+        });
+        return;
+      }
+      
+      // Clean and prepare data
+      let cleanedDoctorData = { 
+        ...doctorData, 
+        image: avatarUrl,
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Clean nested objects
       if (cleanedDoctorData.insurance) {
         cleanedDoctorData.insurance = removeUndefined(cleanedDoctorData.insurance);
       }
+      if (cleanedDoctorData.clinics) {
+        cleanedDoctorData.clinics = removeUndefined(cleanedDoctorData.clinics);
+      }
+      if (cleanedDoctorData.education) {
+        cleanedDoctorData.education = removeUndefined(cleanedDoctorData.education);
+      }
+      
       cleanedDoctorData = removeUndefined(cleanedDoctorData);
+      
+      // Save to Firestore
       await setDoc(doc(db, 'doctors', user.uid), cleanedDoctorData, { merge: true });
-      toast({ title: 'Profile Updated', description: 'Your profile information has been updated.' });
+      
+      toast({ 
+        title: 'Success', 
+        description: 'Profile updated successfully.' 
+      });
+      
+      // Dispatch event for other components
       window.dispatchEvent(new Event('doctor-profile-updated'));
+      
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast({ title: 'Error', description: 'Could not update your profile.', variant: 'destructive' });
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to update profile. Please try again.', 
+        variant: 'destructive' 
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -189,109 +316,213 @@ export default function DoctorSettingsPage() {
     try {
         await reauthenticateWithCredential(user, credential);
         await updatePassword(user, data.newPassword);
-        toast({ title: "Password Updated", description: "Your password has been changed successfully." });
+        toast({ title: "Success", description: "Password updated successfully." });
         passwordForm.reset();
     } catch (error: any) {
         console.error("Error updating password:", error);
-        toast({ title: "Error", description: "Failed to update password. Check your current password and try again.", variant: "destructive" });
+        let errorMessage = "Failed to update password. Please try again.";
+        
+        if (error.code === 'auth/wrong-password') {
+          errorMessage = "Current password is incorrect.";
+        } else if (error.code === 'auth/weak-password') {
+          errorMessage = "New password is too weak.";
+        }
+        
+        toast({ 
+          title: "Error", 
+          description: errorMessage, 
+          variant: "destructive" 
+        });
     } finally {
         setIsSubmitting(false);
     }
   }
 
-  // Add these handlers and helpers in the component:
+  // Clinic management functions
   const addClinic = () => {
-    setDoctorData((prev: any) => ({
-      ...prev,
-      clinics: [...(prev.clinics || []), { id: uuidv4(), name: '', location: '', address: '', logo: '', gallery: [] }],
-    }));
-    updateClinicsToFirestore([...(doctorData?.clinics || []), { id: uuidv4(), name: '', location: '', address: '', logo: '', gallery: [] }]);
+    const newClinic = { 
+      id: uuidv4(), 
+      name: '', 
+      location: '', 
+      address: '', 
+      logo: '', 
+      gallery: [] 
+    };
+    const newClinics = [...(doctorData?.clinics || []), newClinic];
+    setDoctorData((prev: any) => ({ ...prev, clinics: newClinics }));
+    updateClinicsToFirestore(newClinics);
   };
+
   const removeClinic = (id: string) => {
     const newClinics = (doctorData?.clinics || []).filter((c: any) => c.id !== id);
     setDoctorData((prev: any) => ({ ...prev, clinics: newClinics }));
     updateClinicsToFirestore(newClinics);
   };
+
   const updateClinicField = (id: string, field: string, value: any) => {
-    const newClinics = (doctorData?.clinics || []).map((c: any) => c.id === id ? { ...c, [field]: value } : c);
+    const newClinics = (doctorData?.clinics || []).map((c: any) => 
+      c.id === id ? { ...c, [field]: value } : c
+    );
     setDoctorData((prev: any) => ({ ...prev, clinics: newClinics }));
     updateClinicsToFirestore(newClinics);
   };
+
   const handleClinicLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, id: string) => {
     if (!e.target.files || e.target.files.length === 0 || !user) return;
+    
     const file = e.target.files[0];
-    const storageRef = ref(storage, `doctor_clinics/${user.uid}/${id}/logo`);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    updateClinicField(id, 'logo', url);
-  };
-  const handleClinicGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>, id: string) => {
-    if (!e.target.files || !user) return;
-    const files = Array.from(e.target.files);
-    const urls: string[] = [];
-    for (const file of files) {
-      const storageRef = ref(storage, `doctor_clinics/${user.uid}/${id}/gallery/${uuidv4()}`);
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      toast({ title: 'Invalid File', description: validationError, variant: 'destructive' });
+      return;
+    }
+    
+    try {
+      const timestamp = Date.now();
+      const storageRef = ref(storage, `doctor_clinics/${user.uid}/${id}/logo_${timestamp}`);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
-      urls.push(url);
+      updateClinicField(id, 'logo', url);
+      toast({ title: 'Success', description: 'Clinic logo uploaded successfully.' });
+    } catch (error) {
+      console.error('Error uploading clinic logo:', error);
+      toast({ title: 'Error', description: 'Failed to upload clinic logo.', variant: 'destructive' });
     }
-    const clinic = (doctorData?.clinics || []).find((c: any) => c.id === id);
-    updateClinicField(id, 'gallery', [...(clinic?.gallery || []), ...urls]);
   };
+
+  const handleClinicGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>, id: string) => {
+    if (!e.target.files || !user) return;
+    
+    const files = Array.from(e.target.files);
+    const urls: string[] = [];
+    
+    try {
+      for (const file of files) {
+        const validationError = validateImageFile(file);
+        if (validationError) {
+          toast({ title: 'Invalid File', description: `${file.name}: ${validationError}`, variant: 'destructive' });
+          continue;
+        }
+        
+        const timestamp = Date.now();
+        const storageRef = ref(storage, `doctor_clinics/${user.uid}/${id}/gallery/${timestamp}_${uuidv4()}`);
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        urls.push(url);
+      }
+      
+      if (urls.length > 0) {
+        const clinic = (doctorData?.clinics || []).find((c: any) => c.id === id);
+        updateClinicField(id, 'gallery', [...(clinic?.gallery || []), ...urls]);
+        toast({ title: 'Success', description: `${urls.length} image(s) uploaded successfully.` });
+      }
+    } catch (error) {
+      console.error('Error uploading clinic gallery:', error);
+      toast({ title: 'Error', description: 'Failed to upload gallery images.', variant: 'destructive' });
+    }
+  };
+
   const removeClinicGalleryImage = (id: string, img: string) => {
     const clinic = (doctorData?.clinics || []).find((c: any) => c.id === id);
     if (!clinic) return;
     const newGallery = (clinic.gallery || []).filter((g: string) => g !== img);
     updateClinicField(id, 'gallery', newGallery);
   };
+
   const updateClinicsToFirestore = async (clinics: any[]) => {
     if (!user) return;
-    await setDoc(doc(db, 'doctors', user.uid), { clinics }, { merge: true });
-    window.dispatchEvent(new Event('doctor-profile-updated'));
+    try {
+      await setDoc(doc(db, 'doctors', user.uid), { clinics }, { merge: true });
+      window.dispatchEvent(new Event('doctor-profile-updated'));
+    } catch (error) {
+      console.error('Error updating clinics:', error);
+    }
   };
 
+  // Education management functions
   const addEducation = () => {
-    setDoctorData((prev: any) => ({
-      ...prev,
-      education: [...(prev.education || []), { id: uuidv4(), institution: '', course: '', startDate: '', endDate: '', years: '', description: '', logo: '' }],
-    }));
-    updateEducationToFirestore([...(doctorData?.education || []), { id: uuidv4(), institution: '', course: '', startDate: '', endDate: '', years: '', description: '', logo: '' }]);
+    const newEducation = { 
+      id: uuidv4(), 
+      institution: '', 
+      course: '', 
+      startDate: '', 
+      endDate: '', 
+      years: '', 
+      description: '', 
+      logo: '' 
+    };
+    const newEducationList = [...(doctorData?.education || []), newEducation];
+    setDoctorData((prev: any) => ({ ...prev, education: newEducationList }));
+    updateEducationToFirestore(newEducationList);
   };
+
   const removeEducation = (id: string) => {
     const newEducation = (doctorData?.education || []).filter((e: any) => e.id !== id);
     setDoctorData((prev: any) => ({ ...prev, education: newEducation }));
     updateEducationToFirestore(newEducation);
   };
+
   const updateEducationField = (id: string, field: string, value: any) => {
-    const newEducation = (doctorData?.education || []).map((e: any) => e.id === id ? { ...e, [field]: value } : e);
+    const newEducation = (doctorData?.education || []).map((e: any) => 
+      e.id === id ? { ...e, [field]: value } : e
+    );
     setDoctorData((prev: any) => ({ ...prev, education: newEducation }));
     updateEducationToFirestore(newEducation);
   };
+
   const handleEducationLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, id: string) => {
     if (!e.target.files || e.target.files.length === 0 || !user) return;
+    
     const file = e.target.files[0];
-    const storageRef = ref(storage, `doctor_education/${user.uid}/${id}/logo`);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    updateEducationField(id, 'logo', url);
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      toast({ title: 'Invalid File', description: validationError, variant: 'destructive' });
+      return;
+    }
+    
+    try {
+      const timestamp = Date.now();
+      const storageRef = ref(storage, `doctor_education/${user.uid}/${id}/logo_${timestamp}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      updateEducationField(id, 'logo', url);
+      toast({ title: 'Success', description: 'Education logo uploaded successfully.' });
+    } catch (error) {
+      console.error('Error uploading education logo:', error);
+      toast({ title: 'Error', description: 'Failed to upload education logo.', variant: 'destructive' });
+    }
   };
+
   const updateEducationToFirestore = async (education: any[]) => {
     if (!user) return;
-    // Clean the education array before saving
-    const cleanedEducation = removeUndefined(
-      education.map(e => ({
-        ...e,
-        logoPreview: undefined,
-        isExpanded: undefined,
-        // If your UI uses File objects for logo, remove or convert to string
-        logo: typeof e.logo === 'string' ? e.logo : undefined,
-        startDate: e.startDate ? e.startDate : null,
-        endDate: e.endDate ? e.endDate : null,
-      }))
-    );
-    await setDoc(doc(db, 'doctors', user.uid), { education: cleanedEducation }, { merge: true });
-    window.dispatchEvent(new Event('doctor-profile-updated'));
+    try {
+      // Clean the education array before saving
+      const cleanedEducation = removeUndefined(
+        education.map(e => ({
+          ...e,
+          logoPreview: undefined,
+          isExpanded: undefined,
+          // Ensure logo is a string URL, not a File object
+          logo: typeof e.logo === 'string' ? e.logo : undefined,
+          startDate: e.startDate ? e.startDate : null,
+          endDate: e.endDate ? e.endDate : null,
+        }))
+      );
+      await setDoc(doc(db, 'doctors', user.uid), { education: cleanedEducation }, { merge: true });
+      window.dispatchEvent(new Event('doctor-profile-updated'));
+    } catch (error) {
+      console.error('Error updating education:', error);
+    }
   };
+
+  // Show loading state while data is being fetched
+  if (!doctorData) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -322,56 +553,123 @@ export default function DoctorSettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center gap-4">
-                <Avatar className="h-24 w-24 cursor-pointer" onClick={handleAvatarClick}>
-                  <AvatarImage src={avatarUrl} />
-                  <AvatarFallback>{doctorData?.name?.charAt(0) || ''}</AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <Avatar 
+                    className={`h-24 w-24 cursor-pointer transition-opacity ${isUploading ? 'opacity-50' : 'hover:opacity-80'}`} 
+                    onClick={handleAvatarClick}
+                  >
+                    <AvatarImage src={avatarUrl} />
+                    <AvatarFallback>
+                      {doctorData?.name?.charAt(0) || doctorData?.firstName?.charAt(0) || 'D'}
+                    </AvatarFallback>
+                  </Avatar>
+                  {isUploading && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    </div>
+                  )}
+                </div>
                 <div className="space-y-2">
-                  <Button asChild>
-                    <label htmlFor="avatar-upload"><Upload className="mr-2 h-4 w-4" /> Change Photo</label>
+                  <Button 
+                    asChild 
+                    disabled={isUploading}
+                    className={isUploading ? 'opacity-50 cursor-not-allowed' : ''}
+                  >
+                    <label htmlFor="avatar-upload" className="cursor-pointer">
+                      <Upload className="mr-2 h-4 w-4" /> 
+                      {isUploading ? 'Uploading...' : 'Change Photo'}
+                    </label>
                   </Button>
-                  <input id="avatar-upload" type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*" />
-                  <p className="text-xs text-muted-foreground">Allowed JPG, GIF or PNG. Max size of 2MB</p>
+                  <input 
+                    id="avatar-upload" 
+                    type="file" 
+                    className="hidden" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                    accept="image/jpeg,image/jpg,image/png,image/gif"
+                    disabled={isUploading}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Allowed JPG, PNG or GIF. Max size of 2MB
+                  </p>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="form-wrap">
-                  <Label htmlFor="firstName">First Name <span className="text-danger">*</span></Label>
-                  <Input id="firstName" value={doctorData?.firstName || ''} onChange={handleInputChange} />
+                  <Label htmlFor="firstName">First Name <span className="text-red-500">*</span></Label>
+                  <Input 
+                    id="firstName" 
+                    value={doctorData?.firstName || ''} 
+                    onChange={handleInputChange}
+                    placeholder="Enter first name"
+                  />
                 </div>
                 <div className="form-wrap">
-                  <Label htmlFor="lastName">Last Name <span className="text-danger">*</span></Label>
-                  <Input id="lastName" value={doctorData?.lastName || ''} onChange={handleInputChange} />
+                  <Label htmlFor="lastName">Last Name <span className="text-red-500">*</span></Label>
+                  <Input 
+                    id="lastName" 
+                    value={doctorData?.lastName || ''} 
+                    onChange={handleInputChange}
+                    placeholder="Enter last name"
+                  />
                 </div>
                 <div className="form-wrap">
-                  <Label htmlFor="name">Display Name <span className="text-danger">*</span></Label>
-                  <Input id="name" value={doctorData?.name || ''} onChange={handleInputChange} />
+                  <Label htmlFor="name">Display Name <span className="text-red-500">*</span></Label>
+                  <Input 
+                    id="name" 
+                    value={doctorData?.name || ''} 
+                    onChange={handleInputChange}
+                    placeholder="Enter display name"
+                  />
                 </div>
                 <div className="form-wrap">
-                  <Label htmlFor="designation">Designation <span className="text-danger">*</span></Label>
-                  <Input id="designation" value={doctorData?.designation || ''} onChange={handleInputChange} />
+                  <Label htmlFor="designation">Designation <span className="text-red-500">*</span></Label>
+                  <Input 
+                    id="designation" 
+                    value={doctorData?.designation || ''} 
+                    onChange={handleInputChange}
+                    placeholder="e.g. Cardiologist"
+                  />
                 </div>
                 <div className="form-wrap">
-                  <Label htmlFor="phone">Phone Number <span className="text-danger">*</span></Label>
-                  <Input id="phone" type="tel" value={doctorData?.phone || ''} onChange={handleInputChange} />
+                  <Label htmlFor="phone">Phone Number <span className="text-red-500">*</span></Label>
+                  <Input 
+                    id="phone" 
+                    type="tel" 
+                    value={doctorData?.phone || ''} 
+                    onChange={handleInputChange}
+                    placeholder="Enter phone number"
+                  />
                 </div>
                 <div className="form-wrap">
-                  <Label htmlFor="email">Email Address <span className="text-danger">*</span></Label>
-                  <Input id="email" type="email" value={doctorData?.email || ''} disabled />
+                  <Label htmlFor="email">Email Address <span className="text-red-500">*</span></Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={doctorData?.email || ''} 
+                    disabled 
+                    className="bg-muted"
+                  />
                 </div>
                 <div className="form-wrap md:col-span-3">
-                  <Label htmlFor="languages">Known Languages <span className="text-danger">*</span></Label>
+                  <Label htmlFor="languages">Known Languages <span className="text-red-500">*</span></Label>
                   <TagsInput
                     value={doctorData?.languages || []}
                     onChange={(langs) => setDoctorData((prev: any) => ({ ...prev, languages: langs }))}
                     name="languages"
-                    placeHolder="Type"
+                    placeHolder="Type and press enter"
                   />
                 </div>
               </div>
               <div className="grid gap-2 md:col-span-2">
                 <Label htmlFor="bio">Biography</Label>
-                <Textarea id="bio" value={doctorData?.bio || ''} onChange={handleInputChange} rows={5} />
+                <Textarea 
+                  id="bio" 
+                  value={doctorData?.bio || ''} 
+                  onChange={handleInputChange} 
+                  rows={5}
+                  placeholder="Tell patients about yourself, your experience, and what makes you unique..."
+                />
               </div>
             </CardContent>
           </Card>
@@ -419,6 +717,7 @@ export default function DoctorSettingsPage() {
                             <Label>Name of the institution</Label>
                             <Input value={edu.institution || ''} onChange={e => updateEducationField(edu.id, 'institution', e.target.value)} className="mt-1" />
                           </div>
+                
                           <div>
                             <Label>Course</Label>
                             <Input value={edu.course || ''} onChange={e => updateEducationField(edu.id, 'course', e.target.value)} className="mt-1" />
@@ -655,7 +954,10 @@ export default function DoctorSettingsPage() {
 
       </Tabs>
       <div className="flex justify-end mt-6">
-        <Button size="lg" onClick={handleSave} disabled={isSubmitting}>{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Save Changes</Button>
+        <Button size="lg" onClick={handleSave} disabled={isSubmitting}>
+          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Save Changes
+        </Button>
       </div>
     </div>
   );

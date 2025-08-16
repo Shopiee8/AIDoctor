@@ -8,8 +8,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 
 export default function AiProviderRegisterPage() {
     const { signUp } = useAuth();
@@ -26,11 +29,13 @@ export default function AiProviderRegisterPage() {
         setError(null);
 
         try {
+            // Sign up the user - the signUp function handles user creation and document setup
             await signUp(email, password, 'AI Provider', {
                 displayName: email.split('@')[0]
             });
             
-            // Redirect to step 2 after successful signup
+            // The signUp function will have created the user and set up the necessary documents
+            // Now we just need to redirect to step 2
             router.push('/ai-provider-register/step-2');
         } catch (err) {
             console.error('Error during signup:', err);

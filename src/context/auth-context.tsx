@@ -15,7 +15,7 @@ interface AuthContextType {
   signUp: (email: string, pass: string, role: string, additionalData?: { displayName?: string }) => Promise<void>;
   googleSignIn: () => Promise<void>;
   signOut: () => Promise<void>;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<{ user: User | null; role: string | null }>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,22 +53,69 @@ async function seedDoctorsCollection() {
 // Function to get user role from Firestore
 async function getUserRole(userId: string): Promise<string | null> {
     try {
+        // First check the users collection where we store the role
+        const userDoc = await getDoc(doc(db, 'users', userId));
+        if (userDoc.exists()) {
+            // If we have a role stored in the user document, use that
+            const userData = userDoc.data();
+            if (userData.role) {
+                // If role exists but may be incorrect, verify against collections
+                let currentRole: string = userData.role;
+                const doctorDoc = await getDoc(doc(db, 'doctors', userId));
+                const aiProviderDoc = await getDoc(doc(db, 'aiProviders', userId));
+                const adminDoc = await getDoc(doc(db, 'admins', userId));
+
+                if (doctorDoc.exists() && currentRole !== 'Doctor') {
+                    currentRole = 'Doctor';
+                } else if (aiProviderDoc.exists() && currentRole !== 'AI Provider') {
+                    currentRole = 'AI Provider';
+                } else if (adminDoc.exists() && currentRole !== 'Admin') {
+                    currentRole = 'Admin';
+                }
+
+                // If corrected role differs, persist the fix
+                if (currentRole !== userData.role) {
+                    await setDoc(doc(db, 'users', userId), { role: currentRole }, { merge: true });
+                }
+                return currentRole;
+            }
+            // Fall back to checking specific role collections
+            if (userData.isAIProvider) {
+                return 'AI Provider';
+            }
+            // Probe collections to infer role and persist
+            const doctorDoc = await getDoc(doc(db, 'doctors', userId));
+            if (doctorDoc.exists()) {
+                await setDoc(doc(db, 'users', userId), { role: 'Doctor' }, { merge: true });
+                return 'Doctor';
+            }
+            const aiProviderDoc = await getDoc(doc(db, 'aiProviders', userId));
+            if (aiProviderDoc.exists()) {
+                await setDoc(doc(db, 'users', userId), { role: 'AI Provider' }, { merge: true });
+                return 'AI Provider';
+            }
+            const adminDoc = await getDoc(doc(db, 'admins', userId));
+            if (adminDoc.exists()) {
+                await setDoc(doc(db, 'users', userId), { role: 'Admin' }, { merge: true });
+                return 'Admin';
+            }
+            return 'Patient'; // Default role
+        }
+
+        // For backward compatibility, check the old role collections
         const doctorDoc = await getDoc(doc(db, 'doctors', userId));
         if (doctorDoc.exists()) return 'Doctor';
 
-        const aiProviderDoc = await getDoc(doc(db, 'ai-providers', userId));
+        const aiProviderDoc = await getDoc(doc(db, 'aiProviders', userId));
         if (aiProviderDoc.exists()) return 'AI Provider';
 
         const adminDoc = await getDoc(doc(db, 'admins', userId));
         if (adminDoc.exists()) return 'Admin';
 
-        const userDoc = await getDoc(doc(db, 'users', userId));
-        if (userDoc.exists()) return 'Patient';
-
-        return null;
+        return 'Patient'; // Default role if no document exists
     } catch (error) {
         console.error('Error getting user role:', error);
-        return null;
+        return 'Patient'; // Default to Patient on error
     }
 }
 
@@ -81,76 +128,153 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      let role = null;
-      let registrationComplete = false;
-      
-      if (currentUser) {
-        setUser(currentUser);
-        role = await getUserRole(currentUser.uid);
-        setUserRole(role);
+      try {
+        let role = 'Patient'; // Default role
+        let registrationComplete = false;
         
-        // Check if this is an AI Provider with incomplete registration
-        if (role === 'AI Provider') {
-          const tempAiProviderDoc = await getDoc(doc(db, 'temp-ai-providers', currentUser.uid));
-          if (tempAiProviderDoc.exists()) {
-            registrationComplete = tempAiProviderDoc.data()?.registrationComplete === true;
+        if (currentUser) {
+          setUser(currentUser);
+          
+          // Get the user's role from Firestore
+          role = await getUserRole(currentUser.uid) || 'Patient';
+          setUserRole(role);
+          
+          // Only redirect if we're not already on a page for this role (case-insensitive comparison)
+          const normalizedRole = role.toLowerCase();
+          const currentPath = window.location.pathname;
+          const shouldRedirect = 
+            (normalizedRole === 'doctor' && !currentPath.startsWith('/doctor')) ||
+            (normalizedRole === 'ai provider' && !currentPath.startsWith('/ai-provider')) ||
+            (normalizedRole === 'admin' && !currentPath.startsWith('/admin')) ||
+            (normalizedRole === 'patient' && !currentPath.startsWith('/dashboard') && currentPath !== '/');
+            
+          if (shouldRedirect) {
+            if (normalizedRole === 'doctor') {
+              router.push('/doctor/dashboard');
+            } else if (normalizedRole === 'ai provider') {
+              router.push('/ai-provider/dashboard');
+            } else if (normalizedRole === 'admin') {
+              router.push('/admin/dashboard');
+            } else {
+              router.push('/dashboard');
+            }
           }
+          
+          // Get the user's role with a default value
+          const userRole = await getUserRole(currentUser.uid);
+          role = userRole || 'Patient'; // Ensure role is never null
+          setUserRole(role);
+          
+          // For AI Providers, check if registration is complete
+          if (role === 'AI Provider') {
+            const aiProviderDoc = await getDoc(doc(db, 'aiProviders', currentUser.uid));
+            registrationComplete = aiProviderDoc.exists() && aiProviderDoc.data()?.registrationComplete !== false;
+            
+            // If registration is complete, ensure the user document is up to date
+            if (registrationComplete) {
+              await setDoc(doc(db, 'users', currentUser.uid), {
+                role: 'AI Provider',
+                isAIProvider: true,
+                updatedAt: new Date().toISOString()
+              }, { merge: true });
+            }
+          }
+        } else {
+          setUser(null);
+          setUserRole(null);
         }
-      } else {
-        setUser(null);
-        setUserRole(null);
-      }
-      setLoading(false);
 
-      // --- Redirection Logic ---
-      // Only redirect if the user is on an auth page and has completed registration
-      const loginPages = ['/login', '/register', '/admin/login'];
-      const isAuthPage = loginPages.includes(pathname) || 
-                         pathname.startsWith('/patient-register') || 
-                         pathname.startsWith('/doctor-register') || 
-                         pathname.startsWith('/ai-provider-register');
+        // --- Redirection Logic ---
+        // Skip redirection if we're on the become-provider page or in a registration flow
+        const isSpecialPage = 
+          pathname === '/dashboard/become-provider' ||
+          pathname.startsWith('/ai-provider-register') ||
+          pathname.startsWith('/patient-register') ||
+          pathname.startsWith('/doctor-register');
 
-      if (currentUser && isAuthPage) {
-        // If this is an AI Provider with incomplete registration, stay on the registration flow
-        if (role === 'AI Provider' && !registrationComplete) {
-          // Only redirect to step-1 if we're not already in the registration flow
-          if (!pathname.startsWith('/ai-provider-register')) {
-            router.push('/ai-provider-register/step-1');
-          }
+        if (isSpecialPage) {
+          setLoading(false);
           return;
         }
 
-        // Otherwise, proceed with normal redirection
-        switch (role) {
-          case 'Patient':
-            router.push('/dashboard');
-            break;
-          case 'Doctor':
+        // Only redirect if the user is on an auth page and has completed registration
+        const loginPages = ['/login', '/register', '/admin/login'];
+        const isAuthPage = loginPages.includes(pathname);
+
+        if (currentUser && isAuthPage) {
+          const normalizedRole = role.toLowerCase();
+          
+          // If this is an AI Provider with incomplete registration, redirect to registration
+          if (normalizedRole === 'ai provider' && !registrationComplete) {
+            router.push('/ai-provider-register/step-1');
+            return;
+          }
+
+          // Otherwise, proceed with normal redirection (case-insensitive comparison)
+          if (normalizedRole === 'doctor') {
             router.push('/doctor/dashboard');
-            break;
-          case 'AI Provider':
+          } else if (normalizedRole === 'ai provider') {
             router.push('/ai-provider/dashboard');
-            break;
-          case 'Admin':
+          } else if (normalizedRole === 'admin') {
             router.push('/admin/dashboard');
-            break;
-          default:
-            // If user is logged in but has no role or is in a registration flow,
-            // but not on the right page, send them to home.
-            if (!pathname.startsWith('/patient-register') && 
-                !pathname.startsWith('/doctor-register') && 
-                !pathname.startsWith('/ai-provider-register')) {
-              router.push('/');
-            }
+          } else if (normalizedRole === 'patient') {
+            router.push('/dashboard');
+          } else {
+            // If user is logged in but has no recognized role, send them to home
+            router.push('/');
+          }
         }
+      } catch (error) {
+        console.error('Error in auth state change:', error);
+        // Don't get stuck in loading state if there's an error
+        setLoading(false);
+      } finally {
+        // Ensure loading is set to false after all operations
+        setLoading(false);
       }
     });
     return () => unsubscribe();
   }, [pathname, router]);
 
   const signIn = async (email: string, pass: string) => {
-    const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-    return userCredential.user;
+    console.log('Sign in attempt with email:', email);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+      const { user } = userCredential;
+      console.log('Firebase auth successful, user ID:', user.uid);
+      
+      // Get the user's role after successful sign-in
+      const role = await getUserRole(user.uid);
+      console.log('Retrieved user role:', role);
+      
+      // Update the local state with the user's role
+      if (role) {
+        const normalizedRole = role.toLowerCase();
+        console.log('Normalized role:', normalizedRole);
+        setUserRole(role);
+        
+        // Redirect based on role (case-insensitive comparison)
+        let redirectPath = '/dashboard'; // Default path
+        if (normalizedRole === 'doctor') {
+          redirectPath = '/doctor/dashboard';
+        } else if (normalizedRole === 'ai provider') {
+          redirectPath = '/ai-provider/dashboard';
+        } else if (normalizedRole === 'admin') {
+          redirectPath = '/admin/dashboard';
+        }
+        
+        console.log('Redirecting to:', redirectPath);
+        router.push(redirectPath);
+      } else {
+        console.warn('No role found for user, defaulting to patient dashboard');
+        router.push('/dashboard');
+      }
+      
+      return user;
+    } catch (error) {
+      console.error('Error during sign in:', error);
+      throw error; // Re-throw to be handled by the login form
+    }
   };
   
   const signUp = async (email: string, password: string, role: string, additionalData: { displayName?: string } = {}): Promise<void> => {
@@ -179,13 +303,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         createdAt: new Date().toISOString(),
       };
 
-      // Add to appropriate collection based on role
+      // Always create a user document in the users collection for authentication
+      await setDoc(doc(db, 'users', user.uid), {
+        ...userData,
+        // For AI Providers, we'll mark this specially
+        isAIProvider: role === 'AI Provider',
+        // Store the role in the user document for quick lookups
+        role: role
+      });
+
+      // Add to role-specific collections
       if (role === 'Doctor') {
         await setDoc(doc(db, 'doctors', user.uid), userData);
       } else if (role === 'AI Provider') {
-        // For AI providers, we'll mark registration as incomplete
-        // and store the initial data in a temporary collection
-        await setDoc(doc(db, 'temp-ai-providers', user.uid), {
+        // For AI providers, create a document in the aiProviders collection
+        await setDoc(doc(db, 'aiProviders', user.uid), {
           ...userData,
           registrationComplete: false,
           registrationStep: 1,
@@ -193,9 +325,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
       } else if (role === 'Admin') {
         await setDoc(doc(db, 'admins', user.uid), userData);
-      } else {
-        // Default to patient
-        await setDoc(doc(db, 'users', user.uid), userData);
       }
 
       // Update local state
@@ -230,11 +359,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshUser = async () => {
     if (auth.currentUser) {
+      // Force a token refresh to get the latest claims
+      await auth.currentUser.getIdToken(true);
+      
+      // Reload the user to get the latest data
       await auth.currentUser.reload();
       setUser({ ...auth.currentUser });
+      
+      // Get the latest role from Firestore
       const role = await getUserRole(auth.currentUser.uid);
-      setUserRole(role);
+      setUserRole(role || 'Patient');
+      
+      // Return the updated user and role
+      return { user: auth.currentUser, role: role || 'Patient' };
     }
+    return { user: null, role: null };
   };
 
   return (
